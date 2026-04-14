@@ -10,8 +10,9 @@ export default function LoginPage() {
           className="pointer-events-none absolute inset-0 bg-no-repeat opacity-70"
           style={{
             backgroundImage: "url('/brand/world.svg')",
-            backgroundSize: "auto 120%",
-            backgroundPosition: "-60% center",
+            backgroundSize: "cover",
+            backgroundPosition: "15% center",
+            backgroundRepeat: "no-repeat",
           }}
         />
         <div className="relative flex items-center gap-4">
