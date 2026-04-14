@@ -57,7 +57,7 @@ export default function LoginPage() {
               Red internacional
             </span>
             <span className="text-[12px] text-humana-ink">
-              Madrid · Nueva York · Singapur · Ciudad de México
+              Miami · Buenos Aires · CDMX · Madrid · São Paulo
             </span>
           </div>
           <span className="text-[10px] font-medium tracking-[0.24em] text-humana-subtle">
@@ -104,8 +104,8 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
-              defaultValue="contacto@hotelpremium.com"
-              className="border-b border-humana-ink bg-transparent py-3 text-[14px] text-humana-ink outline-none focus:border-humana-gold"
+              placeholder="tucorreo@empresa.com"
+              className="border-b border-humana-ink bg-transparent py-3 text-[14px] text-humana-ink outline-none placeholder:text-humana-subtle focus:border-humana-gold"
             />
           </div>
 
@@ -128,8 +128,8 @@ export default function LoginPage() {
               <input
                 id="password"
                 type="password"
-                defaultValue="demopassword"
-                className="flex-1 bg-transparent text-[16px] tracking-[0.3em] text-humana-ink outline-none"
+                placeholder="••••••••"
+                className="flex-1 bg-transparent text-[16px] tracking-[0.3em] text-humana-ink outline-none placeholder:text-humana-subtle"
               />
               <svg
                 width="16"
@@ -178,7 +178,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div>
+        <div className="flex justify-center">
           <span className="text-[11px] text-humana-muted">
             ¿Tu organización desea integrarse?{" "}
             <a
