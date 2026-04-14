@@ -5,13 +5,14 @@ export default function LoginPage() {
     <main className="flex min-h-screen w-full flex-row">
       {/* Brand panel */}
       <section className="relative hidden lg:flex w-[44%] max-w-[640px] flex-col justify-between overflow-hidden bg-humana-stone px-16 py-16">
-        <Image
-          src="/brand/world.svg"
-          alt=""
+        <div
           aria-hidden="true"
-          fill
-          priority
-          className="pointer-events-none select-none object-cover object-[-30%_center] opacity-70"
+          className="pointer-events-none absolute inset-0 bg-no-repeat opacity-70"
+          style={{
+            backgroundImage: "url('/brand/world.svg')",
+            backgroundSize: "auto 120%",
+            backgroundPosition: "-60% center",
+          }}
         />
         <div className="relative flex items-center gap-4">
           <Image
