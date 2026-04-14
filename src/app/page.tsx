@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -158,8 +159,8 @@ export default function LoginPage() {
             </span>
           </label>
 
-          <button
-            type="submit"
+          <Link
+            href="/dashboard"
             className="group flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
           >
             Acceder a la plataforma
@@ -176,7 +177,7 @@ export default function LoginPage() {
             >
               <path d="M1 5h14M10 1l4 4-4 4" />
             </svg>
-          </button>
+          </Link>
         </form>
 
         <div className="flex justify-center">
