@@ -1,67 +1,18 @@
+"use client";
+
 import Image from "next/image";
+import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
+import type { Retreat } from "@/i18n/dictionary";
 
-type Retreat = {
-  slug: string;
-  image: string;
-  tag: string;
-  location: string;
-  dates: string;
-  title: string;
-  property: string;
-  description: string;
-  price: string;
-  commission: string;
-};
+type MarkerKey = "usa" | "mexico" | "brazil" | "spain" | "india" | "indonesia";
 
-const retreats: Retreat[] = [
-  {
-    slug: "silencio-mediterraneo",
-    image: "/images/retreat-ibiza.jpg",
-    tag: "Retiro · 7 noches",
-    location: "Ibiza · España",
-    dates: "12 — 19 may",
-    title: "Silencio Mediterráneo",
-    property: "Casa del Faro",
-    description:
-      "Respiración consciente, ayuno guiado y sesiones de meditación en acantilado. Programa certificado por Global Wellness Institute.",
-    price: "$ 5,240",
-    commission: "Comisión 12%",
-  },
-  {
-    slug: "raiz-y-ceremonia",
-    image: "/images/retreat-tulum.jpg",
-    tag: "Masterclass · 4 días",
-    location: "Tulum · México",
-    dates: "28 may — 1 jun",
-    title: "Raíz y Ceremonia",
-    property: "Hotel Itzamná",
-    description:
-      "Inmersión en medicina ancestral maya, yoga al amanecer y círculos de cacao guiados por facilitadores certificados.",
-    price: "$ 3,460",
-    commission: "Comisión 15%",
-  },
-  {
-    slug: "liderazgo-consciente",
-    image: "/images/retreat-singapore.jpg",
-    tag: "Corporativo · 3 días",
-    location: "Singapur",
-    dates: "9 — 12 jun",
-    title: "Liderazgo Consciente",
-    property: "Marina Bay Sanctuary",
-    description:
-      "Retiro ejecutivo para equipos directivos. Coaching somático, sesiones estratégicas y espacios de integración vertical.",
-    price: "$ 6,910",
-    commission: "Comisión 10%",
-  },
-];
-
-const markers = [
-  { country: "United States", count: 5, x: "18%", y: "33%" },
-  { country: "México", count: 3, x: "19%", y: "47%" },
-  { country: "Brasil", count: 1, x: "30%", y: "64%" },
-  { country: "España", count: 2, x: "47%", y: "32%" },
-  { country: "India", count: 2, x: "65%", y: "48%" },
-  { country: "Indonesia", count: 2, x: "76%", y: "65%" },
+const markers: { key: MarkerKey; count: number; x: string; y: string }[] = [
+  { key: "usa", count: 5, x: "18%", y: "33%" },
+  { key: "mexico", count: 3, x: "19%", y: "47%" },
+  { key: "brazil", count: 1, x: "30%", y: "64%" },
+  { key: "spain", count: 2, x: "47%", y: "32%" },
+  { key: "india", count: 2, x: "65%", y: "48%" },
+  { key: "indonesia", count: 2, x: "76%", y: "65%" },
 ];
 
 export default function AgencyDashboard() {
@@ -76,7 +27,8 @@ export default function AgencyDashboard() {
 }
 
 function TopNav() {
-  const links = ["Descubrir", "Reservas", "Mis clientes", "Comisiones"];
+  const { t } = useLocale();
+  const links = [t.nav.discover, t.nav.bookings, t.nav.clients, t.nav.commissions];
   return (
     <nav className="flex items-center justify-between border-b border-humana-line px-16 py-6">
       <div className="flex items-center gap-3.5">
@@ -111,9 +63,7 @@ function TopNav() {
         ))}
       </div>
       <div className="flex items-center gap-5">
-        <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-humana-muted">
-          ES
-        </span>
+        <LanguageSwitcher />
         <span className="h-3.5 w-px bg-[#D8D4C8]" />
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-humana-stone">
@@ -123,10 +73,10 @@ function TopNav() {
           </div>
           <div className="flex flex-col">
             <span className="text-[12px] font-medium text-humana-ink">
-              Viajes Éter
+              {t.nav.agencyName}
             </span>
             <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-humana-subtle">
-              Agencia · Madrid
+              {t.nav.agencyMeta}
             </span>
           </div>
         </div>
@@ -136,23 +86,23 @@ function TopNav() {
 }
 
 function Hero() {
+  const { t } = useLocale();
   return (
     <section className="flex flex-col gap-10 px-16 pt-20 pb-10">
       <div className="flex max-w-[820px] flex-col gap-5">
         <div className="flex items-center gap-3.5">
           <span className="h-px w-7 bg-humana-gold" />
           <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-humana-gold">
-            Red global · Temporada 2026
+            {t.hero.eyebrow}
           </span>
         </div>
         <h1 className="text-[48px] font-light leading-[56px] tracking-[-0.02em] text-humana-ink">
-          Diseña el próximo viaje
+          {t.hero.headline[0]}
           <br />
-          transformador de tu cliente.
+          {t.hero.headline[1]}
         </h1>
         <p className="max-w-[620px] text-[14px] leading-[22px] text-[#4A463E]">
-          Acceso curado a hoteles wellness certificados, retiros con propósito y
-          masterclasses internacionales. Comisión transparente en cada reserva.
+          {t.hero.subhead}
         </p>
       </div>
       <SearchBar />
@@ -161,11 +111,12 @@ function Hero() {
 }
 
 function SearchBar() {
+  const { t } = useLocale();
   return (
     <div className="flex items-stretch border border-humana-ink">
       <SearchField
-        label="Destino"
-        value="Ciudad, país o propiedad"
+        label={t.search.destination}
+        value={t.search.destinationValue}
         flex="1.4"
         icon={
           <>
@@ -175,8 +126,8 @@ function SearchBar() {
         }
       />
       <SearchField
-        label="Fechas"
-        value="14 may — 21 may"
+        label={t.search.dates}
+        value={t.search.datesValue}
         flex="1.2"
         icon={
           <>
@@ -186,8 +137,8 @@ function SearchBar() {
         }
       />
       <SearchField
-        label="Huéspedes"
-        value="2 adultos · 1 hab."
+        label={t.search.guests}
+        value={t.search.guestsValue}
         flex="0.9"
         icon={
           <>
@@ -198,8 +149,8 @@ function SearchBar() {
         }
       />
       <SearchField
-        label="Experiencia"
-        value="Retiro · Masterclass"
+        label={t.search.experience}
+        value={t.search.experienceValue}
         flex="1"
         isLast
         icon={
@@ -214,7 +165,7 @@ function SearchBar() {
         className="group flex shrink-0 items-center justify-center gap-3 bg-humana-ink px-10 text-white"
       >
         <span className="text-[12px] font-semibold uppercase tracking-[0.22em]">
-          Buscar
+          {t.search.submit}
         </span>
         <svg
           width="14"
@@ -278,25 +229,26 @@ function SearchField({
 }
 
 function MapCoverage() {
+  const { t } = useLocale();
   return (
     <section className="flex flex-col gap-7 px-16 pt-4">
       <div className="flex items-end justify-between gap-8">
         <div className="flex flex-col gap-1.5">
           <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-humana-subtle">
-            Cobertura · 14 ciudades activas
+            {t.map.eyebrow}
           </span>
           <h3 className="text-[22px] font-light tracking-[-0.01em] text-humana-ink">
-            Red global disponible
+            {t.map.title}
           </h3>
         </div>
         <div className="flex items-center gap-7">
-          <Legend color="#D4AF37" label="Experiencias activas" />
-          <Legend color="#111111" label="Próxima apertura" />
+          <Legend color="#D4AF37" label={t.map.legendActive} />
+          <Legend color="#111111" label={t.map.legendUpcoming} />
           <a
             href="#"
             className="text-[12px] font-medium text-humana-gold underline underline-offset-4"
           >
-            Vista en pantalla completa →
+            {t.map.fullscreen}
           </a>
         </div>
       </div>
@@ -313,7 +265,13 @@ function MapCoverage() {
           }}
         />
         {markers.map((m) => (
-          <MapMarker key={m.country} {...m} />
+          <MapMarker
+            key={m.key}
+            markerKey={m.key}
+            count={m.count}
+            x={m.x}
+            y={m.y}
+          />
         ))}
       </div>
     </section>
@@ -333,16 +291,20 @@ function Legend({ color, label }: { color: string; label: string }) {
 }
 
 function MapMarker({
-  country,
+  markerKey,
   count,
   x,
   y,
 }: {
-  country: string;
+  markerKey: MarkerKey;
   count: number;
   x: string;
   y: string;
 }) {
+  const { t } = useLocale();
+  const country = t.map.countries[markerKey];
+  const countLabel =
+    count === 1 ? t.map.experiencesSingular : t.map.experiencesPlural(count);
   return (
     <div
       className="absolute flex -translate-x-1/2 -translate-y-full flex-col items-center gap-1"
@@ -359,7 +321,7 @@ function MapMarker({
             {country}
           </span>
           <span className="text-[11px] font-medium text-humana-ink">
-            {count === 1 ? "1 experiencia" : `${count} experiencias`}
+            {countLabel}
           </span>
         </div>
       </div>
@@ -371,39 +333,39 @@ function MapMarker({
 }
 
 function RetreatsSection() {
+  const { t } = useLocale();
   return (
     <section className="flex flex-col gap-10 px-16 py-20">
       <div className="flex items-end justify-between gap-8">
         <div className="flex flex-col gap-3">
           <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-humana-subtle">
-            Calendario abierto
+            {t.retreats.eyebrow}
           </span>
           <h2 className="text-[30px] font-light leading-[38px] tracking-[-0.01em] text-humana-ink">
-            Próximos retiros wellness
+            {t.retreats.title}
           </h2>
           <p className="text-[13px] leading-[20px] text-humana-muted">
-            48 experiencias certificadas disponibles esta temporada en 14
-            ciudades.
+            {t.retreats.count}
           </p>
         </div>
         <div className="flex items-center gap-7">
           <div className="flex items-center gap-2.5">
-            <FilterChip label="Todos" active />
-            <FilterChip label="Retiro" />
-            <FilterChip label="Masterclass" />
-            <FilterChip label="Corporativo" />
+            <FilterChip label={t.retreats.filters.all} active />
+            <FilterChip label={t.retreats.filters.retreat} />
+            <FilterChip label={t.retreats.filters.masterclass} />
+            <FilterChip label={t.retreats.filters.corporate} />
           </div>
           <a
             href="#"
             className="text-[12px] font-medium text-humana-gold underline underline-offset-4"
           >
-            Ver calendario completo →
+            {t.retreats.seeAll}
           </a>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
-        {retreats.map((r) => (
+        {t.retreats.items.map((r) => (
           <RetreatCard key={r.slug} retreat={r} />
         ))}
       </div>
@@ -444,7 +406,7 @@ function RetreatCard({ retreat }: { retreat: Retreat }) {
         </div>
         <button
           type="button"
-          aria-label="Guardar"
+          aria-label="Save"
           className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center bg-white/90 hover:bg-white"
         >
           <svg
@@ -502,13 +464,12 @@ function RetreatCard({ retreat }: { retreat: Retreat }) {
         <div className="flex items-end justify-between gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-humana-subtle">
-              Desde
+              {retreat.fromLabel}
             </span>
             <span className="text-[20px] font-light tracking-[-0.01em] text-humana-ink">
               {retreat.price}
               <span className="text-[12px] font-normal text-humana-subtle">
-                {" "}
-                / huésped
+                {retreat.perGuest}
               </span>
             </span>
           </div>
@@ -520,7 +481,7 @@ function RetreatCard({ retreat }: { retreat: Retreat }) {
               href="#"
               className="text-[12px] font-medium text-humana-ink hover:text-humana-gold"
             >
-              Ver disponibilidad →
+              {retreat.cta}
             </a>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { LocaleProvider } from "@/i18n/LocaleProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -9,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "HUMANA — Portal de acceso",
+  title: "HUMANA — Access portal",
   description:
-    "Plataforma exclusiva para miembros verificados de la red HUMANA.",
+    "Exclusive platform for verified members of the HUMANA network.",
 };
 
 export default function RootLayout({
@@ -20,8 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col font-sans">
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

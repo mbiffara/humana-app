@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
 
 export default function LoginPage() {
+  const { t } = useLocale();
   return (
     <main className="flex min-h-screen w-full flex-row">
       {/* Brand panel */}
@@ -37,29 +41,28 @@ export default function LoginPage() {
           <div className="flex items-center gap-4">
             <span className="h-px w-7 bg-humana-gold" />
             <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-humana-muted">
-              HUMANA.GLOBAL
+              {t.login.eyebrow}
             </span>
           </div>
           <h1 className="text-[36px] font-light leading-[44px] tracking-[-0.02em] text-humana-ink">
-            La red global
+            {t.login.headline[0]}
             <br />
-            que conecta a la humanidad
+            {t.login.headline[1]}
             <br />
-            con el bienestar.
+            {t.login.headline[2]}
           </h1>
           <p className="max-w-[380px] text-[13px] leading-[22px] text-[#4A463E]">
-            Acceso exclusivo para hoteles, agencias de turismo y operadores
-            integrados a la red HUMANA.
+            {t.login.subhead}
           </p>
         </div>
 
         <div className="relative flex items-end justify-between gap-6">
           <div className="flex flex-col gap-1.5">
             <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-humana-subtle">
-              Red internacional
+              {t.login.networkLabel}
             </span>
             <span className="text-[12px] text-humana-ink">
-              Miami · Buenos Aires · CDMX · Madrid · São Paulo
+              {t.login.cities}
             </span>
           </div>
           <span className="text-[10px] font-medium tracking-[0.24em] text-humana-subtle">
@@ -71,28 +74,26 @@ export default function LoginPage() {
       {/* Form panel */}
       <section className="flex flex-1 flex-col justify-between px-8 py-12 sm:px-16 lg:px-20">
         <div className="flex items-center justify-end gap-5">
-          <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-humana-muted">
-            ES · EN · PT
-          </span>
+          <LanguageSwitcher />
           <span className="h-3 w-px bg-[#D8D4C8]" />
           <a
             href="#"
             className="text-[12px] text-[#4A463E] hover:text-humana-ink"
           >
-            Soporte institucional
+            {t.login.langSupport}
           </a>
         </div>
 
         <form className="mx-auto flex w-full max-w-[400px] flex-col gap-7">
           <header className="flex flex-col gap-3">
             <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-humana-gold">
-              Portal de acceso
+              {t.login.portal}
             </span>
             <h2 className="text-[28px] font-light leading-[36px] tracking-[-0.01em] text-humana-ink">
-              Ingresa a tu cuenta.
+              {t.login.title}
             </h2>
             <p className="text-[13px] leading-[20px] text-humana-muted">
-              Plataforma exclusiva para miembros verificados de la red.
+              {t.login.intro}
             </p>
           </header>
 
@@ -101,12 +102,12 @@ export default function LoginPage() {
               htmlFor="email"
               className="text-[10px] font-medium uppercase tracking-[0.22em] text-humana-muted"
             >
-              Email
+              {t.login.emailLabel}
             </label>
             <input
               id="email"
               type="email"
-              placeholder="tucorreo@empresa.com"
+              placeholder={t.login.emailPlaceholder}
               className="border-b border-humana-ink bg-transparent py-3 text-[14px] text-humana-ink outline-none placeholder:text-humana-subtle focus:border-humana-gold"
             />
           </div>
@@ -117,20 +118,20 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="text-[10px] font-medium uppercase tracking-[0.22em] text-humana-muted"
               >
-                Contraseña
+                {t.login.passwordLabel}
               </label>
               <a
                 href="#"
                 className="text-[11px] font-medium text-humana-gold underline underline-offset-4"
               >
-                Recuperar acceso
+                {t.login.recover}
               </a>
             </div>
             <div className="flex items-center gap-3 border-b border-[#D8D4C8] py-3 focus-within:border-humana-ink">
               <input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder={t.login.passwordPlaceholder}
                 className="flex-1 bg-transparent text-[16px] tracking-[0.3em] text-humana-ink outline-none placeholder:text-humana-subtle"
               />
               <svg
@@ -155,7 +156,7 @@ export default function LoginPage() {
               className="h-[14px] w-[14px] cursor-pointer accent-humana-ink"
             />
             <span className="text-[12px] text-[#4A463E]">
-              Mantener sesión iniciada en este dispositivo de confianza
+              {t.login.remember}
             </span>
           </label>
 
@@ -163,7 +164,7 @@ export default function LoginPage() {
             href="/dashboard"
             className="group flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
           >
-            Acceder a la plataforma
+            {t.login.submit}
             <svg
               width="14"
               height="9"
@@ -182,12 +183,12 @@ export default function LoginPage() {
 
         <div className="flex justify-center">
           <span className="text-[11px] text-humana-muted">
-            ¿Tu organización desea integrarse?{" "}
+            {t.login.joinPrompt}{" "}
             <a
               href="#"
               className="font-medium text-humana-ink underline underline-offset-4"
             >
-              Solicitar incorporación
+              {t.login.joinLink}
             </a>
           </span>
         </div>
