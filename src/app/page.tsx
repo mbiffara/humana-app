@@ -150,7 +150,7 @@ export default function LoginPage() {
           <label className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
-              className="h-[14px] w-[14px] appearance-none border border-[#C8C2B0] bg-white checked:bg-humana-ink"
+              className="h-[14px] w-[14px] cursor-pointer accent-humana-ink"
             />
             <span className="text-[12px] text-[#4A463E]">
               Mantener sesión iniciada en este dispositivo de confianza
