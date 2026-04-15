@@ -364,7 +364,7 @@ function RetreatsSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-7 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
         {t.retreats.items.map((r) => (
           <RetreatCard key={r.slug} retreat={r} />
         ))}
