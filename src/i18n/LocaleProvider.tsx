@@ -58,7 +58,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
   const { locale, setLocale } = useLocale();
   return (
     <div
-      className={`flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] ${className}`}
+      className={`flex items-center gap-1.5 text-[12px] font-medium uppercase tracking-[0.18em] ${className}`}
     >
       {locales.map((l, i) => (
         <div key={l} className="flex items-center gap-1.5">
@@ -66,7 +66,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
           <button
             type="button"
             onClick={() => setLocale(l)}
-            className={`transition-colors ${
+            className={`cursor-pointer transition-colors ${
               locale === l
                 ? "text-humana-ink"
                 : "text-humana-muted hover:text-humana-ink"

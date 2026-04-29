@@ -7,9 +7,9 @@ import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
 export default function LoginPage() {
   const { t } = useLocale();
   return (
-    <main className="flex min-h-screen w-full flex-row">
+    <main className="fixed inset-0 flex flex-row overflow-hidden">
       {/* Brand panel */}
-      <section className="relative hidden lg:flex w-[44%] max-w-[640px] flex-col justify-between overflow-hidden bg-humana-stone px-16 py-16">
+      <section className="relative hidden lg:flex w-[44%] max-w-[640px] flex-col justify-between overflow-hidden bg-humana-stone px-16 py-12">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-no-repeat opacity-70"
@@ -40,7 +40,7 @@ export default function LoginPage() {
         <div className="relative flex max-w-[460px] flex-col gap-8">
           <div className="flex items-center gap-4">
             <span className="h-px w-7 bg-humana-gold" />
-            <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-humana-muted">
+            <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-humana-muted">
               {t.login.eyebrow}
             </span>
           </div>
@@ -51,48 +51,43 @@ export default function LoginPage() {
             <br />
             {t.login.headline[2]}
           </h1>
-          <p className="max-w-[380px] text-[13px] leading-[22px] text-[#4A463E]">
+          <p className="max-w-[380px] text-[14px] leading-[22px] text-[#4A463E]">
             {t.login.subhead}
           </p>
         </div>
 
-        <div className="relative flex items-end justify-between gap-6">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-humana-subtle">
-              {t.login.networkLabel}
-            </span>
-            <span className="text-[12px] text-humana-ink">
-              {t.login.cities}
-            </span>
-          </div>
-          <span className="text-[10px] font-medium tracking-[0.24em] text-humana-subtle">
-            MMXXVI
+        <div className="relative flex flex-col gap-1.5">
+          <span className="text-[11px] font-medium uppercase tracking-[0.24em] text-humana-subtle">
+            {t.login.networkLabel}
+          </span>
+          <span className="text-[13px] text-humana-ink">
+            {t.login.cities}
           </span>
         </div>
       </section>
 
       {/* Form panel */}
-      <section className="flex flex-1 flex-col justify-between px-8 py-12 sm:px-16 lg:px-20">
+      <section className="flex flex-1 flex-col justify-between px-8 py-8 sm:px-16 lg:px-20">
         <div className="flex items-center justify-end gap-5">
           <LanguageSwitcher />
           <span className="h-3 w-px bg-[#D8D4C8]" />
           <a
             href="#"
-            className="text-[12px] text-[#4A463E] hover:text-humana-ink"
+            className="text-[13px] text-[#4A463E] hover:text-humana-ink"
           >
             {t.login.langSupport}
           </a>
         </div>
 
-        <form className="mx-auto flex w-full max-w-[400px] flex-col gap-7">
+        <form className="mx-auto flex w-full max-w-[400px] flex-col gap-5">
           <header className="flex flex-col gap-3">
-            <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-humana-gold">
+            <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-humana-gold">
               {t.login.portal}
             </span>
             <h2 className="text-[28px] font-light leading-[36px] tracking-[-0.01em] text-humana-ink">
               {t.login.title}
             </h2>
-            <p className="text-[13px] leading-[20px] text-humana-muted">
+            <p className="text-[14px] leading-[20px] text-humana-muted">
               {t.login.intro}
             </p>
           </header>
@@ -100,7 +95,7 @@ export default function LoginPage() {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="email"
-              className="text-[10px] font-medium uppercase tracking-[0.22em] text-humana-muted"
+              className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-muted"
             >
               {t.login.emailLabel}
             </label>
@@ -108,7 +103,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               placeholder={t.login.emailPlaceholder}
-              className="border-b border-humana-ink bg-transparent py-3 text-[14px] text-humana-ink outline-none placeholder:text-humana-subtle focus:border-humana-gold"
+              className="border-b border-humana-ink bg-transparent py-3 text-[15px] text-humana-ink outline-none placeholder:text-humana-subtle focus:border-humana-gold"
             />
           </div>
 
@@ -116,13 +111,13 @@ export default function LoginPage() {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="password"
-                className="text-[10px] font-medium uppercase tracking-[0.22em] text-humana-muted"
+                className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-muted"
               >
                 {t.login.passwordLabel}
               </label>
               <a
                 href="#"
-                className="text-[11px] font-medium text-humana-gold underline underline-offset-4"
+                className="text-[12px] font-medium text-humana-gold underline underline-offset-4"
               >
                 {t.login.recover}
               </a>
@@ -155,14 +150,14 @@ export default function LoginPage() {
               type="checkbox"
               className="h-[14px] w-[14px] cursor-pointer accent-humana-ink"
             />
-            <span className="text-[12px] text-[#4A463E]">
+            <span className="text-[13px] text-[#4A463E]">
               {t.login.remember}
             </span>
           </label>
 
           <Link
             href="/dashboard"
-            className="group flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
+            className="group flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
           >
             {t.login.submit}
             <svg
@@ -182,7 +177,7 @@ export default function LoginPage() {
         </form>
 
         <div className="flex justify-center">
-          <span className="text-[11px] text-humana-muted">
+          <span className="text-[12px] text-humana-muted">
             {t.login.joinPrompt}{" "}
             <a
               href="#"
