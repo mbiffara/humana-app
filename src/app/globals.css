@@ -11,43 +11,34 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-html,
+html {
+  zoom: 0.9;
+}
+
 body {
   background-color: #ffffff;
   color: #111111;
   scroll-behavior: smooth;
 }
 
-/* ─── Responsive scaling for larger desktop screens ─── */
-/* Base: designed at ~1280px. Scale up proportionally on bigger screens. */
-@media (min-width: 1440px) {
-  html { zoom: 1.05; }
-}
-@media (min-width: 1680px) {
-  html { zoom: 1.1; }
-}
+/* ─── Scale up only on very large screens ─── */
 @media (min-width: 1920px) {
-  html { zoom: 1.15; }
+  html { zoom: 0.95; }
 }
 @media (min-width: 2560px) {
-  html { zoom: 1.25; }
+  html { zoom: 1.0; }
 }
 
 /* ─── Map viewport: accounts for zoom + TopNav ─── */
 .map-viewport {
-  height: calc(100svh / var(--zoom, 1) - 73px);
-}
-@media (min-width: 1440px) {
-  .map-viewport { --zoom: 1.05; }
-}
-@media (min-width: 1680px) {
-  .map-viewport { --zoom: 1.1; }
+  height: calc(100svh / var(--zoom, 0.9) - 73px);
+  --zoom: 0.9;
 }
 @media (min-width: 1920px) {
-  .map-viewport { --zoom: 1.15; }
+  .map-viewport { --zoom: 0.95; }
 }
 @media (min-width: 2560px) {
-  .map-viewport { --zoom: 1.25; }
+  .map-viewport { --zoom: 1.0; }
 }
 
 /* ─── Animations ─── */
