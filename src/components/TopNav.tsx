@@ -12,7 +12,6 @@ export function TopNav() {
   const links = [
     { label: t.nav.discover, href: "/dashboard" },
     { label: t.nav.bookings, href: "#" },
-    { label: t.nav.clients, href: "#" },
     { label: t.nav.myRetreats, href: "#" },
     { label: t.nav.billing, href: "#" },
   ];

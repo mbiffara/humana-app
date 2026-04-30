@@ -157,7 +157,7 @@ export default function LoginPage() {
 
           <Link
             href="/dashboard"
-            className="group flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
+            className="group/cta flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
           >
             {t.login.submit}
             <svg
@@ -169,7 +169,7 @@ export default function LoginPage() {
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="transition-transform group-hover:translate-x-1"
+              className="transition-transform duration-200 group-hover/cta:translate-x-0.5"
             >
               <path d="M1 5h14M10 1l4 4-4 4" />
             </svg>

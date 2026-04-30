@@ -165,7 +165,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
 
           {/* Modal card */}
           <div
-            className="relative flex w-full max-w-[900px] overflow-hidden bg-white shadow-2xl animate-fade-in-up"
+            className="relative flex w-full max-w-[1040px] overflow-hidden bg-white shadow-2xl animate-fade-in-up"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
@@ -180,27 +180,26 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
             </button>
 
             {/* Image side */}
-            <div className="relative w-[420px] shrink-0 bg-humana-stone">
+            <div className="relative w-[520px] shrink-0 bg-humana-stone">
               <Image src={selectedRoom.image} alt={selectedRoom.name} fill className="object-cover" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/30 to-transparent" />
             </div>
 
             {/* Info side */}
-            <div className="flex flex-1 flex-col justify-between p-10">
-              <div className="flex flex-col gap-6">
+            <div className="flex flex-1 flex-col justify-between p-8">
+              <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
                     {hotel.name}
                   </span>
-                  <h2 className="text-[28px] font-light tracking-[-0.02em] text-humana-ink">
+                  <h2 className="text-[24px] font-light tracking-[-0.02em] text-humana-ink">
                     {selectedRoom.name}
                   </h2>
                 </div>
 
                 <div className="h-px bg-humana-line" />
 
-                <div className="flex flex-col gap-4">
-                  {/* Room type */}
+                <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                       <path d="M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7" />
@@ -213,7 +212,6 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                     <span className="text-[14px] text-humana-muted">{selectedRoom.name}</span>
                   </div>
 
-                  {/* Capacity */}
                   <div className="flex items-center gap-3">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -225,7 +223,6 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                     <span className="text-[14px] text-humana-muted">{t.hotelDetail.personCount(selectedRoom.maxGuests)}</span>
                   </div>
 
-                  {/* Description */}
                   <div className="flex items-start gap-3">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -239,8 +236,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
 
                 <div className="h-px bg-humana-line" />
 
-                {/* Amenities */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
                   <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">
                     {t.hotelDetail.amenities}
                   </span>
@@ -248,8 +244,13 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                     {hotel.amenities.slice(0, 4).map((a) => (
                       <span
                         key={a}
-                        className="border border-humana-line px-3 py-1.5 text-[12px] text-humana-muted"
+                        className="flex items-center gap-2 border border-humana-line px-4 py-1.5 text-[13px] text-humana-ink"
+                        style={{ borderRadius: 9999 }}
                       >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                          <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
+                          <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                         {a}
                       </span>
                     ))}
@@ -258,15 +259,17 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
               </div>
 
               {/* Footer: price + CTA */}
-              <div className="flex items-end justify-between gap-6 pt-6">
-                <div className="flex flex-col gap-0.5">
+              <div className="flex items-center justify-between gap-4 pt-8">
+                <div className="flex flex-col">
                   <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
-                  <span className="text-[32px] font-light tracking-[-0.02em] text-humana-gold">
-                    ${selectedRoom.pricePerNight.toLocaleString()}
-                  </span>
-                  <span className="text-[13px] text-humana-muted">USD / {t.hotelDetail.perNight}</span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="whitespace-nowrap text-[26px] font-light tracking-[-0.02em] text-humana-gold">
+                      ${selectedRoom.pricePerNight.toLocaleString()}
+                    </span>
+                    <span className="whitespace-nowrap text-[13px] text-humana-muted">USD / {t.hotelDetail.perNight}</span>
+                  </div>
                 </div>
-                <span className="shrink-0 cursor-default bg-humana-ink px-10 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white">
+                <span className="shrink-0 cursor-default bg-humana-ink px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white">
                   {t.hotelDetail.bookNow}
                 </span>
               </div>

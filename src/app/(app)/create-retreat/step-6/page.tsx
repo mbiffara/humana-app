@@ -213,10 +213,10 @@ export default function WizardStep6() {
           <Link
             href="/dashboard"
             onClick={reset}
-            className="flex items-center gap-3 bg-humana-ink px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
+            className="group/cta flex items-center gap-3 bg-humana-ink px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
           >
             Volver al dashboard
-            <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
               <path d="M1 5h14M10 1l4 4-4 4" />
             </svg>
           </Link>

@@ -290,14 +290,14 @@ export default function AssignClientPage() {
               onClick={() => {
                 if (selectedId) set({ clientId: selectedId });
               }}
-              className={`flex items-center justify-center gap-3 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] transition-all duration-150 active:scale-[0.98] ${
+              className={`group/cta flex items-center justify-center gap-3 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] transition-all duration-150 active:scale-[0.98] ${
                 selectedId
                   ? "bg-humana-ink text-white hover:bg-black"
                   : "pointer-events-none bg-humana-line text-humana-subtle"
               }`}
             >
               IR A CHECKOUT
-              <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
                 <path d="M1 5h14M10 1l4 4-4 4" />
               </svg>
             </Link>

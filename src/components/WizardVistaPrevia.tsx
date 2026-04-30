@@ -117,7 +117,7 @@ export function WizardVistaPrevia({ currentStep, onNext, canProceed = true, loca
             <Link
               href={nextHref}
               onClick={onNext}
-              className={`flex items-center justify-center gap-3 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] transition-all duration-150 active:scale-[0.98] ${
+              className={`group/cta flex items-center justify-center gap-3 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] transition-all duration-150 active:scale-[0.98] ${
                 backHref ? "flex-[1.5]" : "flex-1"
               } ${
                 canProceed
@@ -126,7 +126,7 @@ export function WizardVistaPrevia({ currentStep, onNext, canProceed = true, loca
               }`}
             >
               Siguiente
-              <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
                 <path d="M1 5h14M10 1l4 4-4 4" />
               </svg>
             </Link>

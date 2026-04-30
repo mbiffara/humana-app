@@ -540,10 +540,10 @@ function CreateRetreatBanner() {
         </div>
         <Link
           href="/create-retreat/step-1"
-          className="flex shrink-0 items-center gap-3 border border-humana-gold bg-humana-gold px-10 py-4.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-all duration-200 hover:bg-transparent hover:text-humana-gold active:scale-[0.98]"
+          className="group/cta flex shrink-0 items-center gap-3 border border-humana-gold bg-humana-gold px-10 py-4.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-all duration-200 hover:bg-transparent hover:text-humana-gold active:scale-[0.98]"
         >
           {t.dashboard.createRetreatCta}
-          <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
             <path d="M1 5h14M10 1l4 4-4 4" />
           </svg>
         </Link>
