@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useBooking } from "@/contexts/BookingContext";
@@ -47,16 +46,10 @@ export default function ConfirmationPage() {
 
   return (
     <div className="flex flex-col items-center gap-10 px-16 py-20">
-      {/* Gold HUMANA logo */}
-      <div className="animate-checkmark">
-        <Image
-          src="/brand/isotipo.png"
-          alt="HUMANA"
-          width={80}
-          height={80}
-          className="opacity-90"
-        />
-      </div>
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-check-pop">
+        <circle cx="40" cy="40" r="38" stroke="#d4af37" strokeWidth="2" className="animate-check-circle" />
+        <path d="M24 41l11 11 21-24" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="animate-check-stroke" />
+      </svg>
 
       <div className="animate-fade-in-up flex flex-col items-center gap-3 text-center">
         <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">

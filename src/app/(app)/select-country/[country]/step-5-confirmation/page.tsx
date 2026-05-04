@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useBooking } from "@/contexts/BookingContext";
@@ -49,9 +48,10 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
 
   return (
     <div className="flex flex-col items-center gap-10 px-16 py-20">
-      <div className="animate-checkmark">
-        <Image src="/brand/isotipo.png" alt="HUMANA" width={80} height={80} className="opacity-90" />
-      </div>
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-check-pop">
+        <circle cx="40" cy="40" r="38" stroke="#d4af37" strokeWidth="2" className="animate-check-circle" />
+        <path d="M24 41l11 11 21-24" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="animate-check-stroke" />
+      </svg>
 
       <div className="animate-fade-in-up flex flex-col items-center gap-3 text-center">
         <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">{state.inventoryMode ? "PASO 5 DE 5 · PLAZAS ADQUIRIDAS" : "PASO 5 DE 5 · RESERVA CONFIRMADA"}</span>
@@ -85,7 +85,7 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
           DESCARGAR PDF
         </button>
-        <Link href={state.inventoryMode ? "/inventory" : "/dashboard"} onClick={reset} className="group/cta flex items-center justify-center gap-3 bg-humana-ink px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]">
+        <Link href="/dashboard" onClick={reset} className="group/cta flex items-center justify-center gap-3 bg-humana-ink px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]">
           {state.inventoryMode ? "VER INVENTARIO" : "VER MIS RESERVAS"}
           <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5"><path d="M1 5h14M10 1l4 4-4 4" /></svg>
         </Link>

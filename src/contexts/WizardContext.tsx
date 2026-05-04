@@ -29,7 +29,7 @@ export type WizardState = {
 };
 
 const initial: WizardState = {
-  hotelId: null,
+  hotelId: "h1",
   name: "Raíz y Ceremonia",
   type: "retreat",
   nights: 5,

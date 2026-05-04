@@ -10,6 +10,21 @@ import { inventoryBlocks } from "@/data/inventory";
 import { StepIndicator } from "@/components/StepIndicator";
 
 
+function InfoTooltip({ text }: { text: string }) {
+  return (
+    <span className="group/tip relative ml-1 inline-flex cursor-help">
+      <span className="flex h-[15px] w-[15px] items-center justify-center rounded-full border border-humana-line text-[10px] font-medium leading-none text-humana-subtle transition-colors group-hover/tip:border-humana-gold group-hover/tip:text-humana-gold">
+        ?
+      </span>
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-[240px] -translate-x-1/2 rounded border border-humana-line bg-white px-3 py-2.5 text-[12px] font-normal normal-case leading-[17px] tracking-normal text-humana-muted opacity-0 shadow-lg transition-opacity duration-150 group-hover/tip:pointer-events-auto group-hover/tip:opacity-100">
+        {text}
+        <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-white" />
+        <span className="absolute left-1/2 top-full -translate-x-1/2 translate-y-[-0.5px] border-4 border-transparent border-t-humana-line" />
+      </span>
+    </span>
+  );
+}
+
 export default function WizardStep4() {
   const { t } = useLocale();
   const { state, set } = useWizard();
@@ -51,10 +66,9 @@ export default function WizardStep4() {
     });
   }
 
-  /** Calcula margen por tipo: (precio/huésped × huéspedes × habs × días) − (costo/noche × habs × días) */
-  function calcMargin(retailPrice: number, costPerNight: number, maxGuests: number, availableRooms: number) {
-    const income = retailPrice * maxGuests * availableRooms * state.nights;
-    const cost = costPerNight * availableRooms * state.nights;
+  function calcMargin(retailPrice: number, costPerNight: number) {
+    const income = retailPrice * state.nights;
+    const cost = costPerNight * state.nights;
     const margin = income - cost;
     const pct = cost > 0 ? Math.round((margin / cost) * 100) : 0;
     return { margin, pct };
@@ -103,7 +117,7 @@ export default function WizardStep4() {
           />
 
           {/* Pricing table */}
-          <div className="overflow-hidden border border-humana-line bg-white">
+          <div className="border border-humana-line bg-white">
             {/* Table header */}
             <div className="grid grid-cols-[48px_1.8fr_1fr_0.8fr_1fr_1fr] items-center gap-4 border-b border-humana-line bg-humana-stone px-6 py-3">
               <span />
@@ -116,11 +130,13 @@ export default function WizardStep4() {
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
                 Costo/noche
               </span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              <span className="flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
                 Precio/huésped
+                <InfoTooltip text="Precio por huésped por noche. Sugerido: costo × 1.3." />
               </span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              <span className="flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
                 Margen
+                <InfoTooltip text="Margen por huésped: (Precio/huésped × noches) − (Costo/noche × noches)." />
               </span>
             </div>
 
@@ -130,7 +146,7 @@ export default function WizardStep4() {
               const inv = hotelInv.find((b) => b.roomTypeId === rt.id);
               const costPerNight = inv?.pricePerNight ?? rt.pricePerNight;
               const retail = priceEntry?.retailPrice ?? Math.round(costPerNight * 1.3);
-              const { margin, pct: marginPct } = calcMargin(retail, costPerNight, rt.maxGuests, inv?.availableRooms ?? 0);
+              const { margin, pct: marginPct } = calcMargin(retail, costPerNight);
 
               return (
                 <div
