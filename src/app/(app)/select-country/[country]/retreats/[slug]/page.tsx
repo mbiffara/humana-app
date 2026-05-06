@@ -93,7 +93,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
       {/* Two-column layout */}
       <div className="flex gap-12 px-16 pt-8 pb-16">
         {/* Left content */}
-        <div className="flex flex-1 flex-col gap-8">
+        <div className="flex min-w-0 flex-1 flex-col gap-8">
           <div className="flex flex-col gap-3">
             <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
               {retreat.type.toUpperCase()} &middot; {days} {t.retreatDetail.dayLabel.toUpperCase()}{days !== 1 ? "S" : ""} &middot; {retreat.nights} {t.common.nights(retreat.nights).split(" ").slice(1).join(" ").toUpperCase()}
@@ -213,7 +213,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                         <div className="flex flex-col gap-0.5">
                           <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                           <span className="text-[22px] font-light tracking-[-0.01em] text-humana-ink">
-                            ${rt.pricePerNight}
+                            U$D {rt.pricePerNight}
                             <span className="text-[13px] font-normal text-humana-muted"> / {t.hotelDetail.perNight}</span>
                           </span>
                         </div>
@@ -234,15 +234,15 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
         </div>
 
         {/* Right sidebar */}
-        <div className="w-[340px] shrink-0">
-          <div className="sticky top-24 flex flex-col gap-5 border border-humana-line p-8">
+        <div className="w-[380px] shrink-0">
+          <div className="sticky top-24 flex flex-col gap-6 border border-humana-line bg-white p-9">
             <div className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-subtle">
                 {t.retreatDetail.startingFrom.toUpperCase()}
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-[36px] font-light tracking-[-0.02em] text-humana-ink">$ {retreat.price.toLocaleString()}</span>
-                <span className="text-[15px] text-humana-muted">USD / {t.retreatDetail.perGuest}</span>
+                <span className="text-[40px] font-light tracking-[-0.02em] text-humana-ink">U$D {retreat.price.toLocaleString()}</span>
+                <span className="text-[15px] text-humana-muted">/ {t.retreatDetail.perGuest}</span>
               </div>
             </div>
 
@@ -271,7 +271,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
 
             <div className="flex items-center justify-between">
               <span className="text-[13px] text-humana-muted">{t.retreatDetail.commission} ({retreat.commission}%)</span>
-              <span className="text-[15px] font-medium text-humana-gold">$ {commissionAmount.toLocaleString()} USD</span>
+              <span className="text-[15px] font-medium text-humana-gold">U$D {commissionAmount.toLocaleString()}</span>
             </div>
 
             <Link
@@ -396,9 +396,9 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                   <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                   <div className="flex items-baseline gap-1.5">
                     <span className="whitespace-nowrap text-[26px] font-light tracking-[-0.02em] text-humana-gold">
-                      ${selectedRoom.pricePerNight.toLocaleString()}
+                      U$D {selectedRoom.pricePerNight.toLocaleString()}
                     </span>
-                    <span className="whitespace-nowrap text-[13px] text-humana-muted">USD / {t.hotelDetail.perNight}</span>
+                    <span className="whitespace-nowrap text-[13px] text-humana-muted">/ {t.hotelDetail.perNight}</span>
                   </div>
                 </div>
                 <Link

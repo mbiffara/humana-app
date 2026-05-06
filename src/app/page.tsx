@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
 
 export default function LoginPage() {
   const { t } = useLocale();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   return (
     <main className="fixed inset-0 flex flex-row overflow-hidden">
       {/* Brand panel */}
@@ -79,7 +84,18 @@ export default function LoginPage() {
           </a>
         </div>
 
-        <form className="mx-auto flex w-full max-w-[400px] flex-col gap-5">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (email === "info@humana.global" && password === "123456") {
+              sessionStorage.setItem("humana.auth", "true");
+              router.push("/dashboard");
+            } else {
+              setError("Accesos incorrectos");
+            }
+          }}
+          className="mx-auto flex w-full max-w-[400px] flex-col gap-5"
+        >
           <header className="flex flex-col gap-3">
             <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-humana-gold">
               {t.login.portal}
@@ -102,6 +118,8 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError(""); }}
               placeholder={t.login.emailPlaceholder}
               className="border-b border-humana-ink bg-transparent py-3 text-[15px] text-humana-ink outline-none placeholder:text-humana-subtle focus:border-humana-gold"
             />
@@ -126,6 +144,8 @@ export default function LoginPage() {
               <input
                 id="password"
                 type="password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setError(""); }}
                 placeholder={t.login.passwordPlaceholder}
                 className="flex-1 bg-transparent text-[16px] tracking-[0.3em] text-humana-ink outline-none placeholder:text-humana-subtle"
               />
@@ -155,8 +175,12 @@ export default function LoginPage() {
             </span>
           </label>
 
-          <Link
-            href="/dashboard"
+          {error && (
+            <p className="text-[13px] text-red-600">{error}</p>
+          )}
+
+          <button
+            type="submit"
             className="group/cta flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
           >
             {t.login.submit}
@@ -173,7 +197,7 @@ export default function LoginPage() {
             >
               <path d="M1 5h14M10 1l4 4-4 4" />
             </svg>
-          </Link>
+          </button>
         </form>
 
         <div className="flex justify-center">

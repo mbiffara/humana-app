@@ -74,7 +74,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
   }
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -125,7 +125,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
                   const isSelected = selectedId === client.id && !newClientCreated;
                   return (
                     <button key={client.id} type="button" onClick={() => { setSelectedId(client.id); setNewClientCreated(false); }}
-                      className={`flex cursor-pointer items-start gap-5 border p-6 text-left transition-all duration-200 ${isSelected ? "border-humana-gold" : "border-humana-line hover:border-humana-ink"}`}>
+                      className={`flex cursor-pointer items-start gap-5 border bg-white p-6 text-left transition-all duration-200 ${isSelected ? "border-humana-gold" : "border-humana-line hover:border-humana-ink"}`}>
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-humana-stone"><span className="text-[14px] font-semibold text-humana-ink">{client.initials}</span></div>
                       <div className="flex flex-1 flex-col gap-2">
                         <div className="flex items-center gap-3">
@@ -151,14 +151,14 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
               {/* ── New client section ── */}
               {!showNewForm ? (
                 <button type="button" onClick={() => setShowNewForm(true)}
-                  className="flex cursor-pointer items-center justify-center gap-3 border border-dashed border-humana-line py-5 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-muted transition-all duration-200 hover:border-humana-gold hover:text-humana-gold">
+                  className="flex cursor-pointer items-center justify-center gap-3 border border-dashed border-humana-line bg-white py-5 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-muted transition-all duration-200 hover:border-humana-gold hover:text-humana-gold">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
                   </svg>
                   Nuevo cliente
                 </button>
               ) : (
-                <div className={`flex flex-col gap-6 border p-8 transition-all duration-200 ${newClientCreated ? "border-humana-gold" : "border-humana-line"} animate-fade-in-up`}>
+                <div className={`flex flex-col gap-6 border bg-white p-8 transition-all duration-200 ${newClientCreated ? "border-humana-gold" : "border-humana-line"} animate-fade-in-up`}>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">NUEVO CLIENTE</span>
                     {newClientCreated && (
@@ -189,7 +189,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
           ) : (
             /* ── Inventory mode ── */
             <div className="flex flex-col gap-8 animate-fade-in-up">
-              <div className="flex flex-col gap-6 border border-humana-line bg-humana-stone/40 p-10">
+              <div className="flex flex-col gap-6 border border-humana-line bg-white p-10">
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-humana-gold/10">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -217,7 +217,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
 
               {/* Inventory confirmation */}
               <button type="button" onClick={() => setInventoryConfirmed(!inventoryConfirmed)}
-                className={`flex cursor-pointer items-center gap-4 border p-6 text-left transition-all duration-200 ${inventoryConfirmed ? "border-humana-gold" : "border-humana-line hover:border-humana-ink"}`}>
+                className={`flex cursor-pointer items-center gap-4 border bg-white p-6 text-left transition-all duration-200 ${inventoryConfirmed ? "border-humana-gold" : "border-humana-line hover:border-humana-ink"}`}>
                 <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 ${inventoryConfirmed ? "border-humana-gold bg-humana-gold" : "border-humana-line"}`}>
                   {inventoryConfirmed && (
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12l3 3 5-5" /></svg>
@@ -229,7 +229,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
                 </div>
               </button>
 
-              <div className="flex flex-col gap-4 border border-humana-line p-8">
+              <div className="flex flex-col gap-4 border border-humana-line bg-white p-8">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">DETALLE DE LA COMPRA</span>
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
@@ -255,8 +255,8 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
         </div>
 
         {/* ── Sidebar ── */}
-        <div className="w-[340px] shrink-0">
-          <div className="sticky top-24 flex flex-col gap-6 border border-humana-line p-8">
+        <div className="w-[380px] shrink-0">
+          <div className="sticky top-24 flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">RESUMEN DE RESERVA</span>
             <div className="flex flex-col gap-1"><span className="text-[15px] font-medium text-humana-ink">{hotel?.name ?? "Hotel Itzamna"} · {room?.name ?? "Suite Cenote"}</span><span className="text-[13px] text-humana-muted">{hotel?.location ?? "Tulum, Mexico"}</span></div>
             <div className="flex flex-col gap-3">
@@ -297,7 +297,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
             )}
 
             <div className="h-px bg-humana-line" />
-            <div className="flex items-center justify-between"><span className="text-[15px] font-medium text-humana-ink">Total</span><span className="text-[18px] font-semibold text-humana-ink">${total.toLocaleString()} USD</span></div>
+            <div className="flex items-center justify-between"><span className="text-[15px] font-medium text-humana-ink">Total</span><span className="text-[18px] font-semibold text-humana-ink">U$D {total.toLocaleString()}</span></div>
 
             <Link
               href={`/select-country/${country}/step-4-checkout`}

@@ -68,7 +68,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
   }
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb items={[
         { label: t.breadcrumb.home, href: "/dashboard" },
         { label: hotel?.name ?? "Hotel", href: retreat ? `/select-country/${country}/retreats/${retreat.slug}` : `/select-country/${country}` },
@@ -83,7 +83,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
 
       <div className="flex gap-12">
         <div className="flex flex-1 flex-col gap-8">
-          <div className="flex flex-col gap-6 border border-humana-line p-8">
+          <div className="flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">DETALLE DE LA RESERVA</span>
             <div className="flex items-center gap-4">
               <div className="relative h-[60px] w-[80px] shrink-0 overflow-hidden bg-humana-stone"><Image src={hotel?.image ?? "/images/retreat-tulum.jpg"} alt={hotel?.name ?? ""} fill className="object-cover" /></div>
@@ -98,25 +98,24 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
             </div>
             <div className="h-px bg-humana-line" />
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Retiro — {retreatNights} noches x ${pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">${retreatCost.toLocaleString()}.00</span></div>
-              {preNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Pre-retiro — {preNights} noches x ${pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">${preCost.toLocaleString()}.00</span></div>}
-              {postNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Post-retiro — {postNights} noches x ${pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">${postCost.toLocaleString()}.00</span></div>}
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Retiro — {retreatNights} noches x U$D {pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}.00</span></div>
+              {preNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Pre-retiro — {preNights} noches x U$D {pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString()}.00</span></div>}
+              {postNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Post-retiro — {postNights} noches x U$D {pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString()}.00</span></div>}
             </div>
             <div className="h-px bg-humana-line" />
-            <div className="flex items-center justify-between"><span className="text-[15px] font-semibold text-humana-ink">Total a cobrar</span><span className="text-[18px] font-semibold text-humana-ink">${total.toLocaleString()}.00 USD</span></div>
+            <div className="flex items-center justify-between"><span className="text-[15px] font-semibold text-humana-ink">Total a cobrar</span><span className="text-[18px] font-semibold text-humana-ink">U$D {total.toLocaleString()}.00</span></div>
           </div>
-          <div className="flex flex-col gap-5 border border-humana-line p-8">
+          <div className="flex flex-col gap-5 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">DESGLOSE DE COMISIONES</span>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Comision agencia (16%)</span><span className="text-[15px] font-medium text-humana-gold">${commissionAgency.toLocaleString()}.00</span></div>
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Comision oficina {hotel?.location?.split(", ").pop() ?? ""} (2%)</span><span className="text-[14px] font-medium text-humana-ink">${commissionOffice.toLocaleString()}.00</span></div>
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Neto al hotel</span><span className="text-[14px] font-medium text-humana-ink">${netCreator.toLocaleString()}.00</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Comision agencia (16%)</span><span className="text-[15px] font-medium text-humana-gold">U$D {commissionAgency.toLocaleString()}.00</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Neto al hotel</span><span className="text-[14px] font-medium text-humana-ink">U$D {netCreator.toLocaleString()}.00</span></div>
             </div>
           </div>
         </div>
 
         <div className="w-[380px] shrink-0">
-          <div className="sticky top-24 flex flex-col gap-6 border border-humana-muted/30 bg-humana-stone p-8">
+          <div className="sticky top-24 flex flex-col gap-6 border border-humana-line bg-white p-8">
             <div className="flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
               <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">PAGO SEGURO</span>
@@ -141,7 +140,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
               {processing ? t.checkout.processing : (
                 <>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                  PAGAR ${total.toLocaleString()}.00 USD
+                  PAGAR U$D {total.toLocaleString()}.00
                 </>
               )}
             </button>

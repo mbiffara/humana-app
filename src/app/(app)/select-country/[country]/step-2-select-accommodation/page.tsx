@@ -54,7 +54,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
   const commission = Math.round(total * 0.16);
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -84,7 +84,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
             const isLow = availability <= 2;
             return (
               <button key={rt.id} type="button" onClick={() => setSelectedRoom(rt.id)}
-                className={`flex cursor-pointer overflow-hidden border text-left transition-all duration-200 ${isSelected ? "border-humana-gold" : "border-humana-line hover:border-humana-ink"}`}>
+                className={`flex cursor-pointer overflow-hidden border bg-white text-left transition-all duration-200 ${isSelected ? "border-humana-gold" : "border-humana-line hover:border-humana-ink"}`}>
                 {/* Image — taller when selected */}
                 <div className={`relative shrink-0 bg-humana-stone transition-all duration-300 ${isSelected ? "w-[280px]" : "w-[180px]"}`}>
                   <Image src={rt.image} alt={rt.name} fill className="object-cover" />
@@ -119,7 +119,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                         <span className="text-[20px] font-light tracking-[-0.01em] text-humana-ink">
-                          ${rt.pricePerNight}
+                          U$D {rt.pricePerNight}
                           <span className="text-[12px] font-normal text-humana-muted"> / noche</span>
                         </span>
                       </div>
@@ -178,8 +178,8 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
           })}
         </div>
 
-        <div className="w-[340px] shrink-0">
-          <div className="sticky top-24 flex flex-col gap-6 border border-humana-line p-8">
+        <div className="w-[380px] shrink-0">
+          <div className="sticky top-24 flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">RESUMEN DE RESERVA</span>
             <div className="flex flex-col gap-1">
               <span className="text-[15px] font-medium text-humana-ink">{hotel?.name ?? "Hotel Itzamna"}</span>
@@ -215,18 +215,18 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
             <div className="h-px bg-humana-line" />
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">Retiro ({retreatNights} noches x ${pricePerNight})</span>
-                <span className="text-[14px] font-medium text-humana-ink">${retreatCost.toLocaleString()}</span>
+                <span className="text-[14px] text-humana-muted">Retiro ({retreatNights} noches x U$D {pricePerNight})</span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}</span>
               </div>
-              {preNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Pre-retiro ({preNights} noches x ${pricePerNight})</span><span className="text-[14px] font-medium text-humana-ink">${preCost.toLocaleString()}</span></div>}
-              {postNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Post-retiro ({postNights} noches x ${pricePerNight})</span><span className="text-[14px] font-medium text-humana-ink">${postCost.toLocaleString()}</span></div>}
+              {preNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Pre-retiro ({preNights} noches x U$D {pricePerNight})</span><span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString()}</span></div>}
+              {postNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Post-retiro ({postNights} noches x U$D {pricePerNight})</span><span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString()}</span></div>}
             </div>
             <div className="h-px bg-humana-line" />
             <div className="flex items-center justify-between">
               <span className="text-[15px] font-medium text-humana-ink">Total alojamiento</span>
-              <span className="text-[18px] font-semibold text-humana-ink">${total.toLocaleString()} USD</span>
+              <span className="text-[18px] font-semibold text-humana-ink">U$D {total.toLocaleString()}</span>
             </div>
-            <span className="text-[14px] font-medium text-humana-gold">Tu comision estimada: ${commission.toLocaleString()} USD (16%)</span>
+            <span className="text-[14px] font-medium text-humana-gold">Tu comision estimada: U$D {commission.toLocaleString()} (16%)</span>
             <Link href={`/select-country/${country}/step-3-assign-client`} onClick={() => set({ roomTypeId: selectedRoom, preNights, postNights })}
               className="group/cta flex items-center justify-center gap-3 bg-humana-ink py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]">
               CONTINUAR

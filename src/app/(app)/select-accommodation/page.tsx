@@ -60,7 +60,7 @@ export default function SelectAccommodationPage() {
   const commission = Math.round(total * 0.16);
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -115,7 +115,7 @@ export default function SelectAccommodationPage() {
                       <h3 className="text-[16px] font-medium text-humana-ink">{rt.name}</h3>
                     </div>
                     <span className="text-[15px] font-medium text-humana-ink">
-                      ${rt.pricePerNight} USD/noche
+                      U$D {rt.pricePerNight}/noche
                     </span>
                   </div>
                   <p className="text-[14px] text-humana-muted">{rt.description}</p>
@@ -140,7 +140,7 @@ export default function SelectAccommodationPage() {
 
         {/* Sidebar */}
         <div className="w-[340px] shrink-0">
-          <div className="sticky top-8 flex flex-col gap-6 border border-humana-line p-8">
+          <div className="sticky top-8 flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
               RESUMEN DE RESERVA
             </span>
@@ -227,19 +227,19 @@ export default function SelectAccommodationPage() {
             {/* Price breakdown */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">Retiro ({retreatNights} noches x ${pricePerNight})</span>
-                <span className="text-[14px] font-medium text-humana-ink">${retreatCost.toLocaleString()}</span>
+                <span className="text-[14px] text-humana-muted">Retiro ({retreatNights} noches x U$D {pricePerNight})</span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}</span>
               </div>
               {preNights > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Pre-retiro ({preNights} noches x ${pricePerNight})</span>
-                  <span className="text-[14px] font-medium text-humana-ink">${preCost.toLocaleString()}</span>
+                  <span className="text-[14px] text-humana-muted">Pre-retiro ({preNights} noches x U$D {pricePerNight})</span>
+                  <span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString()}</span>
                 </div>
               )}
               {postNights > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Post-retiro ({postNights} noches x ${pricePerNight})</span>
-                  <span className="text-[14px] font-medium text-humana-ink">${postCost.toLocaleString()}</span>
+                  <span className="text-[14px] text-humana-muted">Post-retiro ({postNights} noches x U$D {pricePerNight})</span>
+                  <span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -248,11 +248,11 @@ export default function SelectAccommodationPage() {
 
             <div className="flex items-center justify-between">
               <span className="text-[15px] font-medium text-humana-ink">Total alojamiento</span>
-              <span className="text-[18px] font-semibold text-humana-ink">${total.toLocaleString()} USD</span>
+              <span className="text-[18px] font-semibold text-humana-ink">U$D {total.toLocaleString()}</span>
             </div>
 
             <span className="text-[14px] font-medium text-humana-gold">
-              Tu comision estimada: ${commission.toLocaleString()} USD (16%)
+              Tu comision estimada: U$D {commission.toLocaleString()} (16%)
             </span>
 
             <Link

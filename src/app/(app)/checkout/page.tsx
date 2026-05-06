@@ -87,7 +87,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -110,7 +110,7 @@ export default function CheckoutPage() {
         {/* Left side - Detail cards */}
         <div className="flex flex-1 flex-col gap-8">
           {/* Reservation detail card */}
-          <div className="flex flex-col gap-6 border border-humana-line p-8">
+          <div className="flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
               DETALLE DE LA RESERVA
             </span>
@@ -149,19 +149,19 @@ export default function CheckoutPage() {
             {/* Price rows */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">Retiro — {retreatNights} noches x ${pricePerNight}</span>
-                <span className="text-[14px] font-medium text-humana-ink">${retreatCost.toLocaleString()}.00</span>
+                <span className="text-[14px] text-humana-muted">Retiro — {retreatNights} noches x U$D {pricePerNight}</span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}.00</span>
               </div>
               {preNights > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Pre-retiro — {preNights} noches x ${pricePerNight}</span>
-                  <span className="text-[14px] font-medium text-humana-ink">${preCost.toLocaleString()}.00</span>
+                  <span className="text-[14px] text-humana-muted">Pre-retiro — {preNights} noches x U$D {pricePerNight}</span>
+                  <span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString()}.00</span>
                 </div>
               )}
               {postNights > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Post-retiro — {postNights} noches x ${pricePerNight}</span>
-                  <span className="text-[14px] font-medium text-humana-ink">${postCost.toLocaleString()}.00</span>
+                  <span className="text-[14px] text-humana-muted">Post-retiro — {postNights} noches x U$D {pricePerNight}</span>
+                  <span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString()}.00</span>
                 </div>
               )}
             </div>
@@ -170,12 +170,12 @@ export default function CheckoutPage() {
 
             <div className="flex items-center justify-between">
               <span className="text-[15px] font-semibold text-humana-ink">Total a cobrar</span>
-              <span className="text-[18px] font-semibold text-humana-ink">${total.toLocaleString()}.00 USD</span>
+              <span className="text-[18px] font-semibold text-humana-ink">U$D {total.toLocaleString()}.00</span>
             </div>
           </div>
 
           {/* Commission card */}
-          <div className="flex flex-col gap-5 border border-humana-line p-8">
+          <div className="flex flex-col gap-5 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
               DESGLOSE DE COMISIONES
             </span>
@@ -183,15 +183,11 @@ export default function CheckoutPage() {
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-[14px] text-humana-muted">Comision agencia (16%)</span>
-                <span className="text-[15px] font-medium text-humana-gold">${commissionAgency.toLocaleString()}.00</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">Comision oficina (2%)</span>
-                <span className="text-[14px] font-medium text-humana-ink">${commissionOffice.toLocaleString()}.00</span>
+                <span className="text-[15px] font-medium text-humana-gold">U$D {commissionAgency.toLocaleString()}.00</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[14px] text-humana-muted">Neto al creador</span>
-                <span className="text-[14px] font-medium text-humana-ink">${netCreator.toLocaleString()}.00</span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {netCreator.toLocaleString()}.00</span>
               </div>
             </div>
           </div>
@@ -199,7 +195,7 @@ export default function CheckoutPage() {
 
         {/* Right side - Payment form */}
         <div className="w-[380px] shrink-0">
-          <div className="sticky top-8 flex flex-col gap-6 border border-humana-line p-8">
+          <div className="sticky top-8 flex flex-col gap-6 border border-humana-line bg-white p-8">
             <div className="flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -285,7 +281,7 @@ export default function CheckoutPage() {
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
-                  PAGAR ${total.toLocaleString()}.00 USD
+                  PAGAR U$D {total.toLocaleString()}.00
                 </>
               )}
             </button>

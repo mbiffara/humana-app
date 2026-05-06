@@ -161,10 +161,10 @@ export default function WizardStep4() {
                     {inv?.availableRooms ?? 0} habs · {(inv?.availableRooms ?? 0) * rt.maxGuests} pers.
                   </span>
                   <span className="text-[14px] text-humana-muted">
-                    ${costPerNight.toLocaleString("en-US")}
+                    U$D {costPerNight.toLocaleString("en-US")}
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="text-[14px] text-humana-muted">$</span>
+                    <span className="text-[14px] text-humana-muted">U$D</span>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -176,7 +176,7 @@ export default function WizardStep4() {
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className={`text-[14px] font-semibold ${margin > 0 ? "text-emerald-600" : margin < 0 ? "text-red-500" : "text-humana-muted"}`}>
-                      {margin >= 0 ? "+" : "−"}${Math.abs(margin).toLocaleString("en-US")}
+                      {margin >= 0 ? "+" : "−"}U$D {Math.abs(margin).toLocaleString("en-US")}
                     </span>
                     <span className={`text-[12px] ${margin > 0 ? "text-emerald-600" : margin < 0 ? "text-red-500" : "text-humana-subtle"}`}>
                       {margin >= 0 ? "+" : "−"}{Math.abs(marginPct)}%
@@ -197,31 +197,25 @@ export default function WizardStep4() {
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] text-humana-muted">Ingresos por venta</span>
                   <span className="text-[14px] font-medium text-humana-ink">
-                    ${totalSale.toLocaleString("en-US")} USD
+                    U$D {totalSale.toLocaleString("en-US")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] text-humana-muted">Costo de habitaciones</span>
                   <span className="text-[14px] text-humana-muted">
-                    −${totalCost.toLocaleString("en-US")} USD
+                    −U$D {totalCost.toLocaleString("en-US")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] text-humana-muted">Comisión agencia (16%)</span>
                   <span className="text-[14px] text-humana-muted">
-                    −${agencyComm.toLocaleString("en-US")} USD
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Comisión oficina (2%)</span>
-                  <span className="text-[14px] text-humana-muted">
-                    −${officeComm.toLocaleString("en-US")} USD
+                    −U$D {agencyComm.toLocaleString("en-US")}
                   </span>
                 </div>
                 <div className="flex items-center justify-between border-t border-humana-line pt-3">
                   <span className="text-[15px] font-semibold text-humana-ink">Ganancia neta</span>
                   <span className={`text-[16px] font-semibold ${netProfit > 0 ? "text-emerald-600" : netProfit < 0 ? "text-red-500" : "text-humana-muted"}`}>
-                    ${netProfit.toLocaleString("en-US")} USD
+                    U$D {netProfit.toLocaleString("en-US")}
                   </span>
                 </div>
               </div>

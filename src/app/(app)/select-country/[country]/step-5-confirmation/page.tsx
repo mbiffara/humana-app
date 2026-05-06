@@ -47,7 +47,7 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
   const computedCheckOut = postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd;
 
   return (
-    <div className="flex flex-col items-center gap-10 px-16 py-20">
+    <div className="flex flex-col items-center gap-10 bg-humana-stone min-h-screen px-16 py-20">
       <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-check-pop">
         <circle cx="40" cy="40" r="38" stroke="#d4af37" strokeWidth="2" className="animate-check-circle" />
         <path d="M24 41l11 11 21-24" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="animate-check-stroke" />
@@ -59,7 +59,7 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
         <p className="text-[15px] leading-[22px] text-humana-muted">{state.inventoryMode ? "Las plazas estan disponibles en tu inventario para asignar un cliente en el futuro." : `Se ha enviado un email de confirmacion a ${client?.email ?? "maria.lopez@email.com"}`}</p>
       </div>
 
-      <div className="animate-fade-in-up-delay-1 flex w-full max-w-[640px] flex-col gap-6 border border-humana-line p-10">
+      <div className="animate-fade-in-up-delay-1 flex w-full max-w-[640px] flex-col gap-6 border border-humana-line bg-white p-10">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">REFERENCIA</span>
           <span className="text-[16px] font-bold tracking-[0.05em] text-humana-ink">{reservationId}</span>
@@ -71,17 +71,17 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
           <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">UBICACION</span><span className="text-[14px] font-medium text-humana-ink">{hotel?.location ?? "Tulum, Mexico"}</span></div>
           <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">CHECK-OUT</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckOut)} · 11:00</span></div>
           <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{state.inventoryMode ? "TIPO" : "CLIENTE"}</span><span className="text-[14px] font-medium text-humana-ink">{state.inventoryMode ? "Inventario — sin asignar" : (client?.name ?? "Maria Lopez Fernandez")}</span></div>
-          <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">TOTAL PAGADO</span><span className="text-[14px] font-medium text-humana-ink">${total.toLocaleString()}.00 USD</span></div>
+          <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">TOTAL PAGADO</span><span className="text-[14px] font-medium text-humana-ink">U$D {total.toLocaleString()}.00</span></div>
         </div>
         <div className="h-px bg-humana-line" />
         <div className="flex items-center justify-between bg-humana-stone p-4">
           <span className="text-[13px] font-medium text-humana-ink">{state.inventoryMode ? "Comision estimada al revender" : "Comision ganada por esta reserva"}</span>
-          <span className="text-[18px] font-medium text-humana-gold">${commission.toLocaleString()}.00 USD</span>
+          <span className="text-[18px] font-medium text-humana-gold">U$D {commission.toLocaleString()}.00</span>
         </div>
       </div>
 
       <div className="animate-fade-in-up-delay-2 flex items-center gap-4">
-        <button type="button" className="flex items-center justify-center gap-2 border border-humana-line px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-muted transition-all duration-150 hover:border-humana-ink hover:text-humana-ink active:scale-[0.98]">
+        <button type="button" className="flex items-center justify-center gap-2 border border-humana-line bg-white px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-muted transition-all duration-150 hover:border-humana-ink hover:text-humana-ink active:scale-[0.98]">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
           DESCARGAR PDF
         </button>

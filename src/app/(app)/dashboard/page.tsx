@@ -21,26 +21,35 @@ const WorldMap = dynamic(() => import("@/components/WorldMap"), {
 export default function AgencyDashboard() {
   return (
     <div className="flex flex-col">
+      <BannerSection />
       <Hero />
       <MapCoverage />
       <RetreatsSection />
-      <CreateRetreatBanner />
+      <Footer />
     </div>
+  );
+}
+
+function BannerSection() {
+  return (
+    <section className="px-16 pt-12">
+      <CreateRetreatBanner />
+    </section>
   );
 }
 
 function Hero() {
   const { t } = useLocale();
   return (
-    <section className="flex flex-col gap-10 px-16 pt-20 pb-10">
-      <div className="flex max-w-[820px] flex-col gap-5">
+    <section className="flex flex-col gap-8 px-16 pt-14 pb-10">
+      <div className="flex flex-col gap-5">
         <div className="flex items-center gap-3.5">
           <span className="h-px w-7 bg-humana-gold" />
           <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-humana-gold">
             {t.hero.eyebrow}
           </span>
         </div>
-        <h1 className="text-[48px] font-light leading-[56px] tracking-[-0.02em] text-humana-ink">
+        <h1 className="text-[42px] font-light leading-[50px] tracking-[-0.02em] text-humana-ink">
           {t.hero.headline[0]}
           <br />
           {t.hero.headline[1]}
@@ -123,7 +132,7 @@ function SearchBar() {
   const expLabels: Record<string, string> = {
     retreat: t.retreats.filters.retreat,
     masterclass: t.retreats.filters.masterclass,
-    corporate: t.retreats.filters.corporate,
+    meditation: t.retreats.filters.meditation,
   };
   const expDisplay =
     selectedExperiences.size > 0
@@ -312,7 +321,7 @@ function SearchBar() {
           <div className="flex flex-wrap gap-2.5">
             <FilterChip label={t.retreats.filters.retreat} active={selectedExperiences.has("retreat")} onClick={() => toggleExperience("retreat")} />
             <FilterChip label={t.retreats.filters.masterclass} active={selectedExperiences.has("masterclass")} onClick={() => toggleExperience("masterclass")} />
-            <FilterChip label={t.retreats.filters.corporate} active={selectedExperiences.has("corporate")} onClick={() => toggleExperience("corporate")} />
+            <FilterChip label={t.retreats.filters.meditation} active={selectedExperiences.has("meditation")} onClick={() => toggleExperience("meditation")} />
           </div>
         </div>
       </SearchField>
@@ -476,7 +485,13 @@ function RetreatsSection() {
     <section className="flex flex-col gap-10 px-16 py-20">
       <div className="flex items-end justify-between gap-8">
         <div className="flex flex-col gap-3">
-          <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-humana-subtle">
+          <span className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.28em] text-humana-subtle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
             {t.retreats.eyebrow}
           </span>
           <h2 className="text-[30px] font-light leading-[38px] tracking-[-0.01em] text-humana-ink">
@@ -489,7 +504,7 @@ function RetreatsSection() {
             <FilterChipLocal label={t.retreats.filters.all} active />
             <FilterChipLocal label={t.retreats.filters.retreat} />
             <FilterChipLocal label={t.retreats.filters.masterclass} />
-            <FilterChipLocal label={t.retreats.filters.corporate} />
+            <FilterChipLocal label={t.retreats.filters.meditation} />
           </div>
           <span className="text-[13px] font-medium text-humana-gold underline underline-offset-4 cursor-default">
             {t.retreats.seeAll}
@@ -509,7 +524,7 @@ function RetreatsSection() {
 function CreateRetreatBanner() {
   const { t } = useLocale();
   return (
-    <section className="relative mx-16 mb-20 overflow-hidden bg-humana-ink">
+    <div className="relative overflow-hidden bg-humana-ink">
       {/* Decorative isotipo */}
       <div className="pointer-events-none absolute -right-12 -bottom-10 h-[320px] w-[320px] opacity-[0.07]">
         <Image src="/brand/isotipo.png" alt="" fill className="object-contain" />
@@ -527,13 +542,13 @@ function CreateRetreatBanner() {
             <div className="flex items-center gap-3.5">
               <span className="h-px w-7 bg-humana-gold" />
               <span className="text-[12px] font-medium uppercase tracking-[0.28em] text-humana-gold">
-                {t.nav.agencyName}
+                Bienvenido {t.nav.agencyName}
               </span>
             </div>
             <h3 className="text-[28px] font-light tracking-[-0.01em] text-white">
               {t.dashboard.createRetreatTitle}
             </h3>
-            <p className="max-w-[520px] text-[15px] leading-[22px] text-white/60">
+            <p className="max-w-[640px] text-[15px] leading-[22px] text-white/60">
               {t.dashboard.createRetreatDesc}
             </p>
           </div>
@@ -548,7 +563,7 @@ function CreateRetreatBanner() {
           </svg>
         </Link>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -572,51 +587,80 @@ function RetreatCardLocal({ retreat }: { retreat: Retreat }) {
   const countrySlug = dataRetreat ? (countryIdToSlug[dataRetreat.country] ?? dataRetreat.country) : "mexico";
   return (
     <article className="flex flex-col overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-      <Link href={`/select-country/${countrySlug}/retreats/${retreat.slug}`} className="relative h-64 w-full bg-humana-stone">
-        <Image src={retreat.image} alt={retreat.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
-        <div className="absolute left-4 top-4 bg-white px-3 py-1.5">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-ink">{retreat.tag}</span>
+      <Link href={`/select-country/${countrySlug}/retreats/${retreat.slug}`} className="relative h-52 w-full bg-humana-stone">
+        <Image src={retreat.image} alt={retreat.title} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-cover" />
+        <div className="absolute left-3 top-3 bg-white px-2.5 py-1">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-humana-ink">{retreat.tag}</span>
         </div>
       </Link>
 
-      <div className="flex flex-col gap-5 p-7">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8A8578" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className="flex flex-1 flex-col gap-4 p-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8A8578" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            <span className="text-[12px] font-medium uppercase tracking-[0.16em] text-humana-muted">{retreat.location}</span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-humana-muted">{retreat.location}</span>
           </div>
-          <span className="text-[12px] font-medium text-[#4A463E]">{retreat.dates}</span>
+          <span className="text-[11px] font-medium text-[#4A463E]">{retreat.dates}</span>
         </div>
 
-        <h3 className="text-[20px] font-normal leading-[26px] tracking-[-0.01em] text-humana-ink">
-          {retreat.title}
-          <br />
-          {retreat.property}
+        <h3 className="text-[16px] font-medium leading-[22px] tracking-[-0.01em] text-humana-ink line-clamp-2">
+          {retreat.title} — {retreat.property}
         </h3>
 
-        <p className="text-[14px] leading-[20px] text-humana-muted">{retreat.description}</p>
+        <p className="text-[13px] leading-[18px] text-humana-muted line-clamp-2">{retreat.description}</p>
 
-        <div className="h-px bg-humana-line" />
+        <div className="mt-auto h-px bg-humana-line" />
 
-        <div className="flex items-end justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{retreat.fromLabel}</span>
-            <span className="text-[20px] font-light tracking-[-0.01em] text-humana-ink">
-              {retreat.price}
-              <span className="text-[13px] font-normal text-humana-subtle">{retreat.perGuest}</span>
+        <div className="flex items-end justify-between gap-2">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-humana-subtle">{retreat.fromLabel}</span>
+            <span className="whitespace-nowrap text-[16px] font-light tracking-[-0.01em] text-humana-ink">
+              {retreat.price}<span className="text-[11px] font-normal text-humana-subtle">{retreat.perGuest}</span>
             </span>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-gold">{retreat.commission}</span>
-            <Link href={`/select-country/${countrySlug}/retreats/${retreat.slug}`} className="text-[13px] font-medium text-humana-ink transition-colors hover:text-humana-gold">
+          <div className="flex flex-col items-end gap-0.5">
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-humana-gold">{retreat.commission}</span>
+            <Link href={`/select-country/${countrySlug}/retreats/${retreat.slug}`} className="whitespace-nowrap text-[12px] font-medium text-humana-ink transition-colors hover:text-humana-gold">
               {retreat.cta}
             </Link>
           </div>
         </div>
       </div>
     </article>
+  );
+}
+
+function Footer() {
+  const { t } = useLocale();
+  return (
+    <footer className="border-t border-humana-line bg-humana-stone px-16 py-12">
+      <div className="flex items-start justify-between gap-10">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <Image src="/brand/isotipo.png" alt="" width={24} height={24} />
+            <Image src="/brand/logotipo.svg" alt="HUMANA" width={90} height={30} />
+          </div>
+          <p className="max-w-[480px] text-[13px] leading-[20px] text-humana-muted">
+            {t.hero.subhead}
+          </p>
+        </div>
+        <div className="flex flex-col gap-3">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">Contacto</span>
+          <nav className="flex flex-col gap-2">
+            <span className="text-[13px] text-humana-muted">info@humana.global</span>
+          </nav>
+        </div>
+      </div>
+      <div className="mt-10 flex items-center justify-between border-t border-humana-line pt-6">
+        <span className="text-[12px] text-humana-subtle">&copy; 2026 Humana Global. Todos los derechos reservados.</span>
+        <div className="flex items-center gap-6">
+          <a href="#" className="text-[12px] text-humana-subtle hover:text-humana-ink">Privacidad</a>
+          <a href="#" className="text-[12px] text-humana-subtle hover:text-humana-ink">Términos</a>
+        </div>
+      </div>
+    </footer>
   );
 }

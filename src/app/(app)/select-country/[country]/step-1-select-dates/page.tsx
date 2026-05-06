@@ -162,7 +162,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
     }
 
     return (
-      <div className="flex flex-1 flex-col gap-0 border border-humana-line">
+      <div className="flex flex-1 flex-col gap-0 border border-humana-line bg-white">
         <h3 className="border-b border-humana-line py-4 text-center text-[16px] font-medium tracking-[-0.01em] text-humana-ink">
           {months[month]} {year}
         </h3>
@@ -179,7 +179,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   }
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -204,7 +204,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
         {/* ── Left: calendar + retreat schedule ── */}
         <div className="flex flex-1 flex-col gap-8">
           {/* Retreat dates info card */}
-          <div className="flex items-stretch gap-0 border border-humana-line">
+          <div className="flex items-stretch gap-0 border border-humana-line bg-white">
             <div className="flex flex-1 flex-col gap-1.5 border-r border-humana-line p-6">
               <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">CHECK-IN</span>
               <span className="text-[18px] font-medium text-humana-ink">{getDayName(computedCheckIn, localeIdx)}, {formatDateShort(computedCheckIn)}</span>
@@ -221,11 +221,11 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between px-4">
               <button type="button" onClick={handlePrevMonth}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-humana-line text-humana-muted transition-all hover:border-humana-ink hover:text-humana-ink">
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-humana-line bg-white text-humana-muted transition-all hover:border-humana-ink hover:text-humana-ink">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
               </button>
               <button type="button" onClick={handleNextMonth}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-humana-line text-humana-muted transition-all hover:border-humana-ink hover:text-humana-ink">
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-humana-line bg-white text-humana-muted transition-all hover:border-humana-ink hover:text-humana-ink">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
               </button>
             </div>
@@ -253,8 +253,8 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
         </div>
 
         {/* ── Summary sidebar ── */}
-        <div className="w-[340px] shrink-0">
-          <div className="sticky top-24 flex flex-col gap-6 border border-humana-line p-8">
+        <div className="w-[380px] shrink-0">
+          <div className="sticky top-24 flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
               RESUMEN DE RESERVA
             </span>
@@ -339,19 +339,19 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
             {/* Price breakdown */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">Retiro ({retreatNights} noches x ${pricePerNight})</span>
-                <span className="text-[14px] font-medium text-humana-ink">${retreatCost.toLocaleString("en-US")}</span>
+                <span className="text-[14px] text-humana-muted">Retiro ({retreatNights} noches x U$D {pricePerNight})</span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString("en-US")}</span>
               </div>
               {preNights > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Pre-retiro ({preNights} noches x ${pricePerNight})</span>
-                  <span className="text-[14px] font-medium text-humana-ink">${preCost.toLocaleString("en-US")}</span>
+                  <span className="text-[14px] text-humana-muted">Pre-retiro ({preNights} noches x U$D {pricePerNight})</span>
+                  <span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString("en-US")}</span>
                 </div>
               )}
               {postNights > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Post-retiro ({postNights} noches x ${pricePerNight})</span>
-                  <span className="text-[14px] font-medium text-humana-ink">${postCost.toLocaleString("en-US")}</span>
+                  <span className="text-[14px] text-humana-muted">Post-retiro ({postNights} noches x U$D {pricePerNight})</span>
+                  <span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString("en-US")}</span>
                 </div>
               )}
             </div>
@@ -360,10 +360,10 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
 
             <div className="flex items-center justify-between">
               <span className="text-[15px] font-medium text-humana-ink">Total alojamiento</span>
-              <span className="text-[18px] font-semibold text-humana-ink">${totalPrice.toLocaleString("en-US")} USD</span>
+              <span className="text-[18px] font-semibold text-humana-ink">U$D {totalPrice.toLocaleString("en-US")}</span>
             </div>
             <span className="text-[14px] font-medium text-humana-gold">
-              Tu comision estimada: ${commission.toLocaleString("en-US")} USD (16%)
+              Tu comision estimada: U$D {commission.toLocaleString("en-US")} (16%)
             </span>
 
             <Link

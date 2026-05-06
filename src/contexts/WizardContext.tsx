@@ -13,7 +13,7 @@ import type { ProgramDay, Facilitator } from "@/data/types";
 export type WizardState = {
   hotelId: string | null;
   name: string;
-  type: "retreat" | "masterclass" | "corporate";
+  type: "retreat" | "masterclass" | "meditation";
   nights: number;
   startDate: string;
   endDate: string;

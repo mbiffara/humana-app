@@ -166,7 +166,7 @@ export default function SelectDatesPage() {
   }
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: hotel?.name ?? "Hotel Itzamna", href: "/dashboard" },
@@ -218,7 +218,7 @@ export default function SelectDatesPage() {
 
         {/* Summary sidebar */}
         <div className="w-[340px] shrink-0">
-          <div className="flex flex-col gap-6 border border-humana-line p-8">
+          <div className="flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
               RESUMEN
             </span>
@@ -247,8 +247,8 @@ export default function SelectDatesPage() {
                 <div className="h-px bg-humana-line" />
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-humana-muted">{nightCount} noches x ${pricePerNight}</span>
-                    <span className="text-[16px] font-semibold text-humana-ink">${totalPrice.toLocaleString()} USD</span>
+                    <span className="text-[14px] text-humana-muted">{nightCount} noches x U$D {pricePerNight}</span>
+                    <span className="text-[16px] font-semibold text-humana-ink">U$D {totalPrice.toLocaleString()}</span>
                   </div>
                 </div>
               </>

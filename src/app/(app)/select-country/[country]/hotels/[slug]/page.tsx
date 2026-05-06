@@ -136,7 +136,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                     <span className="text-[24px] font-light tracking-[-0.01em] text-humana-ink">
-                      ${rt.pricePerNight}
+                      U$D {rt.pricePerNight}
                       <span className="text-[13px] font-normal text-humana-muted"> / {t.hotelDetail.perNight}</span>
                     </span>
                   </div>
@@ -264,9 +264,9 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                   <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                   <div className="flex items-baseline gap-1.5">
                     <span className="whitespace-nowrap text-[26px] font-light tracking-[-0.02em] text-humana-gold">
-                      ${selectedRoom.pricePerNight.toLocaleString()}
+                      U$D {selectedRoom.pricePerNight.toLocaleString()}
                     </span>
-                    <span className="whitespace-nowrap text-[13px] text-humana-muted">USD / {t.hotelDetail.perNight}</span>
+                    <span className="whitespace-nowrap text-[13px] text-humana-muted">/ {t.hotelDetail.perNight}</span>
                   </div>
                 </div>
                 <span className="shrink-0 cursor-default bg-humana-ink px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white">

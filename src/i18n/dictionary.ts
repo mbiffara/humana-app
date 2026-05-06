@@ -96,7 +96,7 @@ type Dictionary = {
     eyebrow: string;
     title: string;
     count: string;
-    filters: { all: string; retreat: string; masterclass: string; corporate: string };
+    filters: { all: string; retreat: string; masterclass: string; meditation: string };
     seeAll: string;
     items: Retreat[];
   };
@@ -251,7 +251,7 @@ type Dictionary = {
       capacity: string;
       language: string;
       description: string;
-      types: { retreat: string; masterclass: string; corporate: string };
+      types: { retreat: string; masterclass: string; meditation: string };
     };
     step3: {
       title: string;
@@ -422,7 +422,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       eyebrow: "Open calendar",
       title: "Upcoming wellness retreats",
       count: "48 certified experiences available this season across 14 cities.",
-      filters: { all: "All", retreat: "Retreat", masterclass: "Masterclass", corporate: "Corporate" },
+      filters: { all: "All", retreat: "Retreat", masterclass: "Masterclass", meditation: "Meditation" },
       seeAll: "See full calendar →",
       items: [
         {
@@ -435,7 +435,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Casa del Faro",
           description:
             "Conscious breathing, guided fasting and cliffside meditation sessions. Program certified by Global Wellness Institute.",
-          price: "$ 5,240",
+          price: "U$D 5,240",
           commission: "16% commission",
           cta: "View availability →",
           fromLabel: "From",
@@ -451,7 +451,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Hotel Itzamná",
           description:
             "Immersion in ancestral Mayan medicine, sunrise yoga and cacao circles guided by certified facilitators.",
-          price: "$ 3,460",
+          price: "U$D 3,460",
           commission: "16% commission",
           cta: "View availability →",
           fromLabel: "From",
@@ -460,14 +460,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         {
           slug: "conscious-leadership",
           image: "/images/retreat-singapore.jpg",
-          tag: "Corporate · 3 days",
+          tag: "Meditation · 3 days",
           location: "Singapore",
           dates: "Jun 9 — 12",
           title: "Conscious Leadership",
           property: "Marina Bay Sanctuary",
           description:
             "Executive retreat for leadership teams. Somatic coaching, strategic sessions and vertical integration spaces.",
-          price: "$ 6,910",
+          price: "U$D 6,910",
           commission: "16% commission",
           cta: "View availability →",
           fromLabel: "From",
@@ -483,7 +483,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Ananda Villa",
           description:
             "Rainforest immersion, plant-based cuisine masterclass and breathwork with Balinese practitioners.",
-          price: "$ 4,580",
+          price: "U$D 4,580",
           commission: "16% commission",
           cta: "View availability →",
           fromLabel: "From",
@@ -501,9 +501,9 @@ export const dictionary: Record<Locale, Dictionary> = {
       heading: "Explore our destinations",
       subtitle: "Choose a country to explore available experiences",
       retreatsTitle: "Explore Retreats",
-      retreatsDesc: "Curated wellness retreats and transformative experiences",
-      hotelsTitle: "Explore Hotels",
-      hotelsDesc: "Certified wellness hotels and boutique properties",
+      retreatsDesc: "Purchase retreat spots and resell transformative experiences to your clients",
+      hotelsTitle: "Book Spots",
+      hotelsDesc: "Reserve rooms and create custom retreats to sell on the platform",
       explore: "Explore",
     },
     exploreRetreats: {
@@ -602,8 +602,8 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     exploreHotels: {
       breadcrumb: "Hotels",
-      title: "Explore Hotels",
-      subtitle: "Certified wellness hotels and boutique properties",
+      title: "Book Spots",
+      subtitle: "Reserve rooms and create custom retreats to sell on the platform",
       showing: (n) => `${n} hotels available`,
     },
     hotelDetail: {
@@ -642,7 +642,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         capacity: "Max. capacity",
         language: "Language",
         description: "Description",
-        types: { retreat: "Retreat", masterclass: "Masterclass", corporate: "Corporate" },
+        types: { retreat: "Retreat", masterclass: "Masterclass", meditation: "Meditation" },
       },
       step3: {
         title: "Program",
@@ -806,7 +806,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       eyebrow: "Calendario abierto",
       title: "Próximos retiros wellness",
       count: "48 experiencias certificadas disponibles esta temporada en 14 ciudades.",
-      filters: { all: "Todos", retreat: "Retiro", masterclass: "Masterclass", corporate: "Corporativo" },
+      filters: { all: "Todos", retreat: "Retiro", masterclass: "Masterclass", meditation: "Meditación" },
       seeAll: "Ver calendario completo →",
       items: [
         {
@@ -819,7 +819,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Casa del Faro",
           description:
             "Respiración consciente, ayuno guiado y sesiones de meditación en acantilado. Programa certificado por Global Wellness Institute.",
-          price: "$ 5,240",
+          price: "U$D 5,240",
           commission: "Comisión 16%",
           cta: "Ver disponibilidad →",
           fromLabel: "Desde",
@@ -835,7 +835,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Hotel Itzamná",
           description:
             "Inmersión en medicina ancestral maya, yoga al amanecer y círculos de cacao guiados por facilitadores certificados.",
-          price: "$ 3,460",
+          price: "U$D 3,460",
           commission: "Comisión 16%",
           cta: "Ver disponibilidad →",
           fromLabel: "Desde",
@@ -844,14 +844,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         {
           slug: "conscious-leadership",
           image: "/images/retreat-singapore.jpg",
-          tag: "Corporativo · 3 días",
+          tag: "Meditación · 3 días",
           location: "Singapur",
           dates: "9 — 12 jun",
           title: "Liderazgo Consciente",
           property: "Marina Bay Sanctuary",
           description:
             "Retiro ejecutivo para equipos directivos. Coaching somático, sesiones estratégicas y espacios de integración vertical.",
-          price: "$ 6,910",
+          price: "U$D 6,910",
           commission: "Comisión 16%",
           cta: "Ver disponibilidad →",
           fromLabel: "Desde",
@@ -867,7 +867,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Ananda Villa",
           description:
             "Inmersión en selva tropical, masterclass de cocina plant-based y respiración con practicantes balineses.",
-          price: "$ 4,580",
+          price: "U$D 4,580",
           commission: "Comisión 16%",
           cta: "Ver disponibilidad →",
           fromLabel: "Desde",
@@ -884,10 +884,10 @@ export const dictionary: Record<Locale, Dictionary> = {
       title: "Selecciona tu destino",
       heading: "Explora nuestros destinos",
       subtitle: "Elige un país para explorar las experiencias disponibles",
-      retreatsTitle: "Explorar retiros",
-      retreatsDesc: "Retiros de bienestar curados y experiencias transformadoras",
-      hotelsTitle: "Explorar hoteles",
-      hotelsDesc: "Hoteles wellness certificados y propiedades boutique",
+      retreatsTitle: "Explorar Retiros",
+      retreatsDesc: "Compra plazas de retiros y revendé experiencias transformadoras a tus clientes",
+      hotelsTitle: "Reservar Plazas",
+      hotelsDesc: "Reserva alojamientos y crea retiros personalizados para vender en la plataforma",
       explore: "Explorar",
     },
     exploreRetreats: {
@@ -986,8 +986,8 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     exploreHotels: {
       breadcrumb: "Hoteles",
-      title: "Explorar Hoteles",
-      subtitle: "Hoteles wellness certificados y propiedades boutique",
+      title: "Reservar Plazas",
+      subtitle: "Reserva alojamientos y crea retiros personalizados para vender en la plataforma",
       showing: (n) => `${n} hoteles disponibles`,
     },
     hotelDetail: {
@@ -1026,7 +1026,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         capacity: "Capacidad máxima",
         language: "Idioma",
         description: "Descripción",
-        types: { retreat: "Retiro", masterclass: "Masterclass", corporate: "Corporativo" },
+        types: { retreat: "Retiro", masterclass: "Masterclass", meditation: "Meditación" },
       },
       step3: {
         title: "Programa",
@@ -1191,7 +1191,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       eyebrow: "Calendário aberto",
       title: "Próximos retiros wellness",
       count: "48 experiências certificadas disponíveis nesta temporada em 14 cidades.",
-      filters: { all: "Todos", retreat: "Retiro", masterclass: "Masterclass", corporate: "Corporativo" },
+      filters: { all: "Todos", retreat: "Retiro", masterclass: "Masterclass", meditation: "Meditación" },
       seeAll: "Ver calendário completo →",
       items: [
         {
@@ -1204,7 +1204,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Casa del Faro",
           description:
             "Respiração consciente, jejum guiado e sessões de meditação na falésia. Programa certificado pelo Global Wellness Institute.",
-          price: "$ 5.240",
+          price: "U$D 5.240",
           commission: "Comissão 16%",
           cta: "Ver disponibilidade →",
           fromLabel: "A partir de",
@@ -1220,7 +1220,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Hotel Itzamná",
           description:
             "Imersão em medicina ancestral maia, yoga ao amanhecer e círculos de cacau guiados por facilitadores certificados.",
-          price: "$ 3.460",
+          price: "U$D 3.460",
           commission: "Comissão 16%",
           cta: "Ver disponibilidade →",
           fromLabel: "A partir de",
@@ -1229,14 +1229,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         {
           slug: "conscious-leadership",
           image: "/images/retreat-singapore.jpg",
-          tag: "Corporativo · 3 dias",
+          tag: "Meditação · 3 dias",
           location: "Singapura",
           dates: "9 — 12 jun",
           title: "Liderança Consciente",
           property: "Marina Bay Sanctuary",
           description:
             "Retiro executivo para equipes de liderança. Coaching somático, sessões estratégicas e espaços de integração vertical.",
-          price: "$ 6.910",
+          price: "U$D 6.910",
           commission: "Comissão 16%",
           cta: "Ver disponibilidade →",
           fromLabel: "A partir de",
@@ -1252,7 +1252,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           property: "Ananda Villa",
           description:
             "Imersão na floresta, masterclass de culinária plant-based e respiração com praticantes balineses.",
-          price: "$ 4.580",
+          price: "U$D 4.580",
           commission: "Comissão 16%",
           cta: "Ver disponibilidade →",
           fromLabel: "A partir de",
@@ -1269,10 +1269,10 @@ export const dictionary: Record<Locale, Dictionary> = {
       title: "Selecione seu destino",
       heading: "Explore nossos destinos",
       subtitle: "Escolha um país para explorar as experiências disponíveis",
-      retreatsTitle: "Explorar retiros",
-      retreatsDesc: "Retiros de bem-estar curados e experiências transformadoras",
-      hotelsTitle: "Explorar hotéis",
-      hotelsDesc: "Hotéis wellness certificados e propriedades boutique",
+      retreatsTitle: "Explorar Retiros",
+      retreatsDesc: "Compre vagas de retiros e revenda experiências transformadoras aos seus clientes",
+      hotelsTitle: "Reservar Vagas",
+      hotelsDesc: "Reserve acomodações e crie retiros personalizados para vender na plataforma",
       explore: "Explorar",
     },
     exploreRetreats: {
@@ -1371,8 +1371,8 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     exploreHotels: {
       breadcrumb: "Hotéis",
-      title: "Explorar Hotéis",
-      subtitle: "Hotéis wellness certificados e propriedades boutique",
+      title: "Reservar Vagas",
+      subtitle: "Reserve acomodações e crie retiros personalizados para vender na plataforma",
       showing: (n) => `${n} hotéis disponíveis`,
     },
     hotelDetail: {
@@ -1411,7 +1411,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         capacity: "Capacidade máxima",
         language: "Idioma",
         description: "Descrição",
-        types: { retreat: "Retiro", masterclass: "Masterclass", corporate: "Corporativo" },
+        types: { retreat: "Retiro", masterclass: "Masterclass", meditation: "Meditación" },
       },
       step3: {
         title: "Programa",

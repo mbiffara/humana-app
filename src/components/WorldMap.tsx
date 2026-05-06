@@ -421,34 +421,41 @@ function CountrySidebar({
             </h3>
           </div>
           <p className="text-[14px] leading-[20px] text-humana-muted">
-            {retreatCount} {t.selectCountry.retreatsTitle.toLowerCase()} · {hotelCount} {t.selectCountry.hotelsTitle.toLowerCase()}
+            {retreatCount} retiros · {hotelCount} hoteles
           </p>
         </div>
 
         <div className="h-px bg-humana-line" />
 
         {/* Navigation cards */}
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-8 py-6">
+        <div className="flex flex-col gap-4 px-8 py-6">
           {/* Retreats card */}
           <Link
             href={`/select-country/${markerKey}/retreats`}
-            className="group flex flex-col gap-4 border border-humana-line p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-humana-ink hover:shadow-lg"
+            className="group flex flex-col gap-3 border border-humana-line bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-humana-ink hover:shadow-lg"
           >
-            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+            <div className="flex items-center gap-2.5">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+              </svg>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                Explorar experiencias
+              </span>
+            </div>
+            <h4 className="text-[22px] font-light leading-[28px] tracking-[-0.01em] text-humana-ink">
               {t.selectCountry.retreatsTitle}
-            </span>
-            <p className="text-[14px] leading-[20px] text-humana-muted">
+            </h4>
+            <p className="text-[13px] leading-[19px] text-humana-muted">
               {t.selectCountry.retreatsDesc}
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-[28px] font-light text-humana-ink">
+              <span className="text-[28px] font-light leading-none text-humana-ink">
                 {retreatCount}
-                <span className="ml-1.5 text-[13px] font-normal text-humana-muted">
-                  retiros
-                </span>
+                <span className="ml-1.5 text-[13px] font-normal text-humana-muted">retiros</span>
               </span>
-              <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-humana-ink transition-colors group-hover:text-humana-gold">
-                {t.selectCountry.explore} →
+              <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-humana-ink transition-colors group-hover:text-humana-gold">
+                Explorar →
               </span>
             </div>
           </Link>
@@ -456,23 +463,33 @@ function CountrySidebar({
           {/* Hotels card */}
           <Link
             href={`/select-country/${markerKey}/hotels`}
-            className="group flex flex-col gap-4 border border-humana-line p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-humana-ink hover:shadow-lg"
+            className="group flex flex-col gap-3 border border-humana-line bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-humana-ink hover:shadow-lg"
           >
-            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+            <div className="flex items-center gap-2.5">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 21h18" />
+                <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+                <path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
+                <path d="M10 9h4" />
+                <path d="M10 6h4" />
+              </svg>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                Alojamientos
+              </span>
+            </div>
+            <h4 className="text-[22px] font-light leading-[28px] tracking-[-0.01em] text-humana-ink">
               {t.selectCountry.hotelsTitle}
-            </span>
-            <p className="text-[14px] leading-[20px] text-humana-muted">
+            </h4>
+            <p className="text-[13px] leading-[19px] text-humana-muted">
               {t.selectCountry.hotelsDesc}
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-[28px] font-light text-humana-ink">
+              <span className="text-[28px] font-light leading-none text-humana-ink">
                 {hotelCount}
-                <span className="ml-1.5 text-[13px] font-normal text-humana-muted">
-                  hoteles
-                </span>
+                <span className="ml-1.5 text-[13px] font-normal text-humana-muted">hoteles</span>
               </span>
-              <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-humana-ink transition-colors group-hover:text-humana-gold">
-                {t.selectCountry.explore} →
+              <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-humana-ink transition-colors group-hover:text-humana-gold">
+                Explorar →
               </span>
             </div>
           </Link>

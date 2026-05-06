@@ -24,8 +24,9 @@ function fmtRange(start: string, end: string) {
 function RetreatPreviewCard({ onPublish }: { onPublish: () => void }) {
   const { state } = useWizard();
   const hotel = hotels.find((h) => h.id === state.hotelId);
-  const minPrice = state.pricing.length > 0 ? Math.min(...state.pricing.filter((p) => p.retailPrice > 0).map((p) => p.retailPrice)) : 0;
-  const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Corporativo";
+  const minPricePerNight = state.pricing.length > 0 ? Math.min(...state.pricing.filter((p) => p.retailPrice > 0).map((p) => p.retailPrice)) : 0;
+  const minPrice = minPricePerNight * state.nights;
+  const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Meditación";
   const coverImg = state.gallery[0] ?? hotel?.image ?? "/images/retreat-ibiza.jpg";
   const location = hotel?.location ?? "";
 
@@ -80,7 +81,7 @@ function RetreatPreviewCard({ onPublish }: { onPublish: () => void }) {
               <div className="flex flex-col gap-1">
                 <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">Desde</span>
                 <span className="text-[20px] font-light tracking-[-0.01em] text-humana-ink">
-                  {minPrice > 0 ? `$${minPrice.toLocaleString("en-US")}` : "---"}
+                  {minPrice > 0 ? `U$D ${minPrice.toLocaleString("en-US")}` : "---"}
                   <span className="text-[13px] font-normal text-humana-subtle"> /huésped</span>
                 </span>
               </div>
@@ -192,7 +193,7 @@ export default function WizardStep6() {
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">Precio desde</span>
-              <span className="text-[15px] text-humana-ink">${minPrice.toLocaleString("en-US")} USD</span>
+              <span className="text-[15px] text-humana-ink">U$D {minPrice.toLocaleString("en-US")}</span>
             </div>
           </div>
 
@@ -206,7 +207,7 @@ export default function WizardStep6() {
         <div className="animate-fade-in-up-delay-2 flex items-center gap-4">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 border border-humana-line px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-all duration-150 hover:border-humana-ink active:scale-[0.98]"
+            className="flex items-center gap-3 border border-humana-line bg-white px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-all duration-150 hover:border-humana-ink active:scale-[0.98]"
           >
             Ver retiro
           </Link>
@@ -443,7 +444,7 @@ export default function WizardStep6() {
                           <span className="text-[12px] text-humana-subtle">{inv.availableRooms} habs</span>
                         )}
                       </div>
-                      <span className="text-[14px] font-medium text-humana-ink">${p.retailPrice.toLocaleString("en-US")} /huésped</span>
+                      <span className="text-[14px] font-medium text-humana-ink">U$D {p.retailPrice.toLocaleString("en-US")} /huésped</span>
                     </div>
                   );
                 })}

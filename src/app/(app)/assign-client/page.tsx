@@ -74,7 +74,7 @@ export default function AssignClientPage() {
   ].filter(Boolean).join(" + ");
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -227,7 +227,7 @@ export default function AssignClientPage() {
 
         {/* Sidebar */}
         <div className="w-[340px] shrink-0">
-          <div className="sticky top-8 flex flex-col gap-6 border border-humana-line p-8">
+          <div className="sticky top-8 flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
               RESUMEN DE RESERVA
             </span>
@@ -282,7 +282,7 @@ export default function AssignClientPage() {
 
             <div className="flex items-center justify-between">
               <span className="text-[15px] font-medium text-humana-ink">Total</span>
-              <span className="text-[18px] font-semibold text-humana-ink">${total.toLocaleString()} USD</span>
+              <span className="text-[18px] font-semibold text-humana-ink">U$D {total.toLocaleString()}</span>
             </div>
 
             <Link

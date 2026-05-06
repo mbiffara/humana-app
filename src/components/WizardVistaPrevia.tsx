@@ -27,12 +27,12 @@ type Props = {
 export function WizardVistaPrevia({ currentStep, onNext, canProceed = true, localPricing }: Props) {
   const { state } = useWizard();
   const hotel = hotels.find((h) => h.id === state.hotelId);
-  const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Corporativo";
+  const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Meditación";
 
   const activePricing = localPricing ?? state.pricing;
   const validPrices = activePricing.filter((p) => p.retailPrice > 0);
   const minSalePrice = validPrices.length > 0
-    ? Math.min(...validPrices.map((p) => p.retailPrice))
+    ? Math.min(...validPrices.map((p) => p.retailPrice)) * state.nights
     : 0;
 
   const pct = Math.round((currentStep / 6) * 100);
@@ -83,7 +83,7 @@ export function WizardVistaPrevia({ currentStep, onNext, canProceed = true, loca
             <div className="flex items-center justify-between">
               <span className="text-[13px] text-humana-muted">Precio base</span>
               <span className={`text-[13px] ${minSalePrice > 0 ? "font-semibold text-humana-gold" : "text-humana-subtle"}`}>
-                {minSalePrice > 0 ? `$${minSalePrice.toLocaleString("en-US")} USD` : "Pendiente"}
+                {minSalePrice > 0 ? `U$D ${minSalePrice.toLocaleString("en-US")}` : "Pendiente"}
               </span>
             </div>
           </div>

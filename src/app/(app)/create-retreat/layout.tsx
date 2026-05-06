@@ -30,7 +30,7 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-humana-stone">
       {activeIndex === 0 && (
         <div className="flex flex-col gap-3 px-16 pt-14 pb-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">

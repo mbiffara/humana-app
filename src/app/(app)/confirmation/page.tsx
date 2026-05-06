@@ -45,7 +45,7 @@ export default function ConfirmationPage() {
   const computedCheckOut = postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd;
 
   return (
-    <div className="flex flex-col items-center gap-10 px-16 py-20">
+    <div className="flex flex-col items-center gap-10 bg-humana-stone min-h-screen px-16 py-20">
       <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-check-pop">
         <circle cx="40" cy="40" r="38" stroke="#d4af37" strokeWidth="2" className="animate-check-circle" />
         <path d="M24 41l11 11 21-24" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="animate-check-stroke" />
@@ -101,7 +101,7 @@ export default function ConfirmationPage() {
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">TOTAL PAGADO</span>
-            <span className="text-[14px] font-medium text-humana-ink">${total.toLocaleString()}.00 USD</span>
+            <span className="text-[14px] font-medium text-humana-ink">U$D {total.toLocaleString()}.00</span>
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export default function ConfirmationPage() {
           <span className="text-[13px] font-medium text-humana-ink">
             Comision ganada por esta reserva
           </span>
-          <span className="text-[18px] font-medium text-humana-gold">${commission.toLocaleString()}.00 USD</span>
+          <span className="text-[18px] font-medium text-humana-gold">U$D {commission.toLocaleString()}.00</span>
         </div>
       </div>
 

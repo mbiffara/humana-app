@@ -9,7 +9,7 @@ import { FilterChip } from "@/components/FilterChip";
 import { retreats } from "@/data/retreats";
 import { countries, countrySlugToId } from "@/data/countries";
 
-type FilterType = "all" | "retreat" | "masterclass" | "corporate";
+type FilterType = "all" | "retreat" | "masterclass" | "meditation";
 
 function formatShortDate(iso: string) {
   const d = new Date(iso + "T00:00:00");
@@ -71,6 +71,7 @@ export default function CountryRetreatsPage({ params }: { params: Promise<{ coun
           <FilterChip label={t.retreats.filters.all} active={filter === "all"} onClick={() => setFilter("all")} />
           <FilterChip label={t.retreats.filters.retreat} active={filter === "retreat"} onClick={() => setFilter("retreat")} />
           <FilterChip label={t.retreats.filters.masterclass} active={filter === "masterclass"} onClick={() => setFilter("masterclass")} />
+          <FilterChip label={t.retreats.filters.meditation} active={filter === "meditation"} onClick={() => setFilter("meditation")} />
         </div>
       </div>
 

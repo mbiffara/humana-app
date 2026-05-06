@@ -174,7 +174,7 @@ export default function WizardStep1() {
 
                             {/* Price */}
                             <span className="text-[13px] font-medium text-humana-ink">
-                              ${block.pricePerNight}<span className="text-[11px] font-normal text-humana-muted">/noche</span>
+                              U$D {block.pricePerNight}<span className="text-[11px] font-normal text-humana-muted">/noche</span>
                             </span>
                           </div>
                         );

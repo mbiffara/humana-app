@@ -76,9 +76,15 @@ export default function CountryPage({ params }: { params: Promise<{ country: str
           onClick={() => set({ flowType: "retreats" })}
           className="group flex flex-col border border-humana-line bg-white p-12 transition-all duration-200 hover:-translate-y-0.5 hover:border-humana-ink hover:shadow-lg"
         >
-          <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-            Explorar experiencias
-          </span>
+          <div className="flex items-center gap-3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+            </svg>
+            <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+              Explorar experiencias
+            </span>
+          </div>
 
           <h3 className="mt-4 text-[30px] font-light leading-[38px] tracking-[-0.01em] text-humana-ink">
             {t.selectCountry.retreatsTitle}
@@ -108,9 +114,18 @@ export default function CountryPage({ params }: { params: Promise<{ country: str
           onClick={() => set({ flowType: "hotels" })}
           className="group flex flex-col border border-humana-line bg-white p-12 transition-all duration-200 hover:-translate-y-0.5 hover:border-humana-ink hover:shadow-lg"
         >
-          <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-            Alojamientos
-          </span>
+          <div className="flex items-center gap-3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 21h18" />
+              <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+              <path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
+              <path d="M10 9h4" />
+              <path d="M10 6h4" />
+            </svg>
+            <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+              Alojamientos
+            </span>
+          </div>
 
           <h3 className="mt-4 text-[30px] font-light leading-[38px] tracking-[-0.01em] text-humana-ink">
             {t.selectCountry.hotelsTitle}

@@ -1,8 +1,25 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { WizardProvider } from "@/contexts/WizardContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("humana.auth") === "true") {
+      setAuthorized(true);
+    } else {
+      router.replace("/");
+    }
+  }, [router]);
+
+  if (!authorized) return null;
+
   return (
     <BookingProvider>
       <WizardProvider>

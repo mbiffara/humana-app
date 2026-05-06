@@ -96,12 +96,12 @@ export default function WizardStep2() {
                   </label>
                   <select
                     value={state.type}
-                    onChange={(e) => set({ type: e.target.value as "retreat" | "masterclass" | "corporate" })}
+                    onChange={(e) => set({ type: e.target.value as "retreat" | "masterclass" | "meditation" })}
                     className="w-full border border-humana-line bg-white px-4 py-3 text-[15px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
                   >
                     <option value="retreat">{t.createRetreat.step2.types.retreat}</option>
                     <option value="masterclass">{t.createRetreat.step2.types.masterclass}</option>
-                    <option value="corporate">{t.createRetreat.step2.types.corporate}</option>
+                    <option value="meditation">{t.createRetreat.step2.types.meditation}</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-2">
