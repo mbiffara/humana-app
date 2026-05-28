@@ -24,12 +24,12 @@ export const countryIdToSlug: Record<string, string> = {
 };
 
 export const countries: Country[] = [
-  { id: "mx", name: "México", code: "MX", flag: "🇲🇽", retreatCount: 1, hotelCount: 8 },
+  { id: "mx", name: "México", code: "MX", flag: "🇲🇽", retreatCount: 8, hotelCount: 8 },
   { id: "us", name: "Estados Unidos", code: "US", flag: "🇺🇸", retreatCount: 0, hotelCount: 0 },
-  { id: "es", name: "España", code: "ES", flag: "🇪🇸", retreatCount: 1, hotelCount: 0 },
+  { id: "es", name: "España", code: "ES", flag: "🇪🇸", retreatCount: 0, hotelCount: 0 },
   { id: "br", name: "Brasil", code: "BR", flag: "🇧🇷", retreatCount: 0, hotelCount: 0 },
   { id: "in", name: "India", code: "IN", flag: "🇮🇳", retreatCount: 0, hotelCount: 0 },
-  { id: "id", name: "Indonesia", code: "ID", flag: "🇮🇩", retreatCount: 1, hotelCount: 0 },
+  { id: "id", name: "Indonesia", code: "ID", flag: "🇮🇩", retreatCount: 0, hotelCount: 0 },
   { id: "ar", name: "Argentina", code: "AR", flag: "🇦🇷", retreatCount: 0, hotelCount: 0 },
-  { id: "pt", name: "Portugal", code: "PT", flag: "🇵🇹", retreatCount: 1, hotelCount: 0 },
+  { id: "pt", name: "Portugal", code: "PT", flag: "🇵🇹", retreatCount: 0, hotelCount: 0 },
 ];
