@@ -1,16 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
+import { locales, type Locale } from "@/i18n/dictionary";
+import { useAuth } from "@/lib/AuthProvider";
+import { ApiError } from "@/lib/api";
 
 export default function LoginPage() {
-  const { t } = useLocale();
+  const { t, setLocale } = useLocale();
   const router = useRouter();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (submitting) return;
+    setError("");
+    setSubmitting(true);
+    try {
+      const { user } = await signIn(email, password);
+      if (locales.includes(user.locale as Locale)) {
+        setLocale(user.locale as Locale);
+      }
+      router.push("/dashboard");
+    } catch (err) {
+      const isNetwork = err instanceof ApiError && err.status === 0;
+      setError(isNetwork ? t.login.errorNetwork : t.login.errorInvalid);
+      setSubmitting(false);
+    }
+  }
+
   return (
     <main className="fixed inset-0 flex flex-row overflow-hidden">
       {/* Brand panel */}
@@ -85,15 +109,7 @@ export default function LoginPage() {
         </div>
 
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (email === "info@humana.global" && password === "123456") {
-              sessionStorage.setItem("humana.auth", "true");
-              router.push("/dashboard");
-            } else {
-              setError("Accesos incorrectos");
-            }
-          }}
+          onSubmit={handleSubmit}
           className="mx-auto flex w-full max-w-[400px] flex-col gap-5"
         >
           <header className="flex flex-col gap-3">
@@ -181,22 +197,25 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="group/cta flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
+            disabled={submitting}
+            className="group/cta flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {t.login.submit}
-            <svg
-              width="14"
-              height="9"
-              viewBox="0 0 16 10"
-              fill="none"
-              stroke="#D4AF37"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-transform duration-200 group-hover/cta:translate-x-0.5"
-            >
-              <path d="M1 5h14M10 1l4 4-4 4" />
-            </svg>
+            {submitting ? t.login.signingIn : t.login.submit}
+            {!submitting && (
+              <svg
+                width="14"
+                height="9"
+                viewBox="0 0 16 10"
+                fill="none"
+                stroke="#D4AF37"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-transform duration-200 group-hover/cta:translate-x-0.5"
+              >
+                <path d="M1 5h14M10 1l4 4-4 4" />
+              </svg>
+            )}
           </button>
         </form>
 

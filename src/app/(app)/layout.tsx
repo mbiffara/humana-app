@@ -1,24 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { WizardProvider } from "@/contexts/WizardContext";
+import { useAuth } from "@/lib/AuthProvider";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [authorized, setAuthorized] = useState(false);
+  const { user, loading } = useAuth();
 
+  // Once the persisted session has been read, bounce unauthenticated visitors
+  // back to the login portal.
   useEffect(() => {
-    if (sessionStorage.getItem("humana.auth") === "true") {
-      setAuthorized(true);
-    } else {
-      router.replace("/");
-    }
-  }, [router]);
+    if (!loading && !user) router.replace("/");
+  }, [loading, user, router]);
 
-  if (!authorized) return null;
+  if (loading || !user) return null;
 
   return (
     <BookingProvider>

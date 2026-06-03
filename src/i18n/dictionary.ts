@@ -37,6 +37,9 @@ type Dictionary = {
     recover: string;
     remember: string;
     submit: string;
+    signingIn: string;
+    errorInvalid: string;
+    errorNetwork: string;
     joinPrompt: string;
     joinLink: string;
   };
@@ -49,6 +52,7 @@ type Dictionary = {
     inventory: string;
     agencyName: string;
     agencyMeta: string;
+    signOut: string;
   };
   hero: {
     eyebrow: string;
@@ -362,6 +366,9 @@ export const dictionary: Record<Locale, Dictionary> = {
       recover: "Recover access",
       remember: "Keep me signed in on this trusted device",
       submit: "Access the platform",
+      signingIn: "Verifying access…",
+      errorInvalid: "Invalid email or password.",
+      errorNetwork: "We can't reach the network right now. Please try again.",
       joinPrompt: "Does your organization want to join?",
       joinLink: "Request membership",
     },
@@ -374,6 +381,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       inventory: "Inventory",
       agencyName: "Viajes Éter",
       agencyMeta: "AGENCIA · ESPAÑA",
+      signOut: "Sign out",
     },
     hero: {
       eyebrow: "Global network · 2026 Season",
@@ -810,6 +818,9 @@ export const dictionary: Record<Locale, Dictionary> = {
       recover: "Recuperar acceso",
       remember: "Mantener sesión iniciada en este dispositivo de confianza",
       submit: "Acceder a la plataforma",
+      signingIn: "Verificando acceso…",
+      errorInvalid: "Email o contraseña inválidos.",
+      errorNetwork: "No podemos conectar con la red en este momento. Inténtalo de nuevo.",
       joinPrompt: "¿Tu organización desea integrarse?",
       joinLink: "Solicitar incorporación",
     },
@@ -822,6 +833,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       inventory: "Inventario",
       agencyName: "Viajes Éter",
       agencyMeta: "AGENCIA · ESPAÑA",
+      signOut: "Cerrar sesión",
     },
     hero: {
       eyebrow: "Red global · Temporada 2026",
@@ -1259,6 +1271,9 @@ export const dictionary: Record<Locale, Dictionary> = {
       recover: "Recuperar acesso",
       remember: "Manter sessão iniciada neste dispositivo confiável",
       submit: "Acessar a plataforma",
+      signingIn: "Verificando acesso…",
+      errorInvalid: "Email ou senha inválidos.",
+      errorNetwork: "Não conseguimos conectar à rede no momento. Tente novamente.",
       joinPrompt: "Sua organização deseja integrar-se?",
       joinLink: "Solicitar incorporação",
     },
@@ -1271,6 +1286,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       inventory: "Inventário",
       agencyName: "Viajes Éter",
       agencyMeta: "AGENCIA · ESPAÑA",
+      signOut: "Sair",
     },
     hero: {
       eyebrow: "Rede global · Temporada 2026",
