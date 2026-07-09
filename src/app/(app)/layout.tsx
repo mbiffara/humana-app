@@ -1,29 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { WizardProvider } from "@/contexts/WizardContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [authorized, setAuthorized] = useState(false);
+  const pathname = usePathname();
+  const { user, loading, isAdmin } = useAuth();
+  const isHotelWizard = pathname.startsWith("/onboarding/hotel");
 
   useEffect(() => {
-    if (sessionStorage.getItem("humana.auth") === "true") {
-      setAuthorized(true);
-    } else {
+    if (!loading && !user) {
       router.replace("/");
     }
-  }, [router]);
+  }, [loading, user, router]);
 
-  if (!authorized) return null;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-humana-stone">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+          <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-muted">
+            Loading
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <BookingProvider>
       <WizardProvider>
-        <TopNav />
+        {!isAdmin && !isHotelWizard && <TopNav />}
         <main className="flex-1">{children}</main>
       </WizardProvider>
     </BookingProvider>

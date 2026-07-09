@@ -1,16 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/lib/api";
 
 export default function LoginPage() {
   const { t } = useLocale();
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Restore remembered email on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("humana.remember_email");
+    if (saved) {
+      setEmail(saved);
+      setRemember(true);
+    }
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    try {
+      if (remember) localStorage.setItem("humana.remember_email", email);
+      else localStorage.removeItem("humana.remember_email");
+      const user = await login(email, password);
+      if (user.platform_admin) {
+        router.push("/admin/dashboard");
+      } else if (!user.organization?.onboarding_completed) {
+        const kind = user.organization?.kind;
+        if (kind === "hotel") {
+          router.push("/onboarding/hotel/step-1");
+        } else if (kind === "agency") {
+          router.push("/onboarding/agency");
+        } else if (kind === "office") {
+          router.push("/onboarding/office");
+        } else {
+          router.push("/dashboard");
+        }
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        setError("Connection error. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <main className="fixed inset-0 flex flex-row overflow-hidden">
       {/* Brand panel */}
@@ -85,15 +136,7 @@ export default function LoginPage() {
         </div>
 
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (email === "info@humana.global" && password === "123456") {
-              sessionStorage.setItem("humana.auth", "true");
-              router.push("/dashboard");
-            } else {
-              setError("Accesos incorrectos");
-            }
-          }}
+          onSubmit={handleSubmit}
           className="mx-auto flex w-full max-w-[400px] flex-col gap-5"
         >
           <header className="flex flex-col gap-3">
@@ -143,31 +186,37 @@ export default function LoginPage() {
             <div className="flex items-center gap-3 border-b border-[#D8D4C8] py-3 focus-within:border-humana-ink">
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setError(""); }}
                 placeholder={t.login.passwordPlaceholder}
-                className="flex-1 bg-transparent text-[16px] tracking-[0.3em] text-humana-ink outline-none placeholder:text-humana-subtle"
+                className={`flex-1 bg-transparent text-[16px] text-humana-ink outline-none placeholder:text-humana-subtle ${showPassword ? "tracking-normal" : "tracking-[0.3em]"}`}
               />
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#8A8578"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="cursor-pointer text-humana-subtle transition-colors hover:text-humana-ink"
               >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
+                {showPassword ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
 
           <label className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
               className="h-[14px] w-[14px] cursor-pointer accent-humana-ink"
             />
             <span className="text-[13px] text-[#4A463E]">
@@ -181,9 +230,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="group/cta flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black"
+            disabled={submitting}
+            className="cursor-pointer group/cta flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black disabled:opacity-60"
           >
-            {t.login.submit}
+            {submitting ? "..." : t.login.submit}
             <svg
               width="14"
               height="9"

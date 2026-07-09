@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
 import type { Retreat } from "@/i18n/dictionary";
@@ -10,6 +11,8 @@ import { retreats as retreatsData } from "@/data/retreats";
 import { countries, countryIdToSlug } from "@/data/countries";
 import { CounterControl } from "@/components/CounterControl";
 import { FilterChip } from "@/components/FilterChip";
+import { useAuth } from "@/contexts/AuthContext";
+import { ComingSoon } from "@/components/ComingSoon";
 
 const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ssr: false,
@@ -18,7 +21,21 @@ const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ),
 });
 
-export default function AgencyDashboard() {
+export default function DashboardPage() {
+  const { user, isAdmin } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAdmin) {
+      router.replace("/admin/dashboard");
+    }
+  }, [isAdmin, router]);
+
+  // Non-admin users see Coming Soon
+  if (!isAdmin && user) {
+    return <ComingSoon />;
+  }
+
   return (
     <div className="flex flex-col">
       <BannerSection />
