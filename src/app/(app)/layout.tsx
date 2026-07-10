@@ -13,6 +13,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const isOnboarding = pathname.startsWith("/onboarding/");
 
+  // Once the persisted session has been read, bounce unauthenticated visitors
+  // back to the login portal.
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/");
