@@ -1,75 +1,96 @@
-// Thin client for the HUMANA Rails API (sibling `../humana-api`).
-// Base URL is configurable so the same build works against local dev and prod.
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_HUMANA_API_URL?.replace(/\/$/, "") ??
-  "http://127.0.0.1:3001";
+/**
+ * Core API client for the HUMANA platform.
+ * Handles JWT authentication, error normalization, and token management.
+ */
 
-export type Organization = {
-  id: number;
-  name: string;
-  kind: "hotel" | "agency" | "admin";
-  status: string;
-  city: string | null;
-  country: string | null;
-  country_code: string | null;
-  website: string | null;
-};
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1";
 
-export type AuthUser = {
-  id: number;
-  name: string | null;
-  email: string;
-  role: string;
-  locale: string;
-  platform_admin: boolean;
-  last_login_at: string | null;
-  organization: Organization | null;
-};
-
-export type LoginResult = { token: string; user: AuthUser };
-
-// Raised when the API responds with a non-2xx status. `status` lets callers
-// distinguish bad credentials (401) from other failures.
+/** Standardized API error with typed details. */
 export class ApiError extends Error {
-  status: number;
-  constructor(message: string, status: number) {
+  constructor(
+    public status: number,
+    message: string,
+    public details?: string[],
+  ) {
     super(message);
     this.name = "ApiError";
-    this.status = status;
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE_URL}${path}`, {
-      ...init,
-      headers: { "Content-Type": "application/json", ...init?.headers },
-    });
-  } catch {
-    // Network/CORS failure — the API is unreachable.
-    throw new ApiError("network", 0);
-  }
+/** JWT token management via localStorage. */
+export const tokenStore = {
+  get: () =>
+    typeof window !== "undefined"
+      ? localStorage.getItem("humana.token")
+      : null,
+  set: (token: string) => localStorage.setItem("humana.token", token),
+  clear: () => {
+    localStorage.removeItem("humana.token");
+    localStorage.removeItem("humana.user");
+  },
+};
 
-  const body = (await res.json().catch(() => null)) as
-    | (T & { error?: string })
-    | null;
+/** Core fetch wrapper with auth headers and error handling. */
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = tokenStore.get();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers || {}),
+  };
+
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+  if (res.status === 401) {
+    tokenStore.clear();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("humana:auth-expired"));
+    }
+    throw new ApiError(401, "Session expired");
+  }
 
   if (!res.ok) {
-    throw new ApiError(body?.error ?? "request_failed", res.status);
+    const body = await res.json().catch(() => ({}));
+
+    if (res.status === 403 && body.error === "account_suspended") {
+      tokenStore.clear();
+      if (typeof window !== "undefined") window.location.href = "/suspended";
+      throw new ApiError(403, "account_suspended");
+    }
+
+    throw new ApiError(
+      res.status,
+      body.error || `HTTP ${res.status}`,
+      body.details,
+    );
   }
-  return body as T;
+
+  if (res.status === 204) return {} as T;
+  return res.json();
 }
 
-export function login(email: string, password: string): Promise<LoginResult> {
-  return request<LoginResult>("/api/v1/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ auth: { email, password } }),
-  });
-}
-
-export function fetchMe(token: string): Promise<{ user: AuthUser }> {
-  return request<{ user: AuthUser }>("/api/v1/auth/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
+/** Typed API client with methods for all HTTP verbs. */
+export const api = {
+  get: <T>(path: string) => request<T>(path),
+  post: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
+  patch: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: "PUT",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
+  delete: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: "DELETE",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
+};

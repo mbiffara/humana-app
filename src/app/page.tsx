@@ -1,36 +1,85 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
-import { locales, type Locale } from "@/i18n/dictionary";
-import { useAuth } from "@/lib/AuthProvider";
+import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api";
 
 export default function LoginPage() {
-  const { t, setLocale } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { user, loading: authLoading, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  // Restore remembered email on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("humana.remember_email");
+    if (saved) {
+      setEmail(saved);
+      setRemember(true);
+    }
+  }, []);
+
+  // Auto-redirect already-logged-in users
+  useEffect(() => {
+    if (authLoading || !user) return;
+    if (user.status === "suspended") {
+      router.replace("/suspended");
+    } else if (user.platform_admin) {
+      router.replace("/admin/dashboard");
+    } else if (!user.organization?.onboarding_completed) {
+      const kind = user.organization?.kind;
+      if (kind === "hotel") router.replace("/onboarding/hotel/step-1");
+      else if (kind === "agency") router.replace("/onboarding/agency");
+      else if (kind === "office") router.replace("/onboarding/office");
+      else router.replace("/dashboard");
+    } else {
+      router.replace("/dashboard");
+    }
+  }, [authLoading, user, router]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (submitting) return;
     setError("");
     setSubmitting(true);
     try {
-      const { user } = await signIn(email, password);
-      if (locales.includes(user.locale as Locale)) {
-        setLocale(user.locale as Locale);
+      if (remember) localStorage.setItem("humana.remember_email", email);
+      else localStorage.removeItem("humana.remember_email");
+      const user = await login(email, password);
+      if (user.status === "suspended") {
+        router.push("/suspended");
+        return;
       }
-      router.push("/dashboard");
+      if (user.platform_admin) {
+        router.push("/admin/dashboard");
+      } else if (!user.organization?.onboarding_completed) {
+        const kind = user.organization?.kind;
+        if (kind === "hotel") {
+          router.push("/onboarding/hotel/step-1");
+        } else if (kind === "agency") {
+          router.push("/onboarding/agency");
+        } else if (kind === "office") {
+          router.push("/onboarding/office");
+        } else {
+          router.push("/dashboard");
+        }
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
-      const isNetwork = err instanceof ApiError && err.status === 0;
-      setError(isNetwork ? t.login.errorNetwork : t.login.errorInvalid);
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        setError("Connection error. Please try again.");
+      }
+    } finally {
       setSubmitting(false);
     }
   }
@@ -159,31 +208,37 @@ export default function LoginPage() {
             <div className="flex items-center gap-3 border-b border-[#D8D4C8] py-3 focus-within:border-humana-ink">
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setError(""); }}
                 placeholder={t.login.passwordPlaceholder}
-                className="flex-1 bg-transparent text-[16px] tracking-[0.3em] text-humana-ink outline-none placeholder:text-humana-subtle"
+                className={`flex-1 bg-transparent text-[16px] text-humana-ink outline-none placeholder:text-humana-subtle ${showPassword ? "tracking-normal" : "tracking-[0.3em]"}`}
               />
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#8A8578"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="cursor-pointer text-humana-subtle transition-colors hover:text-humana-ink"
               >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
+                {showPassword ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
 
           <label className="flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
               className="h-[14px] w-[14px] cursor-pointer accent-humana-ink"
             />
             <span className="text-[13px] text-[#4A463E]">
@@ -198,24 +253,22 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="group/cta flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
+            className="cursor-pointer group/cta flex items-center justify-center gap-3 bg-humana-ink px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white hover:bg-black disabled:opacity-60"
           >
-            {submitting ? t.login.signingIn : t.login.submit}
-            {!submitting && (
-              <svg
-                width="14"
-                height="9"
-                viewBox="0 0 16 10"
-                fill="none"
-                stroke="#D4AF37"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="transition-transform duration-200 group-hover/cta:translate-x-0.5"
-              >
-                <path d="M1 5h14M10 1l4 4-4 4" />
-              </svg>
-            )}
+            {submitting ? "..." : t.login.submit}
+            <svg
+              width="14"
+              height="9"
+              viewBox="0 0 16 10"
+              fill="none"
+              stroke="#D4AF37"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="transition-transform duration-200 group-hover/cta:translate-x-0.5"
+            >
+              <path d="M1 5h14M10 1l4 4-4 4" />
+            </svg>
           </button>
         </form>
 
