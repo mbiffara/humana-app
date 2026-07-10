@@ -365,18 +365,36 @@ type Dictionary = {
       noApprovals: string;
       orgsUnderReview: string;
       waiting: string;
+      reviewFromNetwork: string;
       pendingReview: string;
       officesEyebrow: string;
       officesTitle: string;
       officesSubtitle: string;
       noOffices: string;
+      officeCard: {
+        operational: string;
+        staff: string;
+        agencies: string;
+        properties: string;
+        hotels: string;
+      };
     };
     network: {
       title: string;
       createUser: string;
       tabs: { all: string; active: string; pending: string; suspended: string };
       subtitle: string;
-      table: { user: string; email: string; type: string; organization: string; status: string; invitedBy: string; registered: string; lastLogin: string; actions: string };
+      table: {
+        user: string; email: string; type: string; organization: string;
+        status: string; invitedBy: string; invitedAt: string; lastLogin: string;
+        actions: string; onboarding: string;
+        tooltipUser: string; tooltipOrganization: string; tooltipType: string;
+        tooltipStatus: string; tooltipInvitedBy: string; tooltipInvitedAt: string;
+        tooltipOnboarding: string;
+      };
+      status: { active: string; pending: string; suspended: string; rejected: string };
+      onboardingComplete: string;
+      onboardingPending: string;
       review: string;
       approve: string;
       reject: string;
@@ -385,6 +403,10 @@ type Dictionary = {
       suspend: string;
       reactivate: string;
       sendFeedback: string;
+      resendInvitation: string;
+      resendSuccess: string;
+      resendCooldown: string;
+      resendFailed: string;
       deleteUser: string;
       deleteTitle: string;
       deleteWarning: string;
@@ -443,69 +465,240 @@ type Dictionary = {
       notesPlaceholder: string;
       approve: string;
       reject: string;
+      review: string;
       suspend: string;
       reactivate: string;
     };
     approve: { title: string; message: string; confirm: string; notification: string };
     reject: { title: string; reason: string; reasonPlaceholder: string; confirm: string; notification: string };
+    suspendModal: { title: string; message: string; confirm: string; warning: string };
+    reactivateModal: { title: string; message: string; confirm: string };
     subscriptions: {
       eyebrow: string; title: string; subtitle: string; plans: string;
-      noPlans: string; noSubs: string; perMonth: string;
+      noPlans: string; noSubs: string; noSubsHint: string; perMonth: string;
       commissionRate: string; activeMembers: string;
-      editPlan: string; subscribers: string;
-      stripeConnect: string; paymentOnboarding: string;
+      editPlan: string; editPriceTitle: string; editPriceLabel: string; editPriceSave: string; editPriceSaving: string; subscribers: string;
+      stripeConnect: string; paymentOnboarding: string; paymentOnboardingSubtitle: string;
       member: string; type: string; plan: string;
-      stripeStatus: string; action: string;
+      status: string; amount: string; action: string;
       starter: { name: string; desc: string };
       professional: { name: string; desc: string };
       enterprise: { name: string; desc: string };
       [key: string]: unknown;
     };
     settings: {
-      eyebrow: string; title: string; subtitle: string; identity: string;
-      platformName: string; supportEmail: string;
+      eyebrow: string; title: string; subtitle: string;
+      profile: string; adminName: string; supportEmail: string; save: string; saving: string;
       commissions: string; agencyRate: string; officeFee: string;
-      hotelNet: string; editRates: string;
+      hotelNet: string; ratesNote: string;
       agencyHint: string; officeHint: string; hotelHint: string;
-      currency: string; language: string;
       countriesTitle: string; addCountry: string; noCountries: string;
-      flag: string; country: string; code: string;
-      hotels: string; retreats: string;
-      status: string; enabled: string;
-      activeStatus: string; inactiveStatus: string;
+      flag: string; country: string;
+      enabled: string; enabledHint: string;
+      confirmDisableHint: string; confirmEnableHint: string;
+      disable: string; enable: string;
+      addCountryTitle: string; countryName: string; countryCode: string;
+      creating: string; create: string;
+      deleteCountry: string; deleteCountryWarning: string;
+      deleteCountryType: (name: string) => string;
+      deleteCountryPassword: string; deleting: string; delete: string;
+      cancel: string;
     };
   };
   comingSoon: {
     eyebrow: string;
     title: string;
     subtitle: (role: string) => string;
+    description: string;
     status: string;
     contact: string;
+    contactCta: string;
+    signOut: string;
   };
   acceptInvite: {
     eyebrow: string;
     title: string;
     subtitle: string;
-    name: string;
-    namePlaceholder: string;
+    email: string;
+    country: string;
     password: string;
     passwordPlaceholder: string;
     confirmPassword: string;
     confirmPasswordPlaceholder: string;
+    terms: string;
+    termsLink: string;
+    privacyLink: string;
     submit: string;
+    next: string;
     submitting: string;
     expired: string;
     alreadyAccepted: string;
     invalidToken: string;
-  };
-  welcome: {
-    title: (name: string) => string;
-    subtitle: string;
-    redirecting: string;
+    errorTitle: string;
+    backToLogin: string;
+    validating: string;
+    passwordMismatch: string;
+    passwordTooShort: string;
+    termsRequired: string;
+    genericError: string;
   };
   onboarding: {
-    agency: { title: string; subtitle: string; description: string; country: string; city: string; phone: string; website: string; submit: string; skip: string };
-    office: { title: string; subtitle: string; region: string; timezone: string; phone: string; submit: string; skip: string };
+    header: { office: string; agency: string; hotel: string };
+    stepOf: (current: number, total: number) => string;
+    back: string;
+    next: string;
+    agency: { title: string; subtitle: string; orgName: string; firstName: string; lastName: string; phone: string; address: string; submit: string };
+    office: {
+      title: string;
+      subtitle: string;
+      orgName: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+      address: string;
+      submit: string;
+    };
+    hotel: {
+      steps: [string, string, string, string];
+      publish: string;
+      /* Step 1 — Property Identity */
+      step1Eyebrow: string;
+      step1Title: string;
+      step1Subtitle: string;
+      firstName: string;
+      lastName: string;
+      ownerPhone: string;
+      personalSection: string;
+      hotelName: string;
+      hotelNameHint: string;
+      hotelNamePlaceholder: string;
+      addressLabel: string;
+      descriptionLabel: string;
+      descriptionPlaceholder: string;
+      starsLabel: string;
+      propertySection: string;
+      contactSection: string;
+      hotelPhoneLabel: string;
+      contactEmailLabel: string;
+      websiteLabel: string;
+      checkInLabel: string;
+      checkOutLabel: string;
+      verificationTitle: string;
+      verificationDescription: string;
+      /* Step 2 — Room Inventory */
+      step2Eyebrow: string;
+      step2Title: string;
+      step2Subtitle: string;
+      roomConfigured: (count: number) => string;
+      addRoomType: string;
+      editRoomType: string;
+      noRoomsTitle: string;
+      noRoomsDescription: string;
+      roomName: string;
+      roomNamePlaceholder: string;
+      roomDescription: string;
+      roomDescriptionPlaceholder: string;
+      maxGuests: string;
+      totalUnits: string;
+      baseRate: string;
+      roomSize: string;
+      bedTypeLabel: string;
+      backToRooms: string;
+      saveChanges: string;
+      describeRoom: string;
+      describeRoomSub: string;
+      nextAvailability: string;
+      /* Step 2 — Availability */
+      availabilityTitle: string;
+      availabilitySub: string;
+      legendAvailable: string;
+      legendSelected: string;
+      legendBlocked: string;
+      availableUnits: string;
+      applyDates: string;
+      blockDates: string;
+      configuredBlocks: string;
+      noBlocksYet: string;
+      nextPhotos: string;
+      /* Step 2 — Room Photos */
+      roomPhotosTitle: string;
+      roomPhotosSub: string;
+      roomPhotosCover: string;
+      roomPhotosMax: string;
+      roomPhotosDrag: string;
+      roomPhotosBrowse: string;
+      roomPhotosFormats: string;
+      doneWithRoom: string;
+      deleteRoomTitle: string;
+      deleteRoomDescription: (name: string) => string;
+      deleteRoomConfirm: string;
+      /* Step 3 — Amenities */
+      step3Eyebrow: string;
+      step3Title: string;
+      step3Subtitle: string;
+      guestFavorites: string;
+      standoutAmenities: string;
+      customAmenity: string;
+      customPlaceholder: string;
+      addButton: string;
+      amenityCount: (selected: number, custom: number) => string;
+      /* Step 4 — Photos */
+      step4Eyebrow: string;
+      step4Title: string;
+      step4Subtitle: string;
+      uploadDrag: string;
+      uploadBrowse: string;
+      uploadFormats: string;
+      coverBadge: string;
+      photoCount: (current: number, recommended: number) => string;
+      dragToReorder: string;
+      uploadMore: string;
+      photoTipsTitle: string;
+      photoTipsDescription: string;
+      /* Step 2 — extra labels */
+      editButton: string;
+      roomDetailsSection: string;
+      blockedLabel: string;
+      unitsCount: (n: number) => string;
+      photosCounter: (n: number, max: number) => string;
+      blocksCount: (n: number) => string;
+      availabilityLabel: string;
+      photosLabel: string;
+      perNight: string;
+      starLabel: (n: number) => string;
+      addressPlaceholder: string;
+      amenityNames: Record<string, string>;
+      /* Under Review */
+      reviewEyebrow: string;
+      reviewTitle: string;
+      reviewSubtitle: (hotelName: string) => string;
+      reviewStep1Label: string;
+      reviewStep1Title: string;
+      reviewStep2Label: string;
+      reviewStep2Title: string;
+      reviewStep2Description: string;
+      reviewStep3Label: string;
+      reviewStep3Title: string;
+      reviewStep3Description: string;
+      reviewDashboard: string;
+      reviewViewSubmission: string;
+      reviewQuestions: string;
+      reviewContact: string;
+      /* Tooltip for disabled Next */
+      completeFields: string;
+      addAtLeastOneRoom: string;
+      roomNeedsPhotos: (name: string) => string;
+      addAtLeastOneAmenity: string;
+      addAtLeastOnePhoto: string;
+    };
+  };
+  suspended: {
+    title: string;
+    subtitle: string;
+    description: string;
+    contact: string;
+    contactEmail: string;
+    backToLogin: string;
   };
 };
 
@@ -990,28 +1183,50 @@ export const dictionary: Record<Locale, Dictionary> = {
         createOffice: "Create Office",
         createOfficeDesc: "Set up a new regional office to coordinate local operations.",
         pendingInvitations: "Pending Invitations",
-        pendingInvitationsTooltip: "Invitations sent to agencies, hotels and offices that haven't been accepted yet.",
-        awaitingAcceptance: "Awaiting acceptance",
-        sendNewInvite: "Send new invite",
-        approvalQueue: "Approval Queue",
+        pendingInvitationsTooltip: "Users who have been invited but haven't accepted the invitation yet.",
+        awaitingAcceptance: "Awaiting acceptance via email",
+        sendNewInvite: "Resend email from Network",
+        approvalQueue: "Approval List",
         approvalQueueTooltip: "Agencies, hotels and offices pending admin approval. Review and manage them from the Network.",
         offices: "Regional Offices",
         noPending: "No pending invitations",
         noApprovals: "No organizations pending approval",
         orgsUnderReview: "Organizations under review",
         waiting: "waiting",
+        reviewFromNetwork: "Review and manage from Network",
         pendingReview: "pending review",
         officesEyebrow: "Operational footprint",
         officesTitle: "HUMANA offices",
         officesSubtitle: "Regional hubs coordinating onboarding, standards and local partnerships.",
         noOffices: "No offices created yet.",
+        officeCard: {
+          operational: "Operational",
+          staff: "Staff",
+          agencies: "Agencies",
+          properties: "Properties",
+          hotels: "Hotels",
+        },
       },
       network: {
         title: "Network Members",
         subtitle: "Manage all platform users across hotels, agencies, and offices.",
         createUser: "+ CREATE USER",
         tabs: { all: "All", active: "Active", pending: "Pending", suspended: "Suspended" },
-        table: { user: "User", email: "Email", type: "Type", organization: "Organization", status: "Status", invitedBy: "Invited by", registered: "Registered", lastLogin: "Last Login", actions: "Actions" },
+        table: {
+          user: "User", email: "Email", type: "Type", organization: "Organization",
+          status: "Status", invitedBy: "Invited by", invitedAt: "Invite Date",
+          lastLogin: "Last Login", actions: "Actions", onboarding: "Onboarding",
+          tooltipUser: "Name and email of the platform member",
+          tooltipOrganization: "Company or entity the member belongs to",
+          tooltipType: "Organization type: Hotel, Agency, or Office",
+          tooltipStatus: "Current account status on the platform",
+          tooltipInvitedBy: "Organization that sent the invitation",
+          tooltipInvitedAt: "Date the invitation was sent",
+          tooltipOnboarding: "Whether the member has completed their profile setup",
+        },
+        status: { active: "Active", pending: "Pending", suspended: "Suspended", rejected: "Rejected" },
+        onboardingComplete: "Complete",
+        onboardingPending: "Pending",
         review: "Review",
         approve: "Approve",
         reject: "Reject",
@@ -1020,12 +1235,16 @@ export const dictionary: Record<Locale, Dictionary> = {
         suspend: "Suspend",
         reactivate: "Reactivate",
         sendFeedback: "Send Feedback",
+        resendInvitation: "Resend Invitation",
+        resendSuccess: "Invitation resent successfully",
+        resendCooldown: "You can resend again in 2 minutes",
+        resendFailed: "Failed to resend invitation",
         deleteUser: "Delete User",
         deleteTitle: "Delete user permanently",
         deleteWarning: "This action cannot be undone. All data associated with this user will be permanently deleted and they will no longer be able to access the platform.",
         deleteConfirmHint: (email: string) => `To confirm, type "${email}" below:`,
         deleteConfirmPlaceholder: "Type the email to confirm",
-        deleteConfirm: "Delete permanently",
+        deleteConfirm: "Delete",
         deleting: "Deleting...",
         showing: "Showing",
         showingOf: "members",
@@ -1078,29 +1297,39 @@ export const dictionary: Record<Locale, Dictionary> = {
         notesPlaceholder: "Add optional notes about this user...",
         approve: "Approve User",
         reject: "Reject",
+        review: "Review",
         suspend: "Suspend",
         reactivate: "Reactivate",
       },
-      approve: { title: "Approve User", message: "Are you sure you want to approve this user? They will receive an email notification and gain full access to the platform.", confirm: "Confirm Approval", notification: "The Office lead who created this request will also be notified of the approval." },
+      approve: { title: "Approve User", message: "Are you sure you want to approve this user? They will receive an email notification and gain full access to the platform.", confirm: "Approve", notification: "The Office lead who created this request will also be notified of the approval." },
       reject: { title: "Reject User", reason: "Reason for rejection", reasonPlaceholder: "Explain why this user is being rejected. This will be sent to the Office lead who created the request...", confirm: "Confirm Rejection", notification: "The Office lead will receive an email notification with this reason." },
+      suspendModal: { title: "Suspend User", message: "This user will be immediately blocked from accessing the platform. They will not be able to log in or use any features until their account is reactivated.", confirm: "Suspend", warning: "All active sessions will be invalidated." },
+      reactivateModal: { title: "Reactivate User", message: "This user will regain full access to the platform and will be able to log in and use all features associated with their role.", confirm: "Reactivate" },
       subscriptions: {
         eyebrow: "SUBSCRIPTIONS",
         title: "Membership plans",
         subtitle: "Manage subscription tiers and Stripe Connect onboarding for network members.",
         plans: "Plans",
         noPlans: "No subscription plans configured yet.",
-        noSubs: "No payment onboarding records yet.",
+        noSubs: "No active subscriptions or payments yet",
+        noSubsHint: "When members subscribe to a plan, their billing and payment activity will appear here.",
         perMonth: "/month",
-        commissionRate: "commission rate",
+        commissionRate: "commission for agencies",
         activeMembers: "active members",
-        editPlan: "Edit Plan",
+        editPlan: "Edit Price",
+        editPriceTitle: "Edit plan price",
+        editPriceLabel: "Monthly price (USD)",
+        editPriceSave: "Save",
+        editPriceSaving: "Saving...",
         subscribers: "subscribers",
-        stripeConnect: "STRIPE CONNECT",
-        paymentOnboarding: "Payment onboarding status",
+        stripeConnect: "SUBSCRIPTIONS & PAYMENTS",
+        paymentOnboarding: "Active subscriptions",
+        paymentOnboardingSubtitle: "Manage member subscriptions and track payment activity across the network.",
         member: "Member",
         type: "Type",
         plan: "Plan",
-        stripeStatus: "Stripe Status",
+        status: "Status",
+        amount: "Amount",
         action: "Action",
         starter: { name: "Starter", desc: "For agencies getting started with HUMANA." },
         professional: { name: "Professional", desc: "For growing agencies with regular bookings." },
@@ -1109,65 +1338,235 @@ export const dictionary: Record<Locale, Dictionary> = {
       settings: {
         eyebrow: "SETTINGS",
         title: "Settings",
-        subtitle: "Platform configuration, commission rates, and country management.",
-        identity: "Platform identity",
-        platformName: "Platform Name",
+        subtitle: "Admin profile, commission rates, and country management.",
+        profile: "Admin profile",
+        adminName: "Name",
         supportEmail: "Support Email",
+        save: "Save",
+        saving: "Saving...",
         commissions: "Commission rates",
         agencyRate: "Agency Commission",
         officeFee: "HUMANA Office Fee",
         hotelNet: "Hotel / Creator Net",
-        editRates: "Edit rates",
-        agencyHint: "Default for Starter plan",
+        ratesNote: "To modify commission rates, contact the development team.",
+        agencyHint: "Applied on all bookings",
         officeHint: "Flat rate across all tiers",
         hotelHint: "Remaining after fees",
-        currency: "Default Currency",
-        language: "Default Language",
         countriesTitle: "Countries & Regions",
-        addCountry: "+ Add Country",
+        addCountry: "Add Country",
         noCountries: "No countries configured yet.",
         flag: "Flag",
         country: "Country",
-        code: "Code",
-        hotels: "Hotels",
-        retreats: "Retreats",
-        status: "Status",
         enabled: "Enabled",
-        activeStatus: "Active",
-        inactiveStatus: "Inactive",
+        enabledHint: "Disabled countries hide their hotels and retreats from the marketplace.",
+        confirmDisableHint: "Hotels and retreats from this country will be hidden from the marketplace.",
+        confirmEnableHint: "Hotels and retreats from this country will be visible in the marketplace.",
+        disable: "Disable",
+        enable: "Enable",
+        addCountryTitle: "Add Country",
+        countryName: "Country Name",
+        countryCode: "ISO Code (2 letters)",
+        creating: "Creating...",
+        create: "Create",
+        deleteCountry: "Delete Country",
+        deleteCountryWarning: "This will permanently delete all hotels, retreats, agencies, and offices associated with this country. This action cannot be undone.",
+        deleteCountryType: (name) => `Type "${name}" to confirm`,
+        deleteCountryPassword: "Admin password",
+        deleting: "Deleting...",
+        delete: "Delete permanently",
+        cancel: "Cancel",
       },
     },
     comingSoon: {
       eyebrow: "COMING SOON",
       title: "Welcome",
       subtitle: (role) => `Your ${role} dashboard is being crafted.`,
+      description: "Your personalized dashboard with analytics, bookings, and management tools is currently in development and will be available soon.",
       status: "Account Status",
       contact: "Contact",
+      contactCta: "Contact Support",
+      signOut: "Sign out",
     },
     acceptInvite: {
-      eyebrow: "WELCOME TO HUMANA",
-      title: "Activate Your Account",
-      subtitle: "Complete your registration to get started.",
-      name: "Full Name",
-      namePlaceholder: "Your full name",
+      eyebrow: "Create Account",
+      title: "Set your password",
+      subtitle: "Choose a secure password for your HUMANA account.",
+      email: "Email",
+      country: "Country",
       password: "Password",
       passwordPlaceholder: "Minimum 8 characters",
       confirmPassword: "Confirm Password",
       confirmPasswordPlaceholder: "Re-enter your password",
-      submit: "Activate My Account",
-      submitting: "Activating...",
+      terms: "I agree to the HUMANA",
+      termsLink: "Terms of Service",
+      privacyLink: "Privacy Policy",
+      submit: "Create Account",
+      next: "Next",
+      submitting: "Creating Account...",
       expired: "This invitation has expired. Please contact your administrator.",
       alreadyAccepted: "This invitation has already been accepted.",
       invalidToken: "Invalid invitation link.",
-    },
-    welcome: {
-      title: (name) => `Welcome to HUMANA, ${name}`,
-      subtitle: "Your account has been activated successfully.",
-      redirecting: "Redirecting you now...",
+      errorTitle: "Invitation Error",
+      backToLogin: "Back to Login",
+      validating: "Validating invitation...",
+      passwordMismatch: "Passwords do not match.",
+      passwordTooShort: "Password must be at least 8 characters.",
+      termsRequired: "You must agree to the Terms of Service and Privacy Policy.",
+      genericError: "Something went wrong. Please try again.",
     },
     onboarding: {
-      agency: { title: "Complete Your Profile", subtitle: "Tell us about your travel agency.", description: "Description", country: "Country", city: "City", phone: "Phone", website: "Website", submit: "Complete Setup", skip: "Skip for now" },
-      office: { title: "Complete Your Profile", subtitle: "Set up your regional office.", region: "Region", timezone: "Timezone", phone: "Phone", submit: "Complete Setup", skip: "Skip for now" },
+      header: { office: "Office", agency: "Agency", hotel: "Hotel" },
+      stepOf: (current: number, total: number) => `Step ${current} of ${total}`,
+      back: "Back",
+      next: "Next",
+      agency: { title: "Complete your profile", subtitle: "Tell us about yourself to get started.", orgName: "Agency Name", firstName: "First Name", lastName: "Last Name", phone: "Phone", address: "Address", submit: "Complete Setup" },
+      office: {
+        title: "Complete your profile",
+        subtitle: "Tell us about yourself to get started.",
+        orgName: "Office Name",
+        firstName: "First Name",
+        lastName: "Last Name",
+        phone: "Phone",
+        address: "Address",
+        submit: "Complete Setup",
+      },
+      hotel: {
+        steps: ["Identity", "Rooms", "Amenities", "Photos"],
+        publish: "Publish",
+        step1Eyebrow: "Step 1 of 4 \u00B7 Property Identity",
+        step1Title: "Tell us about your property.",
+        step1Subtitle: "Start with your personal details and the hotel\u2019s public name and location. We\u2019ll use this to verify the property before it joins the network.",
+        firstName: "First Name",
+        lastName: "Last Name",
+        ownerPhone: "Your Phone",
+        personalSection: "Your Details",
+        hotelName: "Hotel Name",
+        hotelNameHint: "This is how your property will appear across the HUMANA network.",
+        hotelNamePlaceholder: "Casa del Faro",
+        addressLabel: "Physical Address",
+        descriptionLabel: "Description",
+        descriptionPlaceholder: "A brief description of your property and its wellness philosophy...",
+        starsLabel: "Star Rating",
+        propertySection: "Property Details",
+        contactSection: "Contact & Operations",
+        hotelPhoneLabel: "Hotel Phone",
+        contactEmailLabel: "Contact Email",
+        websiteLabel: "Website",
+        checkInLabel: "Check-in Time",
+        checkOutLabel: "Check-out Time",
+        verificationTitle: "Verification required",
+        verificationDescription: "After submission, our team will verify your property details within 24\u201348 hours before listing it on the network.",
+        step2Eyebrow: "Step 2 of 4 \u00B7 Room Inventory",
+        step2Title: "Configure your room types.",
+        step2Subtitle: "Add each room category you offer along with the total number of units available.",
+        roomConfigured: (count: number) => `${count} room type${count !== 1 ? "s" : ""} configured`,
+        addRoomType: "Add Room Type",
+        editRoomType: "Edit Room Type",
+        noRoomsTitle: "No rooms added yet",
+        noRoomsDescription: "Add at least one room type with pricing and capacity to continue.",
+        roomName: "Room Name",
+        roomNamePlaceholder: "e.g. Ocean Suite",
+        roomDescription: "Short Description",
+        roomDescriptionPlaceholder: "e.g. Sea-facing, 60 m\u00B2",
+        maxGuests: "Max Guests",
+        totalUnits: "Total Units",
+        baseRate: "Base Rate",
+        roomSize: "Room Size",
+        bedTypeLabel: "Bed Type",
+        backToRooms: "Back to rooms",
+        saveChanges: "Save Changes",
+        describeRoom: "Describe this room.",
+        describeRoomSub: "Fill in the basic details for this room type.",
+        nextAvailability: "Next: Availability",
+        availabilityTitle: "Set availability.",
+        availabilitySub: "Select date ranges and assign available units or block dates.",
+        legendAvailable: "Available",
+        legendSelected: "Selected",
+        legendBlocked: "Blocked",
+        availableUnits: "Units",
+        applyDates: "Apply",
+        blockDates: "Block",
+        configuredBlocks: "Configured Blocks",
+        noBlocksYet: "No availability blocks configured yet. Select dates on the calendar to begin.",
+        nextPhotos: "Next: Photos",
+        roomPhotosTitle: "Add room photos.",
+        roomPhotosSub: "Upload up to 8 photos for this room type. The first photo will be the cover.",
+        roomPhotosCover: "Cover",
+        roomPhotosMax: "8 photos maximum",
+        roomPhotosDrag: "Drag images here or",
+        roomPhotosBrowse: "browse files",
+        roomPhotosFormats: "JPG or PNG \u00B7 up to 8 MB each",
+        doneWithRoom: "Done with this room",
+        deleteRoomTitle: "Delete Room Type",
+        deleteRoomDescription: (name: string) => `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+        deleteRoomConfirm: "Delete",
+        step3Eyebrow: "Step 3 of 4 \u00B7 Amenities",
+        step3Title: "Tell guests what your place offers.",
+        step3Subtitle: "Select everything that applies. You can refine the list after publishing.",
+        guestFavorites: "Guest Favorites",
+        standoutAmenities: "Standout Amenities",
+        customAmenity: "Custom Amenity",
+        customPlaceholder: "e.g. Rooftop lounge, Bike rental...",
+        addButton: "Add",
+        amenityCount: (selected: number, custom: number) => `${selected} amenit${selected === 1 ? "y" : "ies"} selected${custom > 0 ? ` + ${custom} custom` : ""}`,
+        step4Eyebrow: "Step 4 of 4 \u00B7 Property Photos",
+        step4Title: "Show your property at its best.",
+        step4Subtitle: "Upload at least five photos that represent the space as guests will experience it. Drag to reorder.",
+        uploadDrag: "Drag images here or",
+        uploadBrowse: "browse files",
+        uploadFormats: "JPG or PNG \u00B7 up to 8 MB each \u00B7 Minimum 1600 \u00D7 1067 px",
+        coverBadge: "Cover",
+        photoCount: (current: number, recommended: number) => `${current} of a recommended ${recommended} photos`,
+        dragToReorder: "Drag tiles to reorder",
+        uploadMore: "Upload more",
+        photoTipsTitle: "Photo tips",
+        photoTipsDescription: "Properties with 8+ high-quality photos receive 40% more inquiries. Include rooms, common areas, views, and dining spaces.",
+        editButton: "Edit",
+        roomDetailsSection: "Room Details",
+        blockedLabel: "Blocked",
+        unitsCount: (n: number) => `${n} unit${n !== 1 ? "s" : ""}`,
+        photosCounter: (n: number, max: number) => `${n} / ${max} photos`,
+        blocksCount: (n: number) => `${n} block${n !== 1 ? "s" : ""}`,
+        availabilityLabel: "Availability",
+        photosLabel: "Photos",
+        perNight: "/night",
+        starLabel: (n: number) => `${n} star${n !== 1 ? "s" : ""}`,
+        addressPlaceholder: "Start typing an address...",
+        amenityNames: {
+          wifi: "Wifi", pool: "Pool", spa: "Spa & Sauna", breakfast: "Breakfast",
+          parking: "Parking", ac: "Air conditioning", "yoga-studio": "Yoga studio", gym: "Gym",
+          "meditation-room": "Meditation room", "private-garden": "Private garden",
+          "ocean-terrace": "Ocean terrace", "private-chef": "Private chef",
+        },
+        reviewEyebrow: "Submission Received",
+        reviewTitle: "Your property is under review.",
+        reviewSubtitle: (hotelName: string) => `Our team will verify the information and photos you submitted. Once approved, ${hotelName} will be visible to agencies in the HUMANA network.`,
+        reviewStep1Label: "01 \u00B7 Submitted",
+        reviewStep1Title: "Property submitted",
+        reviewStep2Label: "02 \u00B7 In Progress \u00B7 24-48h",
+        reviewStep2Title: "HUMANA review",
+        reviewStep2Description: "Verifying property details, photos, and location accuracy",
+        reviewStep3Label: "03 \u00B7 Next \u00B7 Publish",
+        reviewStep3Title: "Listed on the network",
+        reviewStep3Description: "Visible to agencies and available for bookings",
+        reviewDashboard: "Return to Dashboard",
+        reviewViewSubmission: "View Submission",
+        reviewQuestions: "Questions about the review?",
+        reviewContact: "Contact institutional support",
+        completeFields: "Complete these fields:",
+        addAtLeastOneRoom: "Add at least one room type",
+        roomNeedsPhotos: (name: string) => `${name}: add photos`,
+        addAtLeastOneAmenity: "Select at least one amenity",
+        addAtLeastOnePhoto: "Add at least one photo",
+      },
+    },
+    suspended: {
+      title: "Account Suspended",
+      subtitle: "Your access to the HUMANA platform has been suspended.",
+      description: "If you believe this is an error or need more information, please contact our support team.",
+      contact: "Contact Support",
+      contactEmail: "info@humana.global",
+      backToLogin: "Back to login",
     },
   },
 
@@ -1645,28 +2044,50 @@ export const dictionary: Record<Locale, Dictionary> = {
         createOffice: "Crear oficina",
         createOfficeDesc: "Configura una nueva oficina regional para coordinar operaciones locales.",
         pendingInvitations: "Invitaciones pendientes",
-        pendingInvitationsTooltip: "Invitaciones enviadas a agencias, hoteles y oficinas que aún no fueron aceptadas.",
-        awaitingAcceptance: "Esperando aceptación",
-        sendNewInvite: "Enviar invitación",
-        approvalQueue: "Cola de aprobación",
+        pendingInvitationsTooltip: "Usuarios invitados que aún no aceptaron la invitación.",
+        awaitingAcceptance: "Esperando aceptación via email",
+        sendNewInvite: "Reenviar email desde Red",
+        approvalQueue: "Lista de aprobación",
         approvalQueueTooltip: "Agencias, hoteles y oficinas pendientes de aprobación. Revisalas y gestionálas desde la Red.",
         offices: "Oficinas regionales",
         noPending: "Sin invitaciones pendientes",
         noApprovals: "Sin organizaciones pendientes de aprobación",
         orgsUnderReview: "Organizaciones en revisión",
         waiting: "en espera",
+        reviewFromNetwork: "Revisar y gestionar desde Red",
         pendingReview: "en revisión",
         officesEyebrow: "Presencia operativa",
         officesTitle: "Oficinas HUMANA",
         officesSubtitle: "Centros regionales que coordinan onboarding, estándares y alianzas locales.",
         noOffices: "No se han creado oficinas aún.",
+        officeCard: {
+          operational: "Operativa",
+          staff: "Personal",
+          agencies: "Agencias",
+          properties: "Propiedades",
+          hotels: "Hoteles",
+        },
       },
       network: {
         title: "Miembros de la red",
         subtitle: "Gestiona todos los usuarios de la plataforma en hoteles, agencias y oficinas.",
         createUser: "+ CREAR USUARIO",
         tabs: { all: "Todos", active: "Activos", pending: "Pendientes", suspended: "Suspendidos" },
-        table: { user: "Usuario", email: "Email", type: "Tipo", organization: "Organización", status: "Estado", invitedBy: "Invitado por", registered: "Registro", lastLogin: "Último acceso", actions: "Acciones" },
+        table: {
+          user: "Usuario", email: "Email", type: "Tipo", organization: "Organización",
+          status: "Estado", invitedBy: "Invitado por", invitedAt: "Fecha Invitación",
+          lastLogin: "Último acceso", actions: "Acciones", onboarding: "Onboarding",
+          tooltipUser: "Nombre y email del miembro de la plataforma",
+          tooltipOrganization: "Empresa o entidad a la que pertenece el miembro",
+          tooltipType: "Tipo de organización: Hotel, Agencia u Oficina",
+          tooltipStatus: "Estado actual de la cuenta en la plataforma",
+          tooltipInvitedBy: "Organización que envió la invitación",
+          tooltipInvitedAt: "Fecha en que se envió la invitación",
+          tooltipOnboarding: "Si el miembro ha completado la configuración de su perfil",
+        },
+        status: { active: "Activo", pending: "Pendiente", suspended: "Suspendido", rejected: "Rechazado" },
+        onboardingComplete: "Completo",
+        onboardingPending: "Pendiente",
         review: "Revisar",
         approve: "Aprobar",
         reject: "Rechazar",
@@ -1675,12 +2096,16 @@ export const dictionary: Record<Locale, Dictionary> = {
         suspend: "Suspender",
         reactivate: "Reactivar",
         sendFeedback: "Enviar comentarios",
+        resendInvitation: "Reenviar invitación",
+        resendSuccess: "Invitación reenviada exitosamente",
+        resendCooldown: "Podrás reenviar en 2 minutos",
+        resendFailed: "Error al reenviar invitación",
         deleteUser: "Eliminar usuario",
         deleteTitle: "Eliminar usuario permanentemente",
         deleteWarning: "Esta acción no se puede deshacer. Todos los datos asociados a este usuario serán eliminados permanentemente y no podrá acceder a la plataforma.",
         deleteConfirmHint: (email: string) => `Para confirmar, escribe "${email}" a continuación:`,
         deleteConfirmPlaceholder: "Escribe el email para confirmar",
-        deleteConfirm: "Eliminar permanentemente",
+        deleteConfirm: "Eliminar",
         deleting: "Eliminando...",
         showing: "Mostrando",
         showingOf: "miembros",
@@ -1733,29 +2158,39 @@ export const dictionary: Record<Locale, Dictionary> = {
         notesPlaceholder: "Agregar notas opcionales sobre este usuario...",
         approve: "Aprobar Usuario",
         reject: "Rechazar",
+        review: "Revisión",
         suspend: "Suspender",
         reactivate: "Reactivar",
       },
-      approve: { title: "Aprobar usuario", message: "¿Estás seguro de aprobar a este usuario? Recibirá una notificación por correo y tendrá acceso completo a la plataforma.", confirm: "Confirmar Aprobación", notification: "El líder de Oficina que creó esta solicitud también será notificado de la aprobación." },
+      approve: { title: "Aprobar usuario", message: "¿Estás seguro de aprobar a este usuario? Recibirá una notificación por correo y tendrá acceso completo a la plataforma.", confirm: "Aprobar", notification: "El líder de Oficina que creó esta solicitud también será notificado de la aprobación." },
       reject: { title: "Rechazar usuario", reason: "Razón del rechazo", reasonPlaceholder: "Explica por qué se rechaza este usuario. Esto se enviará al líder de Oficina que creó la solicitud...", confirm: "Confirmar Rechazo", notification: "El líder de Oficina recibirá una notificación por correo con este motivo." },
+      suspendModal: { title: "Suspender Usuario", message: "Este usuario será bloqueado inmediatamente del acceso a la plataforma. No podrá iniciar sesión ni usar ninguna función hasta que su cuenta sea reactivada.", confirm: "Suspender", warning: "Todas las sesiones activas serán invalidadas." },
+      reactivateModal: { title: "Reactivar Usuario", message: "Este usuario recuperará el acceso completo a la plataforma y podrá iniciar sesión y usar todas las funciones asociadas a su rol.", confirm: "Reactivar" },
       subscriptions: {
         eyebrow: "SUSCRIPCIONES",
         title: "Planes de membresía",
         subtitle: "Gestiona planes de suscripción y onboarding de Stripe Connect para miembros.",
         plans: "Planes",
         noPlans: "No hay planes de suscripción configurados aún.",
-        noSubs: "No hay registros de onboarding de pago aún.",
+        noSubs: "No hay suscripciones ni pagos activos aún",
+        noSubsHint: "Cuando los miembros se suscriban a un plan, su facturación y actividad de pago aparecerán aquí.",
         perMonth: "/mes",
-        commissionRate: "tasa de comisión",
+        commissionRate: "comisión para agencias",
         activeMembers: "miembros activos",
-        editPlan: "Editar Plan",
+        editPlan: "Editar Precio",
+        editPriceTitle: "Editar precio del plan",
+        editPriceLabel: "Precio mensual (USD)",
+        editPriceSave: "Guardar",
+        editPriceSaving: "Guardando...",
         subscribers: "suscriptores",
-        stripeConnect: "STRIPE CONNECT",
-        paymentOnboarding: "Estado de onboarding de pagos",
+        stripeConnect: "SUSCRIPCIONES Y PAGOS",
+        paymentOnboarding: "Suscripciones activas",
+        paymentOnboardingSubtitle: "Gestiona las suscripciones de los miembros y el seguimiento de pagos en la red.",
         member: "Miembro",
         type: "Tipo",
         plan: "Plan",
-        stripeStatus: "Estado Stripe",
+        status: "Estado",
+        amount: "Monto",
         action: "Acción",
         starter: { name: "Starter", desc: "Para agencias que comienzan con HUMANA." },
         professional: { name: "Professional", desc: "Para agencias en crecimiento con reservas regulares." },
@@ -1764,65 +2199,235 @@ export const dictionary: Record<Locale, Dictionary> = {
       settings: {
         eyebrow: "CONFIGURACIÓN",
         title: "Configuración",
-        subtitle: "Configuración de plataforma, comisiones y gestión de países.",
-        identity: "Identidad de plataforma",
-        platformName: "Nombre de Plataforma",
+        subtitle: "Perfil de administrador, comisiones y gestión de países.",
+        profile: "Perfil de administrador",
+        adminName: "Nombre",
         supportEmail: "Email de Soporte",
+        save: "Guardar",
+        saving: "Guardando...",
         commissions: "Tasas de comisión",
         agencyRate: "Comisión Agencia",
         officeFee: "Tarifa Oficina HUMANA",
         hotelNet: "Neto Hotel / Creador",
-        editRates: "Editar tasas",
-        agencyHint: "Predeterminado para plan Starter",
+        ratesNote: "Para modificar las tasas de comisión, contactar al equipo de desarrollo.",
+        agencyHint: "Aplicado a todas las reservas",
         officeHint: "Tarifa fija en todos los planes",
         hotelHint: "Restante después de tarifas",
-        currency: "Moneda por Defecto",
-        language: "Idioma por Defecto",
         countriesTitle: "Países y Regiones",
-        addCountry: "+ Agregar País",
+        addCountry: "Agregar País",
         noCountries: "No hay países configurados aún.",
         flag: "Bandera",
         country: "País",
-        code: "Código",
-        hotels: "Hoteles",
-        retreats: "Retiros",
-        status: "Estado",
         enabled: "Habilitado",
-        activeStatus: "Activo",
-        inactiveStatus: "Inactivo",
+        enabledHint: "Los países deshabilitados ocultan sus hoteles y retiros del marketplace.",
+        confirmDisableHint: "Los hoteles y retiros de este país se ocultarán del marketplace.",
+        confirmEnableHint: "Los hoteles y retiros de este país serán visibles en el marketplace.",
+        disable: "Deshabilitar",
+        enable: "Habilitar",
+        addCountryTitle: "Agregar País",
+        countryName: "Nombre del País",
+        countryCode: "Código ISO (2 letras)",
+        creating: "Creando...",
+        create: "Crear",
+        deleteCountry: "Eliminar País",
+        deleteCountryWarning: "Esto eliminará permanentemente todos los hoteles, retiros, agencias y oficinas asociados a este país. Esta acción no se puede deshacer.",
+        deleteCountryType: (name) => `Escriba "${name}" para confirmar`,
+        deleteCountryPassword: "Contraseña de administrador",
+        deleting: "Eliminando...",
+        delete: "Eliminar permanentemente",
+        cancel: "Cancelar",
       },
     },
     comingSoon: {
       eyebrow: "PRÓXIMAMENTE",
       title: "Bienvenido",
       subtitle: (role) => `Tu panel de ${role} está siendo diseñado.`,
+      description: "Tu dashboard personalizado con analíticas, reservas y herramientas de gestión está actualmente en desarrollo y estará disponible pronto.",
       status: "Estado de cuenta",
       contact: "Contacto",
+      contactCta: "Contactar Soporte",
+      signOut: "Cerrar sesión",
     },
     acceptInvite: {
-      eyebrow: "BIENVENIDO A HUMANA",
-      title: "Activa tu cuenta",
-      subtitle: "Completa tu registro para comenzar.",
-      name: "Nombre completo",
-      namePlaceholder: "Tu nombre completo",
+      eyebrow: "Crear Cuenta",
+      title: "Establece tu contraseña",
+      subtitle: "Elige una contraseña segura para tu cuenta HUMANA.",
+      email: "Email",
+      country: "País",
       password: "Contraseña",
       passwordPlaceholder: "Mínimo 8 caracteres",
       confirmPassword: "Confirmar contraseña",
       confirmPasswordPlaceholder: "Repite tu contraseña",
-      submit: "Activar mi cuenta",
-      submitting: "Activando...",
+      terms: "Acepto los",
+      termsLink: "Términos de Servicio",
+      privacyLink: "Política de Privacidad",
+      submit: "Crear Cuenta",
+      next: "Siguiente",
+      submitting: "Creando cuenta...",
       expired: "Esta invitación ha expirado. Contacta a tu administrador.",
       alreadyAccepted: "Esta invitación ya fue aceptada.",
       invalidToken: "Enlace de invitación inválido.",
-    },
-    welcome: {
-      title: (name) => `Bienvenido a HUMANA, ${name}`,
-      subtitle: "Tu cuenta ha sido activada exitosamente.",
-      redirecting: "Redirigiendo ahora...",
+      errorTitle: "Error de Invitación",
+      backToLogin: "Volver al inicio",
+      validating: "Validando invitación...",
+      passwordMismatch: "Las contraseñas no coinciden.",
+      passwordTooShort: "La contraseña debe tener al menos 8 caracteres.",
+      termsRequired: "Debes aceptar los Términos de Servicio y la Política de Privacidad.",
+      genericError: "Algo salió mal. Intenta de nuevo.",
     },
     onboarding: {
-      agency: { title: "Completa tu perfil", subtitle: "Cuéntanos sobre tu agencia de viajes.", description: "Descripción", country: "País", city: "Ciudad", phone: "Teléfono", website: "Sitio web", submit: "Completar configuración", skip: "Omitir por ahora" },
-      office: { title: "Completa tu perfil", subtitle: "Configura tu oficina regional.", region: "Región", timezone: "Zona horaria", phone: "Teléfono", submit: "Completar configuración", skip: "Omitir por ahora" },
+      header: { office: "Oficina", agency: "Agencia", hotel: "Hotel" },
+      stepOf: (current: number, total: number) => `Paso ${current} de ${total}`,
+      back: "Atrás",
+      next: "Siguiente",
+      agency: { title: "Completa tu perfil", subtitle: "Cuéntanos sobre ti para comenzar.", orgName: "Nombre de la Agencia", firstName: "Nombre", lastName: "Apellido", phone: "Teléfono", address: "Dirección", submit: "Completar configuración" },
+      office: {
+        title: "Completa tu perfil",
+        subtitle: "Cuéntanos sobre ti para comenzar.",
+        orgName: "Nombre de la Oficina",
+        firstName: "Nombre",
+        lastName: "Apellido",
+        phone: "Teléfono",
+        address: "Dirección",
+        submit: "Completar configuración",
+      },
+      hotel: {
+        steps: ["Identidad", "Habitaciones", "Amenities", "Fotos"],
+        publish: "Publicar",
+        step1Eyebrow: "Paso 1 de 4 \u00B7 Identidad de la Propiedad",
+        step1Title: "Cu\u00E9ntanos sobre tu propiedad.",
+        step1Subtitle: "Comienza con tus datos personales, el nombre p\u00FAblico del hotel y su ubicaci\u00F3n. Usaremos esto para verificar la propiedad antes de incluirla en la red.",
+        firstName: "Nombre",
+        lastName: "Apellido",
+        ownerPhone: "Tu Tel\u00E9fono",
+        personalSection: "Tus Datos",
+        hotelName: "Nombre del Hotel",
+        hotelNameHint: "As\u00ED aparecer\u00E1 tu propiedad en toda la red HUMANA.",
+        hotelNamePlaceholder: "Casa del Faro",
+        addressLabel: "Direcci\u00F3n F\u00EDsica",
+        descriptionLabel: "Descripci\u00F3n",
+        descriptionPlaceholder: "Una breve descripci\u00F3n de tu propiedad y su filosof\u00EDa de bienestar...",
+        starsLabel: "Clasificaci\u00F3n por Estrellas",
+        propertySection: "Datos del Hotel",
+        contactSection: "Contacto y Operaciones",
+        hotelPhoneLabel: "Tel\u00E9fono del Hotel",
+        contactEmailLabel: "Email de Contacto",
+        websiteLabel: "Sitio Web",
+        checkInLabel: "Hora de Check-in",
+        checkOutLabel: "Hora de Check-out",
+        verificationTitle: "Verificaci\u00F3n requerida",
+        verificationDescription: "Despu\u00E9s del env\u00EDo, nuestro equipo verificar\u00E1 los detalles de tu propiedad en 24\u201348 horas antes de listarla en la red.",
+        step2Eyebrow: "Paso 2 de 4 \u00B7 Inventario de Habitaciones",
+        step2Title: "Configura tus tipos de habitaci\u00F3n.",
+        step2Subtitle: "Agrega cada categor\u00EDa de habitaci\u00F3n que ofreces junto con el n\u00FAmero total de unidades disponibles.",
+        roomConfigured: (count: number) => `${count} tipo${count !== 1 ? "s" : ""} de habitaci\u00F3n configurado${count !== 1 ? "s" : ""}`,
+        addRoomType: "Agregar Tipo de Habitaci\u00F3n",
+        editRoomType: "Editar Tipo de Habitaci\u00F3n",
+        noRoomsTitle: "No hay habitaciones a\u00FAn",
+        noRoomsDescription: "Agrega al menos un tipo de habitaci\u00F3n con precio y capacidad para continuar.",
+        roomName: "Nombre de la Habitaci\u00F3n",
+        roomNamePlaceholder: "ej. Suite Oce\u00E1nica",
+        roomDescription: "Descripci\u00F3n Breve",
+        roomDescriptionPlaceholder: "ej. Vista al mar, 60 m\u00B2",
+        maxGuests: "M\u00E1x. Hu\u00E9spedes",
+        totalUnits: "Unidades Totales",
+        baseRate: "Tarifa Base",
+        roomSize: "Tama\u00F1o",
+        bedTypeLabel: "Tipo de Cama",
+        backToRooms: "Volver a habitaciones",
+        saveChanges: "Guardar Cambios",
+        describeRoom: "Describe esta habitaci\u00F3n.",
+        describeRoomSub: "Completa los detalles b\u00E1sicos de este tipo de habitaci\u00F3n.",
+        nextAvailability: "Siguiente: Disponibilidad",
+        availabilityTitle: "Configura la disponibilidad.",
+        availabilitySub: "Selecciona rangos de fechas y asigna unidades disponibles o bloquea fechas.",
+        legendAvailable: "Disponible",
+        legendSelected: "Seleccionado",
+        legendBlocked: "Bloqueado",
+        availableUnits: "Unidades",
+        applyDates: "Aplicar",
+        blockDates: "Bloquear",
+        configuredBlocks: "Bloques Configurados",
+        noBlocksYet: "No hay bloques configurados a\u00FAn. Selecciona fechas en el calendario para comenzar.",
+        nextPhotos: "Siguiente: Fotos",
+        roomPhotosTitle: "Agrega fotos de la habitaci\u00F3n.",
+        roomPhotosSub: "Sube hasta 8 fotos para este tipo de habitaci\u00F3n. La primera foto ser\u00E1 la portada.",
+        roomPhotosCover: "Portada",
+        roomPhotosMax: "8 fotos m\u00E1ximo",
+        roomPhotosDrag: "Arrastra im\u00E1genes aqu\u00ED o",
+        roomPhotosBrowse: "busca archivos",
+        roomPhotosFormats: "JPG o PNG \u00B7 hasta 8 MB cada una",
+        doneWithRoom: "Listo con esta habitación",
+        deleteRoomTitle: "Eliminar Habitación",
+        deleteRoomDescription: (name: string) => `¿Estás seguro de que quieres eliminar "${name}"? Esta acción no se puede deshacer.`,
+        deleteRoomConfirm: "Eliminar",
+        step3Eyebrow: "Paso 3 de 4 · Amenities",
+        step3Title: "Dile a los huéspedes qué ofrece tu lugar.",
+        step3Subtitle: "Selecciona todo lo que aplique. Puedes refinar la lista después de publicar.",
+        guestFavorites: "Favoritas de los Hu\u00E9spedes",
+        standoutAmenities: "Amenities Destacadas",
+        customAmenity: "Amenity Personalizada",
+        customPlaceholder: "ej. Terraza en la azotea, Alquiler de bicicletas...",
+        addButton: "Agregar",
+        amenityCount: (selected: number, custom: number) => `${selected} amenidad${selected !== 1 ? "es" : ""} seleccionada${selected !== 1 ? "s" : ""}${custom > 0 ? ` + ${custom} personalizada${custom !== 1 ? "s" : ""}` : ""}`,
+        step4Eyebrow: "Paso 4 de 4 \u00B7 Fotos de la Propiedad",
+        step4Title: "Muestra tu propiedad en su mejor momento.",
+        step4Subtitle: "Sube al menos cinco fotos que representen el espacio tal como lo experimentar\u00E1n los hu\u00E9spedes. Arrastra para reordenar.",
+        uploadDrag: "Arrastra im\u00E1genes aqu\u00ED o",
+        uploadBrowse: "busca archivos",
+        uploadFormats: "JPG o PNG \u00B7 hasta 8 MB cada una \u00B7 M\u00EDnimo 1600 \u00D7 1067 px",
+        coverBadge: "Portada",
+        photoCount: (current: number, recommended: number) => `${current} de ${recommended} fotos recomendadas`,
+        dragToReorder: "Arrastra para reordenar",
+        uploadMore: "Subir m\u00E1s",
+        photoTipsTitle: "Consejos de fotos",
+        photoTipsDescription: "Las propiedades con 8+ fotos de alta calidad reciben 40% m\u00E1s consultas. Incluye habitaciones, \u00E1reas comunes, vistas y espacios gastron\u00F3micos.",
+        editButton: "Editar",
+        roomDetailsSection: "Detalles de Habitaci\u00F3n",
+        blockedLabel: "Bloqueado",
+        unitsCount: (n: number) => `${n} unidad${n !== 1 ? "es" : ""}`,
+        photosCounter: (n: number, max: number) => `${n} / ${max} fotos`,
+        blocksCount: (n: number) => `${n} bloque${n !== 1 ? "s" : ""}`,
+        availabilityLabel: "Disponibilidad",
+        photosLabel: "Fotos",
+        perNight: "/noche",
+        starLabel: (n: number) => `${n} estrella${n !== 1 ? "s" : ""}`,
+        addressPlaceholder: "Comienza a escribir una direcci\u00F3n...",
+        amenityNames: {
+          wifi: "Wifi", pool: "Piscina", spa: "Spa y Sauna", breakfast: "Desayuno",
+          parking: "Estacionamiento", ac: "Aire acondicionado", "yoga-studio": "Estudio de yoga", gym: "Gimnasio",
+          "meditation-room": "Sala de meditaci\u00F3n", "private-garden": "Jard\u00EDn privado",
+          "ocean-terrace": "Terraza oce\u00E1nica", "private-chef": "Chef privado",
+        },
+        reviewEyebrow: "Env\u00EDo Recibido",
+        reviewTitle: "Tu propiedad est\u00E1 en revisi\u00F3n.",
+        reviewSubtitle: (hotelName: string) => `Nuestro equipo verificar\u00E1 la informaci\u00F3n y las fotos que enviaste. Una vez aprobado, ${hotelName} ser\u00E1 visible para las agencias en la red HUMANA.`,
+        reviewStep1Label: "01 \u00B7 Enviado",
+        reviewStep1Title: "Propiedad enviada",
+        reviewStep2Label: "02 \u00B7 En Progreso \u00B7 24-48h",
+        reviewStep2Title: "Revisi\u00F3n HUMANA",
+        reviewStep2Description: "Verificando detalles de la propiedad, fotos y precisi\u00F3n de ubicaci\u00F3n",
+        reviewStep3Label: "03 \u00B7 Siguiente \u00B7 Publicar",
+        reviewStep3Title: "Listada en la red",
+        reviewStep3Description: "Visible para agencias y disponible para reservas",
+        reviewDashboard: "Volver al Dashboard",
+        reviewViewSubmission: "Ver Env\u00EDo",
+        reviewQuestions: "\u00BFPreguntas sobre la revisi\u00F3n?",
+        reviewContact: "Contactar soporte institucional",
+        completeFields: "Completa estos campos:",
+        addAtLeastOneRoom: "Agrega al menos un tipo de habitaci\u00F3n",
+        roomNeedsPhotos: (name: string) => `${name}: agrega fotos`,
+        addAtLeastOneAmenity: "Selecciona al menos una amenidad",
+        addAtLeastOnePhoto: "Agrega al menos una foto",
+      },
+    },
+    suspended: {
+      title: "Cuenta Suspendida",
+      subtitle: "Tu acceso a la plataforma HUMANA ha sido suspendido.",
+      description: "Si crees que esto es un error o necesitas más información, por favor contacta a nuestro equipo de soporte.",
+      contact: "Contactar Soporte",
+      contactEmail: "info@humana.global",
+      backToLogin: "Volver al inicio de sesión",
     },
   },
 
@@ -2301,28 +2906,50 @@ export const dictionary: Record<Locale, Dictionary> = {
         createOffice: "Criar escritório",
         createOfficeDesc: "Configure um novo escritório regional para coordenar operações locais.",
         pendingInvitations: "Convites pendentes",
-        pendingInvitationsTooltip: "Convites enviados a agências, hotéis e escritórios que ainda não foram aceitos.",
-        awaitingAcceptance: "Aguardando aceitação",
-        sendNewInvite: "Enviar convite",
-        approvalQueue: "Fila de aprovação",
+        pendingInvitationsTooltip: "Usuários convidados que ainda não aceitaram o convite.",
+        awaitingAcceptance: "Aguardando aceitação via email",
+        sendNewInvite: "Reenviar email pela Rede",
+        approvalQueue: "Lista de aprovação",
         approvalQueueTooltip: "Agências, hotéis e escritórios pendentes de aprovação. Revise e gerencie pela Rede.",
         offices: "Escritórios regionais",
         noPending: "Sem convites pendentes",
         noApprovals: "Sem organizações pendentes de aprovação",
         orgsUnderReview: "Organizações em revisão",
         waiting: "em espera",
+        reviewFromNetwork: "Revisar e gerenciar pela Rede",
         pendingReview: "em revisão",
         officesEyebrow: "Presença operacional",
         officesTitle: "Escritórios HUMANA",
         officesSubtitle: "Centros regionais que coordenam onboarding, padrões e parcerias locais.",
         noOffices: "Nenhum escritório criado ainda.",
+        officeCard: {
+          operational: "Operacional",
+          staff: "Equipe",
+          agencies: "Agências",
+          properties: "Propriedades",
+          hotels: "Hotéis",
+        },
       },
       network: {
         title: "Membros da rede",
         subtitle: "Gerencie todos os usuários da plataforma em hotéis, agências e escritórios.",
         createUser: "+ CRIAR USUÁRIO",
         tabs: { all: "Todos", active: "Ativos", pending: "Pendentes", suspended: "Suspensos" },
-        table: { user: "Usuário", email: "Email", type: "Tipo", organization: "Organização", status: "Status", invitedBy: "Convidado por", registered: "Registro", lastLogin: "Último acesso", actions: "Ações" },
+        table: {
+          user: "Usuário", email: "Email", type: "Tipo", organization: "Organização",
+          status: "Status", invitedBy: "Convidado por", invitedAt: "Data Convite",
+          lastLogin: "Último acesso", actions: "Ações", onboarding: "Onboarding",
+          tooltipUser: "Nome e email do membro da plataforma",
+          tooltipOrganization: "Empresa ou entidade à qual o membro pertence",
+          tooltipType: "Tipo de organização: Hotel, Agência ou Escritório",
+          tooltipStatus: "Status atual da conta na plataforma",
+          tooltipInvitedBy: "Organização que enviou o convite",
+          tooltipInvitedAt: "Data em que o convite foi enviado",
+          tooltipOnboarding: "Se o membro completou a configuração do perfil",
+        },
+        status: { active: "Ativo", pending: "Pendente", suspended: "Suspenso", rejected: "Rejeitado" },
+        onboardingComplete: "Completo",
+        onboardingPending: "Pendente",
         review: "Revisar",
         approve: "Aprovar",
         reject: "Rejeitar",
@@ -2331,12 +2958,16 @@ export const dictionary: Record<Locale, Dictionary> = {
         suspend: "Suspender",
         reactivate: "Reativar",
         sendFeedback: "Enviar feedback",
+        resendInvitation: "Reenviar convite",
+        resendSuccess: "Convite reenviado com sucesso",
+        resendCooldown: "Você poderá reenviar em 2 minutos",
+        resendFailed: "Falha ao reenviar convite",
         deleteUser: "Excluir usuário",
         deleteTitle: "Excluir usuário permanentemente",
         deleteWarning: "Esta ação não pode ser desfeita. Todos os dados associados a este usuário serão excluídos permanentemente e ele não poderá mais acessar a plataforma.",
         deleteConfirmHint: (email: string) => `Para confirmar, digite "${email}" abaixo:`,
         deleteConfirmPlaceholder: "Digite o email para confirmar",
-        deleteConfirm: "Excluir permanentemente",
+        deleteConfirm: "Excluir",
         deleting: "Excluindo...",
         showing: "Mostrando",
         showingOf: "membros",
@@ -2389,29 +3020,39 @@ export const dictionary: Record<Locale, Dictionary> = {
         notesPlaceholder: "Adicionar notas opcionais sobre este usuário...",
         approve: "Aprovar Usuário",
         reject: "Rejeitar",
+        review: "Revisão",
         suspend: "Suspender",
         reactivate: "Reativar",
       },
-      approve: { title: "Aprovar usuário", message: "Tem certeza que deseja aprovar este usuário? Ele receberá uma notificação por e-mail e terá acesso completo à plataforma.", confirm: "Confirmar Aprovação", notification: "O líder do Escritório que criou esta solicitação também será notificado da aprovação." },
+      approve: { title: "Aprovar usuário", message: "Tem certeza que deseja aprovar este usuário? Ele receberá uma notificação por e-mail e terá acesso completo à plataforma.", confirm: "Aprovar", notification: "O líder do Escritório que criou esta solicitação também será notificado da aprovação." },
       reject: { title: "Rejeitar usuário", reason: "Motivo da rejeição", reasonPlaceholder: "Explique por que este usuário está sendo rejeitado. Isso será enviado ao líder do Escritório que criou a solicitação...", confirm: "Confirmar Rejeição", notification: "O líder do Escritório receberá uma notificação por e-mail com este motivo." },
+      suspendModal: { title: "Suspender Usuário", message: "Este usuário será imediatamente bloqueado de acessar a plataforma. Ele não poderá fazer login ou usar nenhuma funcionalidade até que sua conta seja reativada.", confirm: "Suspender", warning: "Todas as sessões ativas serão invalidadas." },
+      reactivateModal: { title: "Reativar Usuário", message: "Este usuário recuperará o acesso completo à plataforma e poderá fazer login e usar todas as funcionalidades associadas ao seu perfil.", confirm: "Reativar" },
       subscriptions: {
         eyebrow: "ASSINATURAS",
         title: "Planos de membros",
         subtitle: "Gerencie planos de assinatura e onboarding do Stripe Connect para membros.",
         plans: "Planos",
         noPlans: "Nenhum plano de assinatura configurado ainda.",
-        noSubs: "Nenhum registro de onboarding de pagamento ainda.",
+        noSubs: "Nenhuma assinatura ou pagamento ativo ainda",
+        noSubsHint: "Quando os membros assinarem um plano, a cobrança e atividade de pagamento aparecerão aqui.",
         perMonth: "/mês",
-        commissionRate: "taxa de comissão",
+        commissionRate: "comissão para agências",
         activeMembers: "membros ativos",
-        editPlan: "Editar Plano",
+        editPlan: "Editar Preço",
+        editPriceTitle: "Editar preço do plano",
+        editPriceLabel: "Preço mensal (USD)",
+        editPriceSave: "Salvar",
+        editPriceSaving: "Salvando...",
         subscribers: "assinantes",
-        stripeConnect: "STRIPE CONNECT",
-        paymentOnboarding: "Status de onboarding de pagamentos",
+        stripeConnect: "ASSINATURAS E PAGAMENTOS",
+        paymentOnboarding: "Assinaturas ativas",
+        paymentOnboardingSubtitle: "Gerencie as assinaturas dos membros e acompanhe a atividade de pagamentos na rede.",
         member: "Membro",
         type: "Tipo",
         plan: "Plano",
-        stripeStatus: "Status Stripe",
+        status: "Status",
+        amount: "Valor",
         action: "Ação",
         starter: { name: "Starter", desc: "Para agências iniciando com a HUMANA." },
         professional: { name: "Professional", desc: "Para agências em crescimento com reservas regulares." },
@@ -2420,65 +3061,235 @@ export const dictionary: Record<Locale, Dictionary> = {
       settings: {
         eyebrow: "CONFIGURAÇÕES",
         title: "Configurações",
-        subtitle: "Configuração da plataforma, comissões e gestão de países.",
-        identity: "Identidade da plataforma",
-        platformName: "Nome da Plataforma",
+        subtitle: "Perfil do administrador, comissões e gestão de países.",
+        profile: "Perfil do administrador",
+        adminName: "Nome",
         supportEmail: "Email de Suporte",
+        save: "Salvar",
+        saving: "Salvando...",
         commissions: "Taxas de comissão",
         agencyRate: "Comissão Agência",
         officeFee: "Taxa Escritório HUMANA",
         hotelNet: "Líquido Hotel / Criador",
-        editRates: "Editar taxas",
-        agencyHint: "Padrão para plano Starter",
+        ratesNote: "Para modificar as taxas de comissão, entre em contato com a equipe de desenvolvimento.",
+        agencyHint: "Aplicado a todas as reservas",
         officeHint: "Taxa fixa em todos os planos",
         hotelHint: "Restante após taxas",
-        currency: "Moeda Padrão",
-        language: "Idioma Padrão",
         countriesTitle: "Países e Regiões",
-        addCountry: "+ Adicionar País",
+        addCountry: "Adicionar País",
         noCountries: "Nenhum país configurado ainda.",
         flag: "Bandeira",
         country: "País",
-        code: "Código",
-        hotels: "Hotéis",
-        retreats: "Retiros",
-        status: "Status",
         enabled: "Habilitado",
-        activeStatus: "Ativo",
-        inactiveStatus: "Inativo",
+        enabledHint: "Os países desabilitados ocultam seus hotéis e retiros do marketplace.",
+        confirmDisableHint: "Os hotéis e retiros deste país serão ocultados do marketplace.",
+        confirmEnableHint: "Os hotéis e retiros deste país serão visíveis no marketplace.",
+        disable: "Desabilitar",
+        enable: "Habilitar",
+        addCountryTitle: "Adicionar País",
+        countryName: "Nome do País",
+        countryCode: "Código ISO (2 letras)",
+        creating: "Criando...",
+        create: "Criar",
+        deleteCountry: "Excluir País",
+        deleteCountryWarning: "Isso excluirá permanentemente todos os hotéis, retiros, agências e escritórios associados a este país. Esta ação não pode ser desfeita.",
+        deleteCountryType: (name) => `Digite "${name}" para confirmar`,
+        deleteCountryPassword: "Senha do administrador",
+        deleting: "Excluindo...",
+        delete: "Excluir permanentemente",
+        cancel: "Cancelar",
       },
     },
     comingSoon: {
       eyebrow: "EM BREVE",
       title: "Bem-vindo",
       subtitle: (role) => `Seu painel de ${role} está sendo preparado.`,
+      description: "Seu dashboard personalizado com análises, reservas e ferramentas de gestão está em desenvolvimento e estará disponível em breve.",
       status: "Status da conta",
       contact: "Contato",
+      contactCta: "Contatar Suporte",
+      signOut: "Sair",
     },
     acceptInvite: {
-      eyebrow: "BEM-VINDO AO HUMANA",
-      title: "Ative sua conta",
-      subtitle: "Complete seu registro para começar.",
-      name: "Nome completo",
-      namePlaceholder: "Seu nome completo",
+      eyebrow: "Criar Conta",
+      title: "Defina sua senha",
+      subtitle: "Escolha uma senha segura para sua conta HUMANA.",
+      email: "Email",
+      country: "País",
       password: "Senha",
       passwordPlaceholder: "Mínimo de 8 caracteres",
       confirmPassword: "Confirmar senha",
       confirmPasswordPlaceholder: "Repita sua senha",
-      submit: "Ativar minha conta",
-      submitting: "Ativando...",
+      terms: "Aceito os",
+      termsLink: "Termos de Serviço",
+      privacyLink: "Política de Privacidade",
+      submit: "Criar Conta",
+      next: "Próximo",
+      submitting: "Criando conta...",
       expired: "Este convite expirou. Entre em contato com seu administrador.",
       alreadyAccepted: "Este convite já foi aceito.",
       invalidToken: "Link de convite inválido.",
-    },
-    welcome: {
-      title: (name) => `Bem-vindo ao HUMANA, ${name}`,
-      subtitle: "Sua conta foi ativada com sucesso.",
-      redirecting: "Redirecionando agora...",
+      errorTitle: "Erro de Convite",
+      backToLogin: "Voltar ao login",
+      validating: "Validando convite...",
+      passwordMismatch: "As senhas não coincidem.",
+      passwordTooShort: "A senha deve ter pelo menos 8 caracteres.",
+      termsRequired: "Você deve aceitar os Termos de Serviço e a Política de Privacidade.",
+      genericError: "Algo deu errado. Tente novamente.",
     },
     onboarding: {
-      agency: { title: "Complete seu perfil", subtitle: "Conte-nos sobre sua agência de viagens.", description: "Descrição", country: "País", city: "Cidade", phone: "Telefone", website: "Site", submit: "Concluir configuração", skip: "Pular por enquanto" },
-      office: { title: "Complete seu perfil", subtitle: "Configure seu escritório regional.", region: "Região", timezone: "Fuso horário", phone: "Telefone", submit: "Concluir configuração", skip: "Pular por enquanto" },
+      header: { office: "Escritório", agency: "Agência", hotel: "Hotel" },
+      stepOf: (current: number, total: number) => `Passo ${current} de ${total}`,
+      back: "Voltar",
+      next: "Próximo",
+      agency: { title: "Complete seu perfil", subtitle: "Conte-nos sobre você para começar.", orgName: "Nome da Agência", firstName: "Nome", lastName: "Sobrenome", phone: "Telefone", address: "Endereço", submit: "Concluir configuração" },
+      office: {
+        title: "Complete seu perfil",
+        subtitle: "Conte-nos sobre você para começar.",
+        orgName: "Nome do Escritório",
+        firstName: "Nome",
+        lastName: "Sobrenome",
+        phone: "Telefone",
+        address: "Endereço",
+        submit: "Concluir configuração",
+      },
+      hotel: {
+        steps: ["Identidade", "Quartos", "Amenities", "Fotos"],
+        publish: "Publicar",
+        step1Eyebrow: "Passo 1 de 4 \u00B7 Identidade da Propriedade",
+        step1Title: "Conte-nos sobre sua propriedade.",
+        step1Subtitle: "Comece com seus dados pessoais, o nome p\u00FAblico do hotel e sua localiza\u00E7\u00E3o. Usaremos isso para verificar a propriedade antes de inclu\u00ED-la na rede.",
+        firstName: "Nome",
+        lastName: "Sobrenome",
+        ownerPhone: "Seu Telefone",
+        personalSection: "Seus Dados",
+        hotelName: "Nome do Hotel",
+        hotelNameHint: "Assim sua propriedade aparecer\u00E1 em toda a rede HUMANA.",
+        hotelNamePlaceholder: "Casa del Faro",
+        addressLabel: "Endere\u00E7o F\u00EDsico",
+        descriptionLabel: "Descri\u00E7\u00E3o",
+        descriptionPlaceholder: "Uma breve descri\u00E7\u00E3o da sua propriedade e sua filosofia de bem-estar...",
+        starsLabel: "Classifica\u00E7\u00E3o por Estrelas",
+        propertySection: "Dados do Hotel",
+        contactSection: "Contato e Opera\u00E7\u00F5es",
+        hotelPhoneLabel: "Telefone do Hotel",
+        contactEmailLabel: "Email de Contato",
+        websiteLabel: "Site",
+        checkInLabel: "Hor\u00E1rio de Check-in",
+        checkOutLabel: "Hor\u00E1rio de Check-out",
+        verificationTitle: "Verifica\u00E7\u00E3o necess\u00E1ria",
+        verificationDescription: "Ap\u00F3s o envio, nossa equipe verificar\u00E1 os detalhes da sua propriedade em 24\u201348 horas antes de list\u00E1-la na rede.",
+        step2Eyebrow: "Passo 2 de 4 \u00B7 Invent\u00E1rio de Quartos",
+        step2Title: "Configure seus tipos de quarto.",
+        step2Subtitle: "Adicione cada categoria de quarto que voc\u00EA oferece junto com o n\u00FAmero total de unidades dispon\u00EDveis.",
+        roomConfigured: (count: number) => `${count} tipo${count !== 1 ? "s" : ""} de quarto configurado${count !== 1 ? "s" : ""}`,
+        addRoomType: "Adicionar Tipo de Quarto",
+        editRoomType: "Editar Tipo de Quarto",
+        noRoomsTitle: "Nenhum quarto adicionado ainda",
+        noRoomsDescription: "Adicione pelo menos um tipo de quarto com pre\u00E7o e capacidade para continuar.",
+        roomName: "Nome do Quarto",
+        roomNamePlaceholder: "ex. Su\u00EDte Oce\u00E2nica",
+        roomDescription: "Descri\u00E7\u00E3o Breve",
+        roomDescriptionPlaceholder: "ex. Vista para o mar, 60 m\u00B2",
+        maxGuests: "M\u00E1x. H\u00F3spedes",
+        totalUnits: "Unidades Totais",
+        baseRate: "Tarifa Base",
+        roomSize: "Tamanho",
+        bedTypeLabel: "Tipo de Cama",
+        backToRooms: "Voltar aos quartos",
+        saveChanges: "Salvar Altera\u00E7\u00F5es",
+        describeRoom: "Descreva este quarto.",
+        describeRoomSub: "Preencha os detalhes b\u00E1sicos deste tipo de quarto.",
+        nextAvailability: "Pr\u00F3ximo: Disponibilidade",
+        availabilityTitle: "Configure a disponibilidade.",
+        availabilitySub: "Selecione intervalos de datas e atribua unidades dispon\u00EDveis ou bloqueie datas.",
+        legendAvailable: "Dispon\u00EDvel",
+        legendSelected: "Selecionado",
+        legendBlocked: "Bloqueado",
+        availableUnits: "Unidades",
+        applyDates: "Aplicar",
+        blockDates: "Bloquear",
+        configuredBlocks: "Blocos Configurados",
+        noBlocksYet: "Nenhum bloco configurado ainda. Selecione datas no calend\u00E1rio para come\u00E7ar.",
+        nextPhotos: "Pr\u00F3ximo: Fotos",
+        roomPhotosTitle: "Adicione fotos do quarto.",
+        roomPhotosSub: "Envie at\u00E9 8 fotos para este tipo de quarto. A primeira foto ser\u00E1 a capa.",
+        roomPhotosCover: "Capa",
+        roomPhotosMax: "8 fotos no m\u00E1ximo",
+        roomPhotosDrag: "Arraste imagens aqui ou",
+        roomPhotosBrowse: "procure arquivos",
+        roomPhotosFormats: "JPG ou PNG \u00B7 at\u00E9 8 MB cada",
+        doneWithRoom: "Pronto com este quarto",
+        deleteRoomTitle: "Excluir Tipo de Quarto",
+        deleteRoomDescription: (name: string) => `Tem certeza de que deseja excluir "${name}"? Esta ação não pode ser desfeita.`,
+        deleteRoomConfirm: "Excluir",
+        step3Eyebrow: "Passo 3 de 4 · Amenities",
+        step3Title: "Diga aos h\u00F3spedes o que seu lugar oferece.",
+        step3Subtitle: "Selecione tudo que se aplica. Você pode refinar a lista após a publicação.",
+        guestFavorites: "Favoritas dos H\u00F3spedes",
+        standoutAmenities: "Amenities em Destaque",
+        customAmenity: "Amenity Personalizada",
+        customPlaceholder: "ex. Terra\u00E7o no telhado, Aluguel de bicicletas...",
+        addButton: "Adicionar",
+        amenityCount: (selected: number, custom: number) => `${selected} comodidade${selected !== 1 ? "s" : ""} selecionada${selected !== 1 ? "s" : ""}${custom > 0 ? ` + ${custom} personalizada${custom !== 1 ? "s" : ""}` : ""}`,
+        step4Eyebrow: "Passo 4 de 4 \u00B7 Fotos da Propriedade",
+        step4Title: "Mostre sua propriedade no seu melhor.",
+        step4Subtitle: "Envie pelo menos cinco fotos que representem o espa\u00E7o como os h\u00F3spedes o experimentar\u00E3o. Arraste para reordenar.",
+        uploadDrag: "Arraste imagens aqui ou",
+        uploadBrowse: "procure arquivos",
+        uploadFormats: "JPG ou PNG \u00B7 at\u00E9 8 MB cada \u00B7 M\u00EDnimo 1600 \u00D7 1067 px",
+        coverBadge: "Capa",
+        photoCount: (current: number, recommended: number) => `${current} de ${recommended} fotos recomendadas`,
+        dragToReorder: "Arraste para reordenar",
+        uploadMore: "Enviar mais",
+        photoTipsTitle: "Dicas de fotos",
+        photoTipsDescription: "Propriedades com 8+ fotos de alta qualidade recebem 40% mais consultas. Inclua quartos, \u00E1reas comuns, vistas e espa\u00E7os gastron\u00F4micos.",
+        editButton: "Editar",
+        roomDetailsSection: "Detalhes do Quarto",
+        blockedLabel: "Bloqueado",
+        unitsCount: (n: number) => `${n} unidade${n !== 1 ? "s" : ""}`,
+        photosCounter: (n: number, max: number) => `${n} / ${max} fotos`,
+        blocksCount: (n: number) => `${n} bloco${n !== 1 ? "s" : ""}`,
+        availabilityLabel: "Disponibilidade",
+        photosLabel: "Fotos",
+        perNight: "/noite",
+        starLabel: (n: number) => `${n} estrela${n !== 1 ? "s" : ""}`,
+        addressPlaceholder: "Comece a digitar um endere\u00E7o...",
+        amenityNames: {
+          wifi: "Wifi", pool: "Piscina", spa: "Spa e Sauna", breakfast: "Caf\u00E9 da manh\u00E3",
+          parking: "Estacionamento", ac: "Ar condicionado", "yoga-studio": "Est\u00FAdio de yoga", gym: "Academia",
+          "meditation-room": "Sala de medita\u00E7\u00E3o", "private-garden": "Jardim privado",
+          "ocean-terrace": "Terra\u00E7o oce\u00E2nico", "private-chef": "Chef particular",
+        },
+        reviewEyebrow: "Envio Recebido",
+        reviewTitle: "Sua propriedade est\u00E1 em revis\u00E3o.",
+        reviewSubtitle: (hotelName: string) => `Nossa equipe verificar\u00E1 as informa\u00E7\u00F5es e fotos que voc\u00EA enviou. Ap\u00F3s a aprova\u00E7\u00E3o, ${hotelName} ser\u00E1 vis\u00EDvel para as ag\u00EAncias na rede HUMANA.`,
+        reviewStep1Label: "01 \u00B7 Enviado",
+        reviewStep1Title: "Propriedade enviada",
+        reviewStep2Label: "02 \u00B7 Em Progresso \u00B7 24-48h",
+        reviewStep2Title: "Revis\u00E3o HUMANA",
+        reviewStep2Description: "Verificando detalhes da propriedade, fotos e precis\u00E3o da localiza\u00E7\u00E3o",
+        reviewStep3Label: "03 \u00B7 Pr\u00F3ximo \u00B7 Publicar",
+        reviewStep3Title: "Listada na rede",
+        reviewStep3Description: "Vis\u00EDvel para ag\u00EAncias e dispon\u00EDvel para reservas",
+        reviewDashboard: "Voltar ao Dashboard",
+        reviewViewSubmission: "Ver Envio",
+        reviewQuestions: "Perguntas sobre a revis\u00E3o?",
+        reviewContact: "Contatar suporte institucional",
+        completeFields: "Complete estes campos:",
+        addAtLeastOneRoom: "Adicione pelo menos um tipo de quarto",
+        roomNeedsPhotos: (name: string) => `${name}: adicione fotos`,
+        addAtLeastOneAmenity: "Selecione pelo menos uma comodidade",
+        addAtLeastOnePhoto: "Adicione pelo menos uma foto",
+      },
+    },
+    suspended: {
+      title: "Conta Suspensa",
+      subtitle: "Seu acesso à plataforma HUMANA foi suspenso.",
+      description: "Se você acredita que isso é um erro ou precisa de mais informações, entre em contato com nossa equipe de suporte.",
+      contact: "Contatar Suporte",
+      contactEmail: "info@humana.global",
+      backToLogin: "Voltar ao login",
     },
   },
 };

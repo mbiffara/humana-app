@@ -142,7 +142,7 @@ const PRESET_LABELS: Record<string, Record<string, string>> = {
 };
 
 const PRESETS = [
-  { key: "1d", days: 1 },
+  { key: "1d", days: 0 },
   { key: "7d", days: 7 },
   { key: "30d", days: 30 },
   { key: "90d", days: 90 },

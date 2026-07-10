@@ -7,22 +7,9 @@ import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { adminApi } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api";
-import { countries } from "@/data/countries";
-import type { Organization } from "@/lib/types";
+import type { Organization, Country as ApiCountry } from "@/lib/types";
 
 type Role = "agency" | "hotel" | "office";
-
-/** Map of country codes to a default office label. */
-const countryOfficeMap: Record<string, string> = {
-  ES: "Madrid",
-  MX: "CDMX",
-  US: "Miami",
-  BR: "São Paulo",
-  AR: "Buenos Aires",
-  IN: "Mumbai",
-  ID: "Bali",
-  PT: "Lisboa",
-};
 
 /* ── Confetti colours ── */
 const CONFETTI_COLORS = [
@@ -63,11 +50,18 @@ export default function CreateUserPage() {
   // Duplicate email warning modal
   const [duplicateKind, setDuplicateKind] = useState<"already_invited" | "already_registered" | null>(null);
 
-  // Fetch office organizations
+  // Countries from backend API
+  const [apiCountries, setApiCountries] = useState<ApiCountry[]>([]);
+
+  // Fetch office organizations + countries from backend
   const fetchOffices = useCallback(async () => {
     try {
-      const res = await adminApi.listOrganizations({ kind: "office", per_page: 100 });
-      setOffices(res.organizations);
+      const [orgRes, countriesRes] = await Promise.all([
+        adminApi.listOrganizations({ kind: "office", per_page: 100 }),
+        adminApi.listCountries({ enabled: "true" }),
+      ]);
+      setOffices(orgRes.organizations);
+      setApiCountries(countriesRes.countries);
     } catch {
       // fail silently
     }
@@ -102,23 +96,20 @@ export default function CreateUserPage() {
   /** Get the selected country flag */
   function getCountryFlag(): string {
     if (!country) return "";
-    const found = countries.find((c) => c.code === country);
-    return found?.flag || "";
+    const found = apiCountries.find((c) => c.code === country);
+    return found?.flag_emoji || "";
   }
 
   /** Get the selected country name */
   function getCountryName(): string {
     if (!country) return "--";
-    const found = countries.find((c) => c.code === country);
+    const found = apiCountries.find((c) => c.code === country);
     return found ? found.name : country;
   }
 
   /** Get the selected office name */
   function getOfficeName(): string {
-    if (!officeId) {
-      if (country) return countryOfficeMap[country] || "--";
-      return "--";
-    }
+    if (!officeId) return "--";
     const found = offices.find((o) => o.id === officeId);
     return found ? found.name : "--";
   }
@@ -144,21 +135,13 @@ export default function CreateUserPage() {
         role: "owner",
       };
 
-      if (role === "office") {
-        const orgId = officeId ? Number(officeId) : undefined;
-        if (!orgId) {
-          setError("Please select an assigned office.");
-          setSubmitting(false);
-          return;
-        }
-        invitePayload.organization_id = orgId;
-      } else {
-        // For agency/hotel: create a NEW org with the correct kind.
-        // Do NOT send organization_id here — that would reuse an existing office org.
-        invitePayload.org_kind = role;
-        invitePayload.org_name = email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-        if (officeId) invitePayload.assigned_office_id = Number(officeId);
-      }
+      // All roles: create a NEW org with the correct kind.
+      invitePayload.org_kind = role;
+      invitePayload.org_name = role === "office" && country
+        ? `HUMANA ${apiCountries.find(c => c.code === country)?.name || country}`
+        : email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      if (country) invitePayload.country_code = country;
+      if (role !== "office" && officeId) invitePayload.assigned_office_id = Number(officeId);
 
       await adminApi.inviteUser(invitePayload as Parameters<typeof adminApi.inviteUser>[0]);
       sentEmail.current = email;
@@ -252,7 +235,7 @@ export default function CreateUserPage() {
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setRole(opt.value)}
+                  onClick={() => { setRole(opt.value); setOfficeId(""); }}
                   className={`cursor-pointer flex flex-1 items-center gap-3 rounded-lg border bg-white px-5 py-3.5 text-[14px] font-medium transition-all duration-200 ${
                     role === opt.value
                       ? "border-humana-gold text-humana-ink shadow-[0_0_0_1px_#d4af37]"
@@ -323,7 +306,7 @@ export default function CreateUserPage() {
 
               {countryOpen && (
                 <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[260px] overflow-y-auto rounded-lg border border-humana-line bg-white py-1 shadow-lg animate-[fade-in-up_0.15s_ease-out]">
-                  {countries.map((c) => (
+                  {apiCountries.map((c) => (
                     <button
                       key={c.code}
                       type="button"
@@ -334,9 +317,8 @@ export default function CreateUserPage() {
                           : "text-humana-ink hover:bg-humana-stone"
                       }`}
                     >
-                      <span className="text-[18px] leading-none">{c.flag}</span>
+                      <span className="text-[18px] leading-none">{c.flag_emoji || ""}</span>
                       <span>{c.name}</span>
-                      <span className="ml-auto text-[11px] text-humana-subtle">{c.code}</span>
                     </button>
                   ))}
                 </div>
@@ -344,79 +326,83 @@ export default function CreateUserPage() {
             </div>
           </div>
 
-          {/* Divider */}
-          <hr className="border-humana-line" />
+          {/* Divider + Assigned Office — only shown for agency/hotel roles */}
+          {role !== "office" && (
+            <>
+              <hr className="border-humana-line" />
 
-          {/* ASSIGNED OFFICE — custom dropdown */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-ink">
-              {t.admin.invite.office}
-            </label>
-            <div className="relative" ref={officeRef}>
-              <button
-                type="button"
-                onClick={() => { setOfficeOpen(!officeOpen); setCountryOpen(false); }}
-                className={`cursor-pointer flex w-full items-center justify-between rounded-lg border bg-white px-4 py-3 text-left text-[15px] transition-colors ${
-                  officeOpen ? "border-humana-gold" : "border-humana-line hover:border-humana-gold/40"
-                }`}
-              >
-                <span className={`flex items-center gap-2.5 ${officeId ? "text-humana-ink" : "text-humana-subtle"}`}>
-                  {officeId ? (
-                    <>
-                      <svg className="h-4 w-4 shrink-0 text-humana-gold" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-                      </svg>
-                      {getOfficeName()}
-                    </>
-                  ) : (
-                    <span>{locale === "es" ? "Seleccionar oficina" : locale === "pt" ? "Selecionar escritório" : "Select office"}</span>
-                  )}
-                </span>
-                <svg className={`h-4 w-4 text-humana-muted transition-transform duration-200 ${officeOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </button>
-
-              {officeOpen && (
-                <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[260px] overflow-y-auto rounded-lg border border-humana-line bg-white py-1 shadow-lg animate-[fade-in-up_0.15s_ease-out]">
-                  {offices.length === 0 ? (
-                    <div className="px-4 py-3 text-[13px] text-humana-muted">
-                      {locale === "es" ? "No hay oficinas disponibles" : locale === "pt" ? "Nenhum escritório disponível" : "No offices available"}
-                    </div>
-                  ) : (
-                    offices.map((office) => (
-                      <button
-                        key={office.id}
-                        type="button"
-                        onClick={() => { setOfficeId(office.id); setOfficeOpen(false); }}
-                        className={`cursor-pointer flex w-full items-center gap-3 px-4 py-2.5 text-left text-[14px] transition-colors ${
-                          officeId === office.id
-                            ? "bg-humana-gold-light/50 font-medium text-humana-ink"
-                            : "text-humana-ink hover:bg-humana-stone"
-                        }`}
-                      >
-                        <svg className="h-4 w-4 shrink-0 text-humana-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-                        </svg>
-                        <div className="min-w-0">
-                          <span className="block truncate">{office.name}</span>
-                          {office.city && (
-                            <span className="block text-[11px] text-humana-muted">{office.city}{office.country ? `, ${office.country}` : ""}</span>
-                          )}
-                        </div>
-                        {officeId === office.id && (
-                          <svg className="ml-auto h-4 w-4 shrink-0 text-humana-gold" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              {/* ASSIGNED OFFICE — custom dropdown */}
+              <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-ink">
+                  {t.admin.invite.office}
+                </label>
+                <div className="relative" ref={officeRef}>
+                  <button
+                    type="button"
+                    onClick={() => { setOfficeOpen(!officeOpen); setCountryOpen(false); }}
+                    className={`cursor-pointer flex w-full items-center justify-between rounded-lg border bg-white px-4 py-3 text-left text-[15px] transition-colors ${
+                      officeOpen ? "border-humana-gold" : "border-humana-line hover:border-humana-gold/40"
+                    }`}
+                  >
+                    <span className={`flex items-center gap-2.5 ${officeId ? "text-humana-ink" : "text-humana-subtle"}`}>
+                      {officeId ? (
+                        <>
+                          <svg className="h-4 w-4 shrink-0 text-humana-gold" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
                           </svg>
-                        )}
-                      </button>
-                    ))
+                          {getOfficeName()}
+                        </>
+                      ) : (
+                        <span>{locale === "es" ? "Seleccionar oficina" : locale === "pt" ? "Selecionar escritório" : "Select office"}</span>
+                      )}
+                    </span>
+                    <svg className={`h-4 w-4 text-humana-muted transition-transform duration-200 ${officeOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+
+                  {officeOpen && (
+                    <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[260px] overflow-y-auto rounded-lg border border-humana-line bg-white py-1 shadow-lg animate-[fade-in-up_0.15s_ease-out]">
+                      {offices.length === 0 ? (
+                        <div className="px-4 py-3 text-[13px] text-humana-muted">
+                          {locale === "es" ? "No hay oficinas disponibles" : locale === "pt" ? "Nenhum escritório disponível" : "No offices available"}
+                        </div>
+                      ) : (
+                        offices.map((office) => (
+                          <button
+                            key={office.id}
+                            type="button"
+                            onClick={() => { setOfficeId(office.id); setOfficeOpen(false); }}
+                            className={`cursor-pointer flex w-full items-center gap-3 px-4 py-2.5 text-left text-[14px] transition-colors ${
+                              officeId === office.id
+                                ? "bg-humana-gold-light/50 font-medium text-humana-ink"
+                                : "text-humana-ink hover:bg-humana-stone"
+                            }`}
+                          >
+                            <svg className="h-4 w-4 shrink-0 text-humana-muted" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                            </svg>
+                            <div className="min-w-0">
+                              <span className="block truncate">{office.name}</span>
+                              {office.city && (
+                                <span className="block text-[11px] text-humana-muted">{office.city}{office.country ? `, ${office.country}` : ""}</span>
+                              )}
+                            </div>
+                            {officeId === office.id && (
+                              <svg className="ml-auto h-4 w-4 shrink-0 text-humana-gold" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                              </svg>
+                            )}
+                          </button>
+                        ))
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-            <p className="text-[12px] text-humana-muted">{t.admin.invite.officeHint}</p>
-          </div>
+                <p className="text-[12px] text-humana-muted">{t.admin.invite.officeHint}</p>
+              </div>
+            </>
+          )}
 
           {/* Error message */}
           {error && (
@@ -453,7 +439,9 @@ export default function CreateUserPage() {
               <PreviewRow label={t.admin.invite.previewRole} value={role ? t.admin.invite.roles[role] : "--"} />
               <PreviewRow label={t.admin.invite.previewEmail} value={email || "--"} />
               <PreviewRow label={t.admin.invite.previewCountry} value={getCountryName()} />
-              <PreviewRow label={t.admin.invite.previewOffice} value={getOfficeName()} />
+              {role !== "office" && (
+                <PreviewRow label={t.admin.invite.previewOffice} value={getOfficeName()} />
+              )}
               <PreviewRow label={t.admin.invite.previewExpires} value={t.admin.invite.previewExpiresValue} bold />
               <PreviewRow
                 label={t.admin.invite.previewApproval}
@@ -517,7 +505,10 @@ export default function CreateUserPage() {
 
             <div className="flex items-center justify-end gap-3">
               <button
-                onClick={() => setDuplicateKind(null)}
+                onClick={() => {
+                  setDuplicateKind(null);
+                  router.push("/admin/network");
+                }}
                 className="cursor-pointer rounded-lg bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.18em] text-white transition-all duration-200 hover:bg-black"
               >
                 {locale === "es" ? "Entendido" : locale === "pt" ? "Entendido" : "Got it"}
@@ -618,43 +609,6 @@ export default function CreateUserPage() {
         </div>
       )}
 
-      {/* Confetti + modal keyframes */}
-      <style jsx>{`
-        @keyframes confetti-burst {
-          0% {
-            opacity: 1;
-            transform: translate(0, 0) rotate(0deg) scale(1);
-          }
-          100% {
-            opacity: 0;
-            transform: translate(var(--x-drift), -400px) rotate(720deg) scale(0.4);
-          }
-        }
-        @keyframes modal-enter {
-          0% {
-            opacity: 0;
-            transform: scale(0.9) translateY(20px);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        @keyframes modal-exit {
-          0% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(0.95) translateY(10px);
-          }
-        }
-        @keyframes fade-out {
-          0% { opacity: 1; }
-          100% { opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 }

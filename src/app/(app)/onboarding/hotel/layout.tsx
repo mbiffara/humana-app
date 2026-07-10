@@ -1,31 +1,38 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { HotelWizardProvider, useHotelWizard } from "@/contexts/HotelWizardContext";
+import { hotelApi } from "@/lib/api/hotel";
+import { api } from "@/lib/api";
+import { useLocale } from "@/i18n/LocaleProvider";
+import { useAuth } from "@/contexts/AuthContext";
 
-const STEPS = [
-  { number: 1, label: "Identity", path: "/onboarding/hotel/step-1" },
-  { number: 2, label: "Rooms", path: "/onboarding/hotel/step-2" },
-  { number: 3, label: "Amenities", path: "/onboarding/hotel/step-3" },
-  { number: 4, label: "Photos", path: "/onboarding/hotel/step-4" },
+const STEP_PATHS = [
+  "/onboarding/hotel/step-1",
+  "/onboarding/hotel/step-2",
+  "/onboarding/hotel/step-3",
+  "/onboarding/hotel/step-4",
 ];
 
 function StepProgressBar() {
   const pathname = usePathname();
+  const { t } = useLocale();
+  const stepLabels = t.onboarding.hotel.steps;
 
-  const currentStepIndex = STEPS.findIndex((s) => pathname === s.path);
+  const currentStepIndex = STEP_PATHS.findIndex((p) => pathname === p);
   const activeIndex = currentStepIndex >= 0 ? currentStepIndex : 0;
 
   return (
     <div className="flex items-center gap-0">
-      {STEPS.map((step, i) => {
+      {STEP_PATHS.map((_, i) => {
         const isCompleted = i < activeIndex;
         const isActive = i === activeIndex;
 
         return (
-          <div key={step.number} className="flex items-center">
+          <div key={i} className="flex items-center">
             {i > 0 && (
               <div
                 className={`mx-2 h-px w-10 transition-colors duration-300 ${
@@ -57,7 +64,7 @@ function StepProgressBar() {
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
-                  step.number
+                  i + 1
                 )}
               </div>
               <span
@@ -69,7 +76,7 @@ function StepProgressBar() {
                       : "text-humana-muted/50"
                 }`}
               >
-                {step.label}
+                {stepLabels[i]}
               </span>
             </div>
           </div>
@@ -82,48 +89,247 @@ function StepProgressBar() {
 function BottomBar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { state } = useHotelWizard();
+  const { t } = useLocale();
+  const { user, setUser } = useAuth();
+  const { state, hideBottomBar, isUploading } = useHotelWizard();
+  const [submitting, setSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const currentStepIndex = STEPS.findIndex((s) => pathname === s.path);
+  const currentStepIndex = STEP_PATHS.findIndex((p) => pathname === p);
   const activeIndex = currentStepIndex >= 0 ? currentStepIndex : 0;
-  const isLastStep = activeIndex === STEPS.length - 1;
+  const isLastStep = activeIndex === STEP_PATHS.length - 1;
   const isFirstStep = activeIndex === 0;
 
-  // Hide bottom bar on under-review page
+  // Hide bottom bar on under-review page or when step sub-views have own nav
   if (pathname.includes("under-review")) return null;
+  if (hideBottomBar) return null;
 
   function handleBack() {
     if (activeIndex > 0) {
-      router.push(STEPS[activeIndex - 1].path);
+      router.push(STEP_PATHS[activeIndex - 1]);
+    }
+  }
+
+  async function saveStep1() {
+    const fullName = `${state.ownerFirstName.trim()} ${state.ownerLastName.trim()}`.trim();
+    // Save hotel profile + user name/phone in a single PATCH
+    const payload: Record<string, unknown> = {
+      hotel: {
+        name: state.hotelName.trim(),
+        address: state.address.trim(),
+        city: state.city.trim(),
+        country: state.country.trim(),
+        country_code: state.countryCode.trim(),
+        description: state.description.trim(),
+        stars: state.stars,
+        phone: state.phone.trim(),
+        contact_email: user?.email ?? state.contactEmail.trim(),
+        check_in_time: state.checkInTime,
+        check_out_time: state.checkOutTime,
+      },
+    };
+    if (fullName) payload.user_name = fullName;
+    if (state.ownerPhone) payload.user_phone = state.ownerPhone.trim();
+    await api.patch("/hotel/profile", payload);
+  }
+
+  async function saveStep2() {
+    for (const room of state.roomTypes) {
+      const payload = {
+        name: room.name,
+        category: "standard" as string,
+        capacity: room.maxGuests,
+        price_per_night_cents: Math.round(room.baseRate * 100),
+        area_sqm: room.roomSize || undefined,
+        total_rooms: room.totalUnits,
+        description: room.description || undefined,
+        bed_type: room.bedType.toLowerCase(),
+      };
+      try {
+        if (room.id.startsWith("api_")) {
+          // Room was loaded from API — update instead of create
+          const apiId = Number(room.id.replace("api_", ""));
+          await hotelApi.updateRoomType(apiId, payload);
+        } else {
+          await hotelApi.createRoomType(payload);
+        }
+      } catch {
+        // Skip on error
+      }
+    }
+    // Compute total rooms from all room types and update hotel profile
+    const totalRooms = state.roomTypes.reduce((sum, rt) => sum + rt.totalUnits, 0);
+    if (totalRooms > 0) {
+      await api.patch("/hotel/profile", { hotel: { total_rooms: totalRooms } });
+    }
+  }
+
+  async function saveStep3() {
+    const AMENITY_CATALOG: Record<string, { name: string; category: string; featured: boolean }> = {
+      wifi: { name: "Wi-Fi", category: "facilities", featured: true },
+      pool: { name: "Pool", category: "facilities", featured: true },
+      spa: { name: "Spa & Sauna", category: "wellness", featured: true },
+      breakfast: { name: "Breakfast", category: "dining", featured: true },
+      parking: { name: "Parking", category: "facilities", featured: true },
+      ac: { name: "Air Conditioning", category: "facilities", featured: true },
+      "yoga-studio": { name: "Yoga Studio", category: "wellness", featured: true },
+      gym: { name: "Gym", category: "facilities", featured: true },
+      "meditation-room": { name: "Meditation Room", category: "wellness", featured: false },
+      "private-garden": { name: "Private Garden", category: "recreation", featured: false },
+      "ocean-terrace": { name: "Ocean Terrace", category: "recreation", featured: false },
+      "private-chef": { name: "Private Chef", category: "dining", featured: false },
+    };
+
+    const allAmenities = [
+      ...state.amenities.map((id) => {
+        const entry = AMENITY_CATALOG[id];
+        return entry
+          ? { name: entry.name, category: entry.category, featured: entry.featured }
+          : { name: id, category: "general", featured: false };
+      }),
+      ...state.customAmenities.map((name) => ({ name, category: "general", featured: false })),
+    ];
+    if (allAmenities.length > 0) {
+      await hotelApi.batchAmenities(allAmenities);
+    }
+  }
+
+  async function saveStep4() {
+    // Only send real server URLs (skip blob:// preview URLs)
+    const serverPhotos = state.photos.filter((url) => url.startsWith("http"));
+    if (serverPhotos.length > 0) {
+      await hotelApi.batchImages(
+        serverPhotos.map((url) => ({ image_url: url })),
+      );
+    }
+    const res = await hotelApi.submitForReview();
+    // Refresh user state so app layout sees onboarding_completed = true
+    setUser(res.user);
+    // Clear wizard sessionStorage after successful submission
+    try {
+      sessionStorage.removeItem("humana.hotel-wizard");
+    } catch {
+      // Ignore
     }
   }
 
   function handleNext() {
     if (isLastStep) {
-      router.push("/onboarding/hotel/under-review");
+      setShowConfirmModal(true);
+      return;
+    }
+    doSaveAndNavigate();
+  }
+
+  async function doSaveAndNavigate() {
+    setSubmitting(true);
+    setSaveError(null);
+    try {
+      switch (activeIndex) {
+        case 0:
+          await saveStep1();
+          break;
+        case 1:
+          await saveStep2();
+          break;
+        case 2:
+          await saveStep3();
+          break;
+        case 3:
+          await saveStep4();
+          break;
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      setSaveError(
+        err instanceof Error ? err.message : "Could not save. Please try again."
+      );
+      setSubmitting(false);
+      setShowConfirmModal(false);
+      return;
+    }
+
+    setSubmitting(false);
+    setShowConfirmModal(false);
+
+    if (isLastStep) {
+      router.push("/dashboard");
     } else {
-      router.push(STEPS[activeIndex + 1].path);
+      router.push(STEP_PATHS[activeIndex + 1]);
     }
   }
 
-  // Validation per step
+  // Validation per step — all fields required
   function canProceed(): boolean {
     switch (activeIndex) {
       case 0:
-        return state.hotelName.trim().length > 0 && state.address.trim().length > 0;
+        return (
+          state.ownerFirstName.trim().length > 0 &&
+          state.ownerLastName.trim().length > 0 &&
+          state.hotelName.trim().length > 0 &&
+          state.address.trim().length > 0 &&
+          state.description.trim().length > 0 &&
+          state.stars > 0 &&
+          state.phone.trim().length > 0 &&
+          state.checkInTime.length > 0 &&
+          state.checkOutTime.length > 0
+        );
       case 1:
         return state.roomTypes.length > 0;
       case 2:
         return state.amenities.length > 0 || state.customAmenities.length > 0;
       case 3:
-        return state.photos.length >= 1;
+        return !isUploading;
       default:
         return true;
     }
   }
 
+  const h = t.onboarding.hotel;
+
+  function getMissingFields(): string[] {
+    const missing: string[] = [];
+    switch (activeIndex) {
+      case 0:
+        if (!state.ownerFirstName.trim()) missing.push(h.firstName);
+        if (!state.ownerLastName.trim()) missing.push(h.lastName);
+        if (!state.hotelName.trim()) missing.push(h.hotelName);
+        if (!state.address.trim()) missing.push(h.addressLabel);
+        if (!state.description.trim()) missing.push(h.descriptionLabel);
+        if (state.stars <= 0) missing.push(h.starsLabel);
+        if (!state.phone.trim()) missing.push(h.hotelPhoneLabel);
+        if (!state.checkInTime) missing.push(h.checkInLabel);
+        if (!state.checkOutTime) missing.push(h.checkOutLabel);
+        break;
+      case 1:
+        if (state.roomTypes.length === 0) {
+          missing.push(h.addAtLeastOneRoom);
+        }
+        break;
+      case 2:
+        if (state.amenities.length === 0 && state.customAmenities.length === 0) {
+          missing.push(h.addAtLeastOneAmenity);
+        }
+        break;
+    }
+    return missing;
+  }
+
   return (
-    <div className="sticky bottom-0 z-40 flex items-center justify-between border-t border-humana-line bg-white px-16 py-4">
+    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-humana-line bg-white px-16 py-4">
+      {/* Error banner */}
+      {saveError && (
+        <div className="mb-3 flex items-center gap-2 rounded-[6px] bg-red-50 px-4 py-2.5 text-[13px] text-red-700 animate-fade-in-up">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {saveError}
+        </div>
+      )}
+      <div className="flex items-center justify-between">
       {/* Back */}
       <div className="w-[160px]">
         {!isFirstStep && (
@@ -145,14 +351,14 @@ function BottomBar() {
               <path d="M19 12H5" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
-            Back
+            {t.onboarding.back}
           </button>
         )}
       </div>
 
       {/* Step dots */}
       <div className="flex items-center gap-2">
-        {STEPS.map((_, i) => (
+        {STEP_PATHS.map((_, i) => (
           <div
             key={i}
             className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -167,18 +373,16 @@ function BottomBar() {
       </div>
 
       {/* Next / Publish */}
-      <div className="flex w-[160px] justify-end">
+      <div className="group/next relative flex w-[200px] justify-end">
         <button
           type="button"
           onClick={handleNext}
-          disabled={!canProceed()}
-          className={`cursor-pointer flex items-center gap-2 px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none ${
-            isLastStep
-              ? "bg-humana-ink text-white hover:bg-black"
-              : "bg-humana-ink text-white hover:bg-black"
-          }`}
+          disabled={!canProceed() || submitting}
+          className="cursor-pointer flex items-center gap-2 px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] bg-humana-ink text-white hover:bg-black transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {isLastStep ? "Publish Property" : "Next"}
+          {submitting ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          ) : isLastStep ? h.publish : t.onboarding.next}
           <svg
             width="16"
             height="16"
@@ -193,7 +397,85 @@ function BottomBar() {
             <polyline points="12 5 19 12 12 19" />
           </svg>
         </button>
+        {!canProceed() && !submitting && (
+          <div className="pointer-events-none absolute bottom-full right-0 mb-3 hidden w-max max-w-[280px] rounded-lg bg-humana-ink px-4 py-3 shadow-lg group-hover/next:block animate-fade-in-up">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-humana-gold mb-1.5">
+              {h.completeFields}
+            </div>
+            <ul className="space-y-0.5 text-[12px] text-white/80">
+              {getMissingFields().map((f) => (
+                <li key={f}>• {f}</li>
+              ))}
+            </ul>
+            <div className="absolute -bottom-1 right-8 h-2 w-2 rotate-45 bg-humana-ink" />
+          </div>
+        )}
       </div>
+      </div>
+
+      {/* ─── Verification Confirmation Modal ─── */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-[460px] rounded-xl bg-white p-8 shadow-2xl animate-fade-in-scale">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-humana-gold-light">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4" />
+                  <path d="M12 8h.01" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Title */}
+            <h2 className="mt-4 text-center text-[20px] font-medium text-humana-ink">
+              {h.verificationTitle}
+            </h2>
+
+            {/* Description */}
+            <p className="mt-2 text-center text-[14px] leading-relaxed text-humana-muted">
+              {h.verificationDescription}
+            </p>
+
+            {/* Error banner */}
+            {saveError && (
+              <div className="mt-4 flex items-center gap-2 rounded-[6px] bg-red-50 px-4 py-2.5 text-[13px] text-red-700">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                {saveError}
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setShowConfirmModal(false); setSaveError(null); }}
+                disabled={submitting}
+                className="cursor-pointer flex-1 rounded-[6px] border border-humana-line px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.18em] text-humana-muted transition-all hover:border-humana-ink hover:text-humana-ink disabled:opacity-40"
+              >
+                {t.onboarding.back}
+              </button>
+              <button
+                type="button"
+                onClick={doSaveAndNavigate}
+                disabled={submitting}
+                className="cursor-pointer flex-1 flex items-center justify-center gap-2 rounded-[6px] bg-humana-ink px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.18em] text-white transition-all hover:bg-black disabled:opacity-40"
+              >
+                {submitting ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                ) : (
+                  h.publish
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -220,31 +502,28 @@ function HotelWizardLayoutInner({ children }: { children: React.ReactNode }) {
             height={32}
             priority
           />
+          <Image
+            src="/brand/humana-text.svg"
+            alt=""
+            width={140}
+            height={44}
+            className="h-[28px] w-auto"
+            priority
+          />
+          <span className="ml-1 rounded bg-humana-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-400">
+            Hotel
+          </span>
         </Link>
 
         {/* Center: Step progress */}
         {!isUnderReview && <StepProgressBar />}
 
-        {/* Right: Links */}
-        <div className="flex items-center gap-5">
-          <button
-            type="button"
-            className="cursor-pointer text-[12px] font-medium text-humana-muted underline decoration-humana-line underline-offset-2 transition-colors hover:text-humana-ink hover:decoration-humana-ink"
-          >
-            Questions?
-          </button>
-          <span className="h-3.5 w-px bg-humana-line" />
-          <Link
-            href="/dashboard"
-            className="cursor-pointer text-[12px] font-medium text-humana-muted transition-colors hover:text-humana-ink"
-          >
-            Save &amp; exit
-          </Link>
-        </div>
+        {/* Right spacer for layout balance */}
+        <div className="w-[160px]" />
       </nav>
 
       {/* ─── Content ─── */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pb-20">{children}</main>
 
       {/* ─── Bottom Bar ─── */}
       {!isUnderReview && <BottomBar />}

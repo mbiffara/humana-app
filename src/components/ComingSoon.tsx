@@ -1,7 +1,6 @@
 /** Coming Soon landing for non-admin users. */
 "use client";
 
-import Image from "next/image";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -23,21 +22,22 @@ export function ComingSoon() {
     <div className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-humana-stone px-4 py-16">
       <div className="w-full max-w-[520px] animate-[fade-in-up_0.6s_ease-out]">
         <div className="rounded-2xl bg-white p-10 shadow-sm">
-          {/* Logo */}
-          <div className="mb-8 flex justify-center animate-[pulse-gold_3s_ease-in-out_infinite]">
-            <Image src="/brand/isotipo.png" alt="HUMANA" width={56} height={56} />
-          </div>
-
           {/* Eyebrow */}
-          <div className="mb-6 text-center">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+          <div className="mb-4 text-center">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
+              </svg>
               {t.comingSoon.eyebrow}
             </span>
             <h1 className="mt-2 text-[24px] font-light tracking-[-0.01em] text-humana-ink">
               {t.comingSoon.title}, {user?.name}
             </h1>
-            <p className="mt-2 text-[14px] text-humana-muted leading-relaxed">
+            <p className="mt-2 text-[14px] font-medium text-humana-ink leading-relaxed">
               {t.comingSoon.subtitle(roleLabel)}
+            </p>
+            <p className="mt-3 text-[13px] text-humana-muted leading-relaxed">
+              {t.comingSoon.description}
             </p>
           </div>
 
@@ -71,13 +71,24 @@ export function ComingSoon() {
             )}
           </div>
 
-          {/* Logout */}
-          <div className="mt-8 flex justify-center">
+          {/* Contact + Logout */}
+          <div className="mt-8 flex flex-col gap-3">
+            <a
+              href="mailto:info@humana.global"
+              className="tooltip relative flex w-full items-center justify-center gap-2 rounded-lg bg-humana-ink px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-200 hover:bg-black"
+              data-tooltip="info@humana.global"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+              {t.comingSoon.contactCta}
+            </a>
             <button
               onClick={logout}
-              className="text-[12px] font-medium text-humana-muted transition-colors hover:text-red-600"
+              className="cursor-pointer w-full rounded-lg border border-humana-line px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-muted transition-all duration-200 hover:border-humana-ink hover:text-humana-ink"
             >
-              Sign out
+              {t.comingSoon.signOut}
             </button>
           </div>
         </div>

@@ -11,10 +11,11 @@ const variants: Record<string, string> = {
 
 interface StatusBadgeProps {
   status: string;
+  label?: string;
   className?: string;
 }
 
-export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
+export function StatusBadge({ status, label, className = "" }: StatusBadgeProps) {
   const style = variants[status] || "bg-gray-50 text-gray-600 border-gray-200";
   return (
     <span
@@ -29,7 +30,7 @@ export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
               : "bg-red-500"
         }`}
       />
-      {status}
+      {label || status}
     </span>
   );
 }

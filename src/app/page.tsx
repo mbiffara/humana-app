@@ -10,7 +10,7 @@ import { ApiError } from "@/lib/api";
 export default function LoginPage() {
   const { t } = useLocale();
   const router = useRouter();
-  const { login } = useAuth();
+  const { user, loading: authLoading, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -27,6 +27,24 @@ export default function LoginPage() {
     }
   }, []);
 
+  // Auto-redirect already-logged-in users
+  useEffect(() => {
+    if (authLoading || !user) return;
+    if (user.status === "suspended") {
+      router.replace("/suspended");
+    } else if (user.platform_admin) {
+      router.replace("/admin/dashboard");
+    } else if (!user.organization?.onboarding_completed) {
+      const kind = user.organization?.kind;
+      if (kind === "hotel") router.replace("/onboarding/hotel/step-1");
+      else if (kind === "agency") router.replace("/onboarding/agency");
+      else if (kind === "office") router.replace("/onboarding/office");
+      else router.replace("/dashboard");
+    } else {
+      router.replace("/dashboard");
+    }
+  }, [authLoading, user, router]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -35,6 +53,10 @@ export default function LoginPage() {
       if (remember) localStorage.setItem("humana.remember_email", email);
       else localStorage.removeItem("humana.remember_email");
       const user = await login(email, password);
+      if (user.status === "suspended") {
+        router.push("/suspended");
+        return;
+      }
       if (user.platform_admin) {
         router.push("/admin/dashboard");
       } else if (!user.organization?.onboarding_completed) {

@@ -5,12 +5,15 @@ export interface Organization {
   name: string;
   kind: "hotel" | "agency" | "admin" | "office";
   status: "pending" | "verified" | "suspended";
+  address?: string | null;
   city: string | null;
   country: string | null;
   country_code: string | null;
+  flag_emoji?: string | null;
   contact_email: string | null;
   website: string | null;
   onboarding_completed: boolean;
+  hotel_id?: number | null;
   user_count?: number;
   created_at?: string;
 }
@@ -19,6 +22,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  phone: string | null;
   role: "owner" | "member" | "admin";
   status: "pending" | "active" | "suspended" | "rejected";
   locale: string;
@@ -27,6 +31,9 @@ export interface User {
   created_at: string | null;
   organization: Organization;
   invited_by_organization?: { id: number; name: string; kind: string } | null;
+  invitation_id?: number | null;
+  invitation_accepted?: boolean;
+  invited_at?: string | null;
 }
 
 export interface Invitation {
@@ -124,4 +131,77 @@ export interface LoginResponse {
 
 export interface MeResponse {
   user: User;
+}
+
+export interface AdminHotelPreview {
+  id: number;
+  name: string;
+  city: string;
+  country: string;
+  country_code: string;
+  latitude: number | null;
+  longitude: number | null;
+  certified: boolean;
+  wellness_standard: string | null;
+  description: string | null;
+  address: string | null;
+  postal_code: string | null;
+  phone: string | null;
+  stars: number | null;
+  total_rooms: number | null;
+  check_in_time: string | null;
+  check_out_time: string | null;
+  logo_url: string | null;
+  website: string | null;
+  contact_email: string | null;
+  onboarding_completed: boolean;
+  room_types: AdminRoomType[];
+  amenities: AdminAmenity[];
+  images: AdminHotelImage[];
+  room_images: AdminRoomImage[];
+}
+
+export interface AdminRoomType {
+  id: number;
+  hotel_id: number;
+  name: string;
+  category: string;
+  capacity: number;
+  area_sqm: number | null;
+  price_per_night_cents: number;
+  price_per_night: string;
+  currency: string;
+  description: string | null;
+  image_url: string | null;
+  total_rooms: number | null;
+  position: number;
+  bed_type: string | null;
+  view_type: string | null;
+  amenities_list: string[];
+}
+
+export interface AdminAmenity {
+  id: number;
+  name: string;
+  category: string;
+  icon: string | null;
+  position: number;
+  featured: boolean;
+}
+
+export interface AdminHotelImage {
+  id: number;
+  image_url: string;
+  category: string;
+  position: number;
+  is_cover: boolean;
+  alt_text: string | null;
+}
+
+export interface AdminRoomImage {
+  id: number;
+  room_type_id: number;
+  image_url: string;
+  position: number;
+  is_primary: boolean;
 }

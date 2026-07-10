@@ -2,6 +2,7 @@
 "use client";
 
 import type { Organization } from "@/lib/types";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 interface OfficeCardProps {
   office: Organization;
@@ -14,6 +15,10 @@ interface OfficeCardProps {
   stats?: { staff: number; agencies: number; properties: number };
   /** e.g. "Clara Beltran" */
   lead?: string;
+  /** Number of agencies in this office's country */
+  agencyCount?: number;
+  /** Number of hotels in this office's country */
+  hotelCount?: number;
 }
 
 export function OfficeCard({
@@ -23,9 +28,13 @@ export function OfficeCard({
   address,
   stats,
   lead,
+  agencyCount,
+  hotelCount,
 }: OfficeCardProps) {
-  const statusLabel = office.status === "verified" ? "Operational" : office.status;
+  const { t } = useLocale();
+  const labels = t.admin.dashboard.officeCard;
   const isOperational = office.status === "verified";
+  const statusLabel = isOperational ? labels.operational : office.status;
 
   return (
     <div
@@ -71,7 +80,7 @@ export function OfficeCard({
         <div className="mx-6 flex items-center gap-0 border-t border-humana-line">
           <div className="flex flex-1 flex-col py-3">
             <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-humana-muted">
-              Staff
+              {labels.staff}
             </span>
             <span className="text-[17px] font-light text-humana-ink">
               {stats.staff}
@@ -80,7 +89,7 @@ export function OfficeCard({
           <div className="h-8 w-px bg-humana-line" />
           <div className="flex flex-1 flex-col py-3 pl-4">
             <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-humana-muted">
-              Agencies
+              {labels.agencies}
             </span>
             <span className="text-[17px] font-light text-humana-ink">
               {stats.agencies}
@@ -89,7 +98,7 @@ export function OfficeCard({
           <div className="h-8 w-px bg-humana-line" />
           <div className="flex flex-1 flex-col py-3 pl-4">
             <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-humana-muted">
-              Properties
+              {labels.properties}
             </span>
             <span className="text-[17px] font-light text-humana-ink">
               {stats.properties}
@@ -98,29 +107,37 @@ export function OfficeCard({
         </div>
       )}
 
-      {/* If no stats, show simple members count */}
+      {/* If no stats, show agencies + hotels counts */}
       {!stats && (
-        <div className="mx-6 flex items-center border-t border-humana-line py-3">
-          <div className="flex flex-col">
+        <div className="mx-6 flex items-center gap-0 border-t border-humana-line">
+          <div className="flex flex-1 flex-col py-3">
             <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-humana-muted">
-              Members
+              {labels.agencies}
             </span>
             <span className="text-[17px] font-light text-humana-ink">
-              {office.user_count || 0}
+              {agencyCount ?? 0}
+            </span>
+          </div>
+          <div className="h-8 w-px bg-humana-line" />
+          <div className="flex flex-1 flex-col py-3 pl-4">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-humana-muted">
+              {labels.hotels}
+            </span>
+            <span className="text-[17px] font-light text-humana-ink">
+              {hotelCount ?? 0}
             </span>
           </div>
         </div>
       )}
 
-      {/* Bottom: Lead + Manage link */}
-      <div className="flex items-center justify-between border-t border-humana-line px-6 py-3.5">
-        <span className="text-[12px] text-humana-muted">
-          {lead ? `Lead: ${lead}` : "\u00A0"}
-        </span>
-        <button className="text-[12px] font-medium text-humana-ink transition-colors hover:text-humana-gold">
-          Manage <span className="inline-block transition-transform group-hover:translate-x-0.5">&rarr;</span>
-        </button>
-      </div>
+      {/* Bottom: Lead */}
+      {lead && (
+        <div className="border-t border-humana-line px-6 py-3.5">
+          <span className="text-[12px] text-humana-muted">
+            Lead: {lead}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

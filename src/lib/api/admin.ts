@@ -9,6 +9,7 @@ import type {
   Subscription,
   PlatformSetting,
   Country,
+  AdminHotelPreview,
 } from "@/lib/types";
 
 interface OrganizationsResponse {
@@ -36,6 +37,8 @@ interface StatsResponse {
     hotels: number;
     bookings: number;
     gmv_cents: number;
+    pending_agencies: number;
+    pending_hotels: number;
     platform_since: string;
   };
 }
@@ -110,6 +113,7 @@ export const adminApi = {
     org_name?: string;
     org_kind?: string;
     assigned_office_id?: number;
+    country_code?: string;
   }) =>
     api.post<{ invitation: Invitation }>("/admin/users/invite", {
       invitation: data,
@@ -122,6 +126,10 @@ export const adminApi = {
   /** Reject a pending user with a reason. */
   rejectUser: (id: number, reason: string) =>
     api.post<{ user: User }>(`/admin/users/${id}/reject`, { reason }),
+
+  /** Send feedback to a hotel without changing their status. */
+  sendFeedback: (id: number, message: string) =>
+    api.post<{ user: User }>(`/admin/users/${id}/send_feedback`, { message }),
 
   /** Suspend an active user. */
   suspendUser: (id: number) =>
@@ -193,9 +201,32 @@ export const adminApi = {
   }) =>
     api.get<{ countries: Country[] }>(`/admin/countries${qs(params || {})}`),
 
+  /** Create a new country. */
+  createCountry: (data: {
+    name: string;
+    code: string;
+    flag_emoji?: string;
+    region?: string;
+    currency_code?: string;
+    timezone?: string;
+  }) =>
+    api.post<{ country: Country }>("/admin/countries", { country: { ...data, status: "active", enabled: true } }),
+
   /** Update a country (e.g. toggle enabled). */
   updateCountry: (id: number, data: Partial<Country>) =>
     api.patch<{ country: Country }>(`/admin/countries/${id}`, {
       country: data,
     }),
+
+  /** Delete a country with password + confirmation text verification. */
+  deleteCountry: (id: number, data: { password: string; confirmation_text: string }) =>
+    api.delete<void>(`/admin/countries/${id}`, data),
+
+  // ─── Hotels (Preview) ──────────────────────────────────────────
+
+  /** Get full hotel profile for admin preview. */
+  getHotelPreview: (hotelId: number) =>
+    api.get<{ hotel: AdminHotelPreview; organization: Organization; owner: User | null }>(
+      `/admin/hotels/${hotelId}`,
+    ),
 };

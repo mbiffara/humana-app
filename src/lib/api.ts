@@ -44,12 +44,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (res.status === 401) {
     tokenStore.clear();
-    if (typeof window !== "undefined") window.location.href = "/";
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("humana:auth-expired"));
+    }
     throw new ApiError(401, "Session expired");
   }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
+
+    if (res.status === 403 && body.error === "account_suspended") {
+      tokenStore.clear();
+      if (typeof window !== "undefined") window.location.href = "/suspended";
+      throw new ApiError(403, "account_suspended");
+    }
+
     throw new ApiError(
       res.status,
       body.error || `HTTP ${res.status}`,
@@ -79,5 +88,9 @@ export const api = {
       method: "PUT",
       body: body ? JSON.stringify(body) : undefined,
     }),
-  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+  delete: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: "DELETE",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
 };

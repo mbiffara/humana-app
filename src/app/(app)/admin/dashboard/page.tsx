@@ -41,12 +41,14 @@ export default function AdminDashboard() {
   const { t, locale } = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [kpi, setKpi] = useState({ agencies: 0, hotels: 0, bookings: 0, gmv_cents: 0, pendingOrgs: 0 });
+  const [kpi, setKpi] = useState({ agencies: 0, hotels: 0, bookings: 0, gmv_cents: 0, pendingAgencies: 0, pendingHotels: 0 });
   const [platformSince, setPlatformSince] = useState(todayStr);
   const [dateRange, setDateRange] = useState(() => ({ from: todayStr(), to: todayStr() }));
   const [offices, setOffices] = useState<Organization[]>([]);
   const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>([]);
+  const [pendingInvCount, setPendingInvCount] = useState(0);
   const [pendingOrgs, setPendingOrgs] = useState<Organization[]>([]);
+  const [pendingOrgsCount, setPendingOrgsCount] = useState(0);
 
   const initialFetchDone = useRef(false);
 
@@ -73,11 +75,14 @@ export default function AdminDashboard() {
         hotels: statsRes.stats.hotels,
         bookings: statsRes.stats.bookings,
         gmv_cents: statsRes.stats.gmv_cents,
-        pendingOrgs: pendingOrgsRes.meta.total,
+        pendingAgencies: statsRes.stats.pending_agencies || 0,
+        pendingHotels: statsRes.stats.pending_hotels || 0,
       });
       setPendingInvitations(invitationsRes.invitations);
+      setPendingInvCount(invitationsRes.meta.total);
       setOffices(officesRes.organizations);
       setPendingOrgs(pendingOrgsRes.organizations);
+      setPendingOrgsCount(pendingOrgsRes.meta.total);
     } catch {
       // Silently handle — KPIs will show 0
     } finally {
@@ -138,6 +143,7 @@ export default function AdminDashboard() {
           value={kpi.agencies}
           delay={0}
           tooltip={t.admin.dashboard.kpi.agenciesTooltip}
+          subtitle={kpi.pendingAgencies > 0 ? `${kpi.pendingAgencies} ${t.admin.dashboard.pendingReview}` : undefined}
           icon={
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
@@ -149,7 +155,7 @@ export default function AdminDashboard() {
           value={kpi.hotels}
           delay={100}
           tooltip={t.admin.dashboard.kpi.hotelsTooltip}
-          subtitle={kpi.pendingOrgs > 0 ? `${kpi.pendingOrgs} ${t.admin.dashboard.pendingReview}` : undefined}
+          subtitle={kpi.pendingHotels > 0 ? `${kpi.pendingHotels} ${t.admin.dashboard.pendingReview}` : undefined}
           icon={
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
@@ -220,46 +226,48 @@ export default function AdminDashboard() {
       {/* Two-column: Pending Invitations + Approval Queue (per Paper) */}
       <div className="mb-10 grid grid-cols-2 gap-6 animate-[fade-in-up_0.5s_ease-out_0.3s_both]">
         {/* Pending Invitations */}
-        <div className="rounded-[6px] border border-humana-line bg-white p-6">
+        <div className="flex flex-col rounded-[6px] border border-humana-line bg-white p-6">
           <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
             <SectionTooltip text={t.admin.dashboard.pendingInvitationsTooltip} />
             {t.admin.dashboard.pendingInvitations}
           </div>
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4">
             <h3 className="text-[15px] font-semibold text-humana-ink">
               {t.admin.dashboard.awaitingAcceptance}
+              {pendingInvCount > 0 && (
+                <span className="ml-2 text-[13px] font-normal text-humana-muted">({pendingInvCount})</span>
+              )}
             </h3>
-            <button
-              onClick={() => router.push("/admin/network")}
-              className="cursor-pointer text-[12px] font-medium text-humana-gold transition-colors hover:text-[#c5a030]"
-            >
-              {t.admin.dashboard.sendNewInvite} &rarr;
-            </button>
           </div>
-          <PendingInvitationsList
-            invitations={pendingInvitations}
-            onResend={async (inv) => {
-              await adminApi.resendInvitation(inv.id);
-              fetchData(dateRange);
-            }}
-          />
+          <PendingInvitationsList invitations={pendingInvitations} />
+          {pendingInvitations.length > 0 && (
+            <div className="mt-auto border-t border-humana-line pt-4">
+              <button
+                onClick={() => router.push("/admin/network")}
+                className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-[6px] bg-humana-stone px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted transition-all duration-200 hover:bg-humana-gold-light hover:text-humana-gold"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+                {t.admin.dashboard.sendNewInvite}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Approval Queue — pending organizations from API */}
-        <div className="rounded-[6px] border border-humana-line bg-white p-6">
+        {/* Approval List — pending organizations (visual only, actions in Network) */}
+        <div className="flex flex-col rounded-[6px] border border-humana-line bg-white p-6">
           <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
             <SectionTooltip text={t.admin.dashboard.approvalQueueTooltip} />
             {t.admin.dashboard.approvalQueue}
           </div>
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4">
             <h3 className="text-[15px] font-semibold text-humana-ink">
               {t.admin.dashboard.orgsUnderReview}
+              {pendingOrgsCount > 0 && (
+                <span className="ml-2 text-[13px] font-normal text-humana-muted">({pendingOrgsCount})</span>
+              )}
             </h3>
-            {pendingOrgs.length > 0 && (
-              <span className="rounded-full bg-humana-gold-light px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-humana-gold">
-                {kpi.pendingOrgs} {t.admin.dashboard.waiting}
-              </span>
-            )}
           </div>
 
           {pendingOrgs.length === 0 ? (
@@ -272,73 +280,99 @@ export default function AdminDashboard() {
               <p className="text-[13px] text-humana-muted">{t.admin.dashboard.noApprovals}</p>
             </div>
           ) : (
-            <div className="flex flex-col divide-y divide-humana-line">
-              {pendingOrgs.map((org, i) => {
-                const initials = org.name
-                  .split(" ")
-                  .map((w) => w[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase();
-                const kindColors: Record<string, string> = {
-                  hotel: "bg-blue-50 text-blue-600",
-                  agency: "bg-amber-50 text-amber-600",
-                  office: "bg-emerald-50 text-emerald-600",
-                };
-                const kindLabels: Record<string, Record<string, string>> = {
-                  hotel: { en: "Hotel", es: "Hotel", pt: "Hotel" },
-                  agency: { en: "Agency", es: "Agencia", pt: "Agência" },
-                  office: { en: "Office", es: "Oficina", pt: "Escritório" },
-                };
-                const orgKind = org.kind || "hotel";
-                const created = org.created_at ? new Date(org.created_at) : null;
-                const daysAgo = created ? Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24)) : null;
-                const timeLabel = daysAgo === 0
-                  ? (locale === "es" ? "Hoy" : locale === "pt" ? "Hoje" : "Today")
-                  : daysAgo !== null
-                    ? (locale === "es" ? `Hace ${daysAgo}d` : locale === "pt" ? `Há ${daysAgo}d` : `${daysAgo}d ago`)
-                    : "";
-                return (
-                  <div
-                    key={org.id}
-                    className="flex items-center gap-3 py-3.5 animate-[fade-in-up_0.3s_ease-out_both]"
-                    style={{ animationDelay: `${i * 80}ms` }}
-                  >
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[6px] bg-humana-stone text-[12px] font-semibold text-humana-muted">
-                      {initials}
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-[13px] font-medium text-humana-ink">
-                          {org.name}
-                        </p>
-                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] ${kindColors[orgKind] || "bg-humana-stone text-humana-muted"}`}>
-                          {kindLabels[orgKind]?.[locale] || orgKind}
-                        </span>
+            <>
+              <div className="flex flex-col divide-y divide-humana-line">
+                {pendingOrgs.map((org, i) => {
+                  const initials = org.name
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase();
+                  const kindColors: Record<string, string> = {
+                    hotel: "bg-blue-50 text-blue-600",
+                    agency: "bg-amber-50 text-amber-600",
+                    office: "bg-emerald-50 text-emerald-600",
+                  };
+                  const kindLabels: Record<string, Record<string, string>> = {
+                    hotel: { en: "Hotel", es: "Hotel", pt: "Hotel" },
+                    agency: { en: "Agency", es: "Agencia", pt: "Agência" },
+                    office: { en: "Office", es: "Oficina", pt: "Escritório" },
+                  };
+                  const orgKind = org.kind || "hotel";
+                  const created = org.created_at ? new Date(org.created_at) : null;
+                  const daysAgo = created ? Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24)) : null;
+                  const timeLabel = daysAgo === 0
+                    ? (locale === "es" ? "Hoy" : locale === "pt" ? "Hoje" : "Today")
+                    : daysAgo !== null
+                      ? (locale === "es" ? `Hace ${daysAgo}d` : locale === "pt" ? `Há ${daysAgo}d` : `${daysAgo}d ago`)
+                      : "";
+                  const onboardingDone = org.onboarding_completed;
+                  const onboardingLabel = onboardingDone
+                    ? (locale === "es" ? "Completado" : locale === "pt" ? "Completo" : "Complete")
+                    : (locale === "es" ? "Pendiente" : locale === "pt" ? "Pendente" : "Pending");
+                  return (
+                    <div
+                      key={org.id}
+                      className="flex items-center gap-3 py-3.5 animate-[fade-in-up_0.3s_ease-out_both]"
+                      style={{ animationDelay: `${i * 80}ms` }}
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[6px] bg-humana-stone text-[12px] font-semibold text-humana-muted">
+                        {initials}
                       </div>
-                      <p className="truncate text-[11px] text-humana-muted">
-                        {[org.city, org.country].filter(Boolean).join(", ")}
-                        {timeLabel && <span> &middot; {timeLabel}</span>}
-                      </p>
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-[13px] font-medium text-humana-ink">
+                            {org.name}
+                          </p>
+                          <span className={`shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] ${kindColors[orgKind] || "bg-humana-stone text-humana-muted"}`}>
+                            {orgKind === "hotel" && (
+                              <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75" />
+                              </svg>
+                            )}
+                            {orgKind === "agency" && (
+                              <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                              </svg>
+                            )}
+                            {orgKind === "office" && (
+                              <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                              </svg>
+                            )}
+                            {kindLabels[orgKind]?.[locale] || orgKind}
+                          </span>
+                        </div>
+                        <p className="truncate text-[11px] text-humana-muted">
+                          {[org.city, org.country].filter(Boolean).join(", ")}
+                          {timeLabel && <span> &middot; {timeLabel}</span>}
+                        </p>
+                      </div>
+                      {/* Onboarding status indicator */}
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.06em] leading-none ${
+                        onboardingDone
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-amber-50 text-amber-600"
+                      }`}>
+                        {onboardingLabel}
+                      </span>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        onClick={() => router.push("/admin/network?tab=pending")}
-                        className="cursor-pointer rounded-full border border-humana-line px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-humana-muted transition-all duration-200 hover:border-humana-gold hover:text-humana-gold"
-                      >
-                        {t.admin.network.review}
-                      </button>
-                      <button
-                        onClick={() => router.push("/admin/network?tab=pending")}
-                        className="cursor-pointer rounded-full bg-humana-ink px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-white transition-all duration-200 hover:bg-humana-ink/80"
-                      >
-                        {t.admin.network.approve}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+              <div className="mt-auto border-t border-humana-line pt-4">
+                <button
+                  onClick={() => router.push("/admin/network?tab=pending")}
+                  className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-[6px] bg-humana-stone px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted transition-all duration-200 hover:bg-humana-gold-light hover:text-humana-gold"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 15.75l-2.489-2.489m0 0a3.375 3.375 0 10-4.773-4.773 3.375 3.375 0 004.774 4.774zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {t.admin.dashboard.reviewFromNetwork}
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -358,7 +392,7 @@ export default function AdminDashboard() {
             </p>
           </div>
           <button
-            onClick={() => router.push("/admin/network")}
+            onClick={() => router.push("/admin/network/create?role=office")}
             className="cursor-pointer mt-4 inline-flex items-center gap-2 rounded-lg bg-humana-ink px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all duration-200 hover:bg-humana-ink/90 hover:shadow-md"
           >
             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

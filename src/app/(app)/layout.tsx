@@ -11,13 +11,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, loading, isAdmin } = useAuth();
-  const isHotelWizard = pathname.startsWith("/onboarding/hotel");
+  const isOnboarding = pathname.startsWith("/onboarding/");
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/");
+      return;
     }
-  }, [loading, user, router]);
+    if (!loading && user?.status === "suspended") {
+      router.replace("/suspended");
+      return;
+    }
+    // Redirect users who haven't completed onboarding to their wizard
+    if (!loading && user && !user.organization?.onboarding_completed && !isOnboarding) {
+      const kind = user.organization?.kind;
+      if (kind === "hotel") {
+        router.replace("/onboarding/hotel/step-1");
+      } else if (kind === "agency") {
+        router.replace("/onboarding/agency");
+      } else if (kind === "office") {
+        router.replace("/onboarding/office");
+      }
+    }
+  }, [loading, user, router, isOnboarding]);
 
   if (loading) {
     return (
@@ -33,11 +49,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return null;
+  if (user.status === "suspended") return null;
 
   return (
     <BookingProvider>
       <WizardProvider>
-        {!isAdmin && !isHotelWizard && <TopNav />}
+        {!isAdmin && !isOnboarding && <TopNav />}
         <main className="flex-1">{children}</main>
       </WizardProvider>
     </BookingProvider>

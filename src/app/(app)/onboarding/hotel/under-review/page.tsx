@@ -2,17 +2,24 @@
 
 import Link from "next/link";
 import { useHotelWizard } from "@/contexts/HotelWizardContext";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 export default function HotelWizardUnderReview() {
   const { state } = useHotelWizard();
-  const hotelName = state.hotelName || "Your property";
-  const submittedAt = new Date().toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const { t, locale } = useLocale();
+  const h = t.onboarding.hotel;
+  const fallbackName = locale === "es" ? "Tu propiedad" : locale === "pt" ? "Sua propriedade" : "Your property";
+  const hotelName = state.hotelName || fallbackName;
+  const submittedAt = new Date().toLocaleDateString(
+    locale === "es" ? "es-ES" : locale === "pt" ? "pt-BR" : "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  );
 
   return (
     <div className="flex min-h-[calc(100vh-73px)] items-center justify-center bg-humana-stone px-8">
@@ -42,19 +49,17 @@ export default function HotelWizardUnderReview() {
 
         {/* Eyebrow */}
         <span className="mt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold animate-fade-in-up-delay-1">
-          Submission Received
+          {h.reviewEyebrow}
         </span>
 
         {/* Title */}
         <h1 className="mt-3 text-[32px] font-light leading-[1.2] tracking-[-0.02em] text-humana-ink animate-fade-in-up-delay-2">
-          Your property is under review.
+          {h.reviewTitle}
         </h1>
 
         {/* Subtitle */}
         <p className="mt-3 max-w-[520px] text-[15px] leading-[22px] text-humana-muted animate-fade-in-up-delay-3">
-          Our team will verify the information and photos you submitted. Once
-          approved, <strong className="font-medium text-humana-ink">{hotelName}</strong>{" "}
-          will be visible to agencies in the HUMANA network.
+          {h.reviewSubtitle(hotelName)}
         </p>
 
         {/* Timeline cards */}
@@ -76,10 +81,10 @@ export default function HotelWizardUnderReview() {
               </svg>
             </div>
             <span className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-gold">
-              01 &middot; Submitted
+              {h.reviewStep1Label}
             </span>
             <span className="mt-2 text-[14px] font-medium text-humana-ink">
-              Property submitted
+              {h.reviewStep1Title}
             </span>
             <span className="mt-1 text-[12px] text-humana-subtle">
               {submittedAt}
@@ -104,13 +109,13 @@ export default function HotelWizardUnderReview() {
               </svg>
             </div>
             <span className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-gold">
-              02 &middot; In Progress &middot; 24-48h
+              {h.reviewStep2Label}
             </span>
             <span className="mt-2 text-[14px] font-medium text-humana-ink">
-              HUMANA review
+              {h.reviewStep2Title}
             </span>
             <span className="mt-1 text-[12px] leading-relaxed text-humana-subtle">
-              Verifying property details, photos, and location accuracy
+              {h.reviewStep2Description}
             </span>
           </div>
 
@@ -133,13 +138,13 @@ export default function HotelWizardUnderReview() {
               </svg>
             </div>
             <span className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-              03 &middot; Next &middot; Publish
+              {h.reviewStep3Label}
             </span>
             <span className="mt-2 text-[14px] font-medium text-humana-ink">
-              Listed on the network
+              {h.reviewStep3Title}
             </span>
             <span className="mt-1 text-[12px] leading-relaxed text-humana-subtle">
-              Visible to agencies and available for bookings
+              {h.reviewStep3Description}
             </span>
           </div>
         </div>
@@ -150,7 +155,7 @@ export default function HotelWizardUnderReview() {
             href="/dashboard"
             className="cursor-pointer flex items-center gap-2 bg-humana-ink px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all hover:bg-black active:scale-[0.98]"
           >
-            Return to Dashboard
+            {h.reviewDashboard}
             <svg
               width="16"
               height="16"
@@ -169,18 +174,18 @@ export default function HotelWizardUnderReview() {
             type="button"
             className="cursor-pointer flex items-center gap-2 border border-humana-line px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-all hover:border-humana-ink active:scale-[0.98]"
           >
-            View Submission
+            {h.reviewViewSubmission}
           </button>
         </div>
 
         {/* Footer link */}
         <p className="mt-10 text-[12px] text-humana-subtle">
-          Questions about the review?{" "}
+          {h.reviewQuestions}{" "}
           <button
             type="button"
             className="cursor-pointer text-humana-gold underline underline-offset-2 transition-colors hover:text-humana-ink"
           >
-            Contact institutional support
+            {h.reviewContact}
           </button>
           <span className="ml-0.5">&rarr;</span>
         </p>

@@ -67,6 +67,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserState(u);
   }, []);
 
+  // Listen for auth-expired events dispatched by api.ts on 401
+  useEffect(() => {
+    function handleAuthExpired() {
+      setUserState(null);
+      if (typeof window !== "undefined") window.location.href = "/";
+    }
+    window.addEventListener("humana:auth-expired", handleAuthExpired);
+    return () => window.removeEventListener("humana:auth-expired", handleAuthExpired);
+  }, []);
+
   const isAdmin = user?.platform_admin ?? false;
 
   return (

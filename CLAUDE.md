@@ -28,55 +28,90 @@ No test framework is configured.
 
 ```
 RootLayout (src/app/layout.tsx)
-└─ LocaleProvider (i18n context, localStorage)
-   ├─ / → Login page (public, outside route group)
-   └─ (app) route group (src/app/(app)/layout.tsx)
-      ├─ BookingProvider (sessionStorage)
-      ├─ WizardProvider (sessionStorage)
-      ├─ TopNav (sticky)
-      └─ {page content}
+├─ LocaleProvider (i18n, localStorage)
+├─ AuthProvider (JWT auth, localStorage)
+│
+├─ / → Login page (public, outside route group)
+├─ /accept-invite → Invitation acceptance (own layout, no auth required)
+│
+└─ (app) route group (src/app/(app)/layout.tsx)
+   ├─ Auth guard: redirects to / if not logged in
+   ├─ BookingProvider (sessionStorage)
+   ├─ WizardProvider (sessionStorage)
+   ├─ TopNav (shown for non-admin, non-hotel-onboarding)
+   │
+   ├─ /admin/* → Admin layout with AdminTopNav
+   ├─ /onboarding/* → Onboarding wizards (hotel 4-step, agency, office)
+   └─ All other pages (dashboard, booking flow, retreats, etc.)
 ```
 
-### Routes (21 total)
+### Routes
 
-- `/` — Login (public)
+**Public (no auth):**
+- `/` — Login
+- `/accept-invite`, `/accept-invite/welcome` — Invitation acceptance flow
+
+**Admin (`/admin/*`):**
+- `/admin/dashboard` — KPIs, pending reviews, quick actions
+- `/admin/network`, `/admin/network/create` — Organization management
+- `/admin/subscriptions` — Subscription management
+- `/admin/settings` — Platform settings
+
+**Onboarding (`/onboarding/*`):**
+- `/onboarding/hotel/step-1` through `step-4`, `/onboarding/hotel/under-review` — Hotel 4-step wizard
+- `/onboarding/agency`, `/onboarding/agency/welcome` — Agency onboarding
+- `/onboarding/office` — Office onboarding
+
+**Agency workspace:**
 - `/dashboard` — Main dashboard
-- `/retreats`, `/retreats/[slug]` — Retreat list + detail
-- `/hotels`, `/hotels/[slug]` — Hotel list + detail
-- `/select-country` → `/select-dates` → `/select-accommodation` → `/assign-client` → `/checkout` → `/confirmation` — Booking flow (6 steps, state in BookingContext)
-- `/create-retreat` → `step-2` through `step-6` — Wizard (6 steps, state in WizardContext, own layout with StepIndicator)
-- `/select-country/[country]` — Country-specific view
-- `/inventory` — Inventory management
+- `/map` — Standalone map view
+- `/select-country/[country]` — Country detail with tabs for retreats/hotels
+- `/select-country/[country]/retreats`, `/select-country/[country]/retreats/[slug]` — Browse/detail
+- `/select-country/[country]/hotels`, `/select-country/[country]/hotels/[slug]` — Browse/detail
+- `/select-country/[country]/step-1-select-dates` through `step-5-confirmation` — Booking flow (5 steps within country context)
+- `/select-dates`, `/select-accommodation`, `/assign-client`, `/checkout`, `/confirmation` — Legacy booking flow
+- `/create-retreat/step-1` through `step-6` — Retreat creation wizard (own layout with StepIndicator)
 
 ### State Management
 
-All pages are `"use client"`. No API backend — static demo data only.
-
-**Three context providers:**
+**Four context providers:**
 
 | Provider | Hook | Storage | Purpose |
 |---|---|---|---|
+| `AuthProvider` | `useAuth()` → `{ user, loading, login, logout, setUser, isAdmin }` | localStorage `humana.token` | JWT auth, user state |
 | `LocaleProvider` | `useLocale()` → `{ locale, setLocale, t }` | localStorage `humana.locale` | i18n (en/es/pt) |
 | `BookingProvider` | `useBooking()` → `{ state, set, reset }` | sessionStorage `humana.booking` | Booking flow state |
 | `WizardProvider` | `useWizard()` → `{ state, set, reset }` | sessionStorage `humana.wizard` | Create-retreat wizard state |
 
-### Data Layer
+A fifth context, `HotelWizardContext`, is used specifically for the hotel onboarding wizard at `/onboarding/hotel/*`.
 
-Static TypeScript modules in `src/data/`:
-- `types.ts` — All type definitions (Country, Hotel, RoomType, RetreatData, Client, InventoryBlock, etc.)
-- `countries.ts` — 7 countries with emoji flags
-- `hotels.ts` — Hotels with room types, amenities, galleries
-- `retreats.ts` — Retreats with day-by-day programs, pricing, included items
-- `clients.ts` — Sample client records
-- `inventory.ts` — Room availability blocks
+### API Client Layer
+
+Full backend integration via `src/lib/`:
+
+- **`api.ts`** — Core fetch wrapper with JWT token management (`tokenStore`), auto-redirect on 401, error normalization via `ApiError` class. Base URL from `NEXT_PUBLIC_API_URL`.
+- **`api/admin.ts`** — Admin endpoints: stats, organizations, users (invite/approve/reject/suspend), invitations, countries, platform settings, subscription plans, subscriptions
+- **`api/hotel.ts`** — Hotel workspace: profile, room types, amenities, images
+- **`api/invitations.ts`** — Public invitation validation + acceptance
+- **`types.ts`** — TypeScript interfaces matching Rails serializer output (Organization, User, Invitation, SubscriptionPlan, Subscription, PlatformSetting, Country, LoginResponse, MeResponse, PaginationMeta)
+
+### Static Data Layer
+
+Some data still comes from static TypeScript modules in `src/data/` (used by agency booking/wizard flows):
+- `types.ts` — Frontend-only type definitions (Country, Hotel, RoomType, RetreatData, Client, InventoryBlock)
+- `countries.ts`, `hotels.ts`, `retreats.ts`, `clients.ts`, `inventory.ts` — Sample records
+
+These coexist with the API layer — admin and hotel onboarding use the API; agency booking flow still uses static data.
 
 ### i18n
 
-`src/i18n/dictionary.ts` (~1400 lines) holds nested translation objects for en/es/pt. Access via `const { t } = useLocale()` then `t.sectionName.key`. Default locale is `"en"`.
+`src/i18n/dictionary.ts` (~2500 lines) holds nested translation objects for en/es/pt. Access via `const { t } = useLocale()` then `t.sectionName.key`. Default locale is `"en"`.
 
 ### Components (`src/components/`)
 
-Breadcrumb, TopNav, RetreatCard, HotelCard, FilterChip, CounterControl, FormField, StepIndicator, WorldMap.
+**Shared:** Breadcrumb, TopNav, ComingSoon, CounterControl, FilterChip, FormField, HotelCard, RetreatCard, StepIndicator, WizardVistaPrevia, WorldMap.
+
+**Admin (`src/components/admin/`):** AdminTopNav, ApproveModal, CreateUserModal, DateRangePicker, KpiCard, OfficeCard, Pagination, PendingInvitationsList, QuickActionCard, RejectModal, ReviewDrawer, StatusBadge.
 
 ## Theme & Styling
 

@@ -148,29 +148,50 @@ export function ReviewDrawer({
 
         {/* Bottom sticky actions */}
         <div className="sticky bottom-0 border-t border-humana-line bg-white px-8 py-5">
-          {user.status === "pending" && (
-            <div className="flex gap-3">
-              <button
-                onClick={() => onReject(user)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-red-600 transition-all duration-200 hover:bg-red-50"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="9" />
-                  <line x1="9" y1="9" x2="15" y2="15" />
-                </svg>
-                {t.admin.reviewDrawer.reject}
-              </button>
-              <button
-                onClick={() => onApprove(user)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-humana-ink py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-200 hover:bg-black"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                {t.admin.reviewDrawer.approve}
-              </button>
-            </div>
-          )}
+          {user.status === "pending" && (() => {
+            const needsOnboarding = user.organization?.kind === "hotel" || user.organization?.kind === "office";
+            const onboardingDone = !!user.organization?.onboarding_completed;
+            if (needsOnboarding && !onboardingDone) return null;
+
+            const isAdminInvitedHotel = user.organization?.kind === "hotel" && user.invited_by_organization?.kind === "admin";
+
+            return (
+              <div className="flex gap-3">
+                {isAdminInvitedHotel ? (
+                  /* "Review" (send feedback) — only for hotels invited by admin */
+                  <button
+                    onClick={() => onReject(user)}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-amber-200 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-amber-600 transition-all duration-200 hover:bg-amber-50"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                    </svg>
+                    {t.admin.reviewDrawer.review}
+                  </button>
+                ) : (
+                  /* "Reject" — for agencies, offices, and office-invited hotels */
+                  <button
+                    onClick={() => onReject(user)}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-red-600 transition-all duration-200 hover:bg-red-50"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {t.admin.reviewDrawer.reject}
+                  </button>
+                )}
+                <button
+                  onClick={() => onApprove(user)}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-humana-ink py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-200 hover:bg-black"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {t.admin.reviewDrawer.approve}
+                </button>
+              </div>
+            );
+          })()}
           {user.status === "active" && (
             <button
               onClick={() => onSuspend(user)}

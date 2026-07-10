@@ -6,6 +6,12 @@ import { usePathname } from "next/navigation";
 import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 
+const badgeTextColors: Record<string, string> = {
+  office: "text-emerald-400",
+  agency: "text-amber-400",
+  hotel: "text-blue-400",
+};
+
 export function TopNav() {
   const { t } = useLocale();
   const pathname = usePathname();
@@ -18,11 +24,18 @@ export function TopNav() {
     .slice(0, 2)
     .toUpperCase() || "?";
 
+  const orgKind = user?.organization?.kind || "agency";
+  const badgeLabel = t.onboarding.header[orgKind as keyof typeof t.onboarding.header] || orgKind;
+
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-humana-line bg-white/95 px-16 py-5 backdrop-blur-sm animate-[fade-in-down_0.4s_ease-out]">
       <Link href="/dashboard" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-        <Image src="/brand/isotipo.png" alt="HUMANA" width={36} height={36} priority />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/isotipo.png" alt="HUMANA" width={36} height={36} />
         <Image src="/brand/humana-text.svg" alt="" width={160} height={50} className="h-[34px] w-auto" priority />
+        <span className={`ml-1 rounded bg-humana-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${badgeTextColors[orgKind] || "text-humana-gold"}`}>
+          {badgeLabel}
+        </span>
       </Link>
 
       <div className="flex items-center gap-5">

@@ -9,7 +9,7 @@ export const hotelApi = {
   getProfile: () => api.get<{ hotel: HotelProfile | null; organization: OrgProfile }>("/hotel/profile"),
   updateProfile: (data: Partial<HotelProfileUpdate>) =>
     api.patch<{ hotel: HotelProfile; organization: OrgProfile }>("/hotel/profile", { hotel: data }),
-  submitForReview: () => api.post<{ status: string }>("/hotel/profile/submit_for_review"),
+  submitForReview: () => api.post<{ user: import("@/lib/types").User }>("/hotel/profile/submit_for_review"),
 
   // Room types
   listRoomTypes: () => api.get<{ room_types: RoomType[] }>("/hotel/room_types"),
@@ -43,6 +43,15 @@ export interface HotelProfile {
   wellness_standard: string | null;
   description: string | null;
   address: string | null;
+  postal_code: string | null;
+  phone: string | null;
+  stars: number | null;
+  total_rooms: number | null;
+  check_in_time: string | null;
+  check_out_time: string | null;
+  logo_url: string | null;
+  website: string | null;
+  contact_email: string | null;
   room_types: RoomType[];
   amenities: Amenity[];
   images: HotelImage[];
@@ -57,6 +66,15 @@ export interface HotelProfileUpdate {
   longitude: number;
   description: string;
   address: string;
+  phone: string;
+  stars: number;
+  check_in_time: string;
+  check_out_time: string;
+  total_rooms: number;
+  website: string;
+  contact_email: string;
+  postal_code: string;
+  wellness_standard: string;
 }
 
 export interface OrgProfile {
@@ -76,6 +94,7 @@ export interface RoomType {
   currency: string;
   description: string | null;
   total_rooms: number | null;
+  bed_type: string | null;
 }
 
 export interface RoomTypeCreate {
@@ -87,6 +106,7 @@ export interface RoomTypeCreate {
   currency?: string;
   description?: string;
   total_rooms?: number;
+  bed_type?: string;
 }
 
 export interface Amenity {
@@ -101,6 +121,7 @@ export interface AmenityCreate {
   name: string;
   category: string;
   icon?: string;
+  featured?: boolean;
 }
 
 export interface HotelImage {

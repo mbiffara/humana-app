@@ -10,10 +10,30 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ReviewDrawer } from "@/components/admin/ReviewDrawer";
 import { ApproveModal } from "@/components/admin/ApproveModal";
 import { RejectModal } from "@/components/admin/RejectModal";
+import { SuspendModal } from "@/components/admin/SuspendModal";
+import { ReactivateModal } from "@/components/admin/ReactivateModal";
 import type { User, PaginationMeta } from "@/lib/types";
 
 type Tab = "all" | "active" | "pending" | "suspended";
 type KindFilter = "all" | "hotel" | "agency" | "office";
+
+function HeaderTooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span className="relative inline-flex" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+      <svg className="h-3 w-3 cursor-help text-humana-muted/40 transition-colors hover:text-humana-muted" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
+      </svg>
+      {show && (
+        <span className="absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2 rounded-lg bg-humana-ink px-3 py-2 text-[10px] leading-[14px] font-normal normal-case tracking-normal text-white shadow-lg animate-[fade-in-up_0.15s_ease-out]">
+          {text}
+          <span className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-humana-ink" />
+        </span>
+      )}
+    </span>
+  );
+}
 
 const KIND_COLORS: Record<string, string> = {
   hotel: "bg-blue-50 text-blue-600",
@@ -45,12 +65,15 @@ export default function NetworkPage() {
 
   // Three-dot menu
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const menuContainerRef = useRef<HTMLTableCellElement | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number; openUp: boolean }>({ top: 0, right: 0, openUp: false });
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   // Modal/drawer state
   const [reviewUser, setReviewUser] = useState<User | null>(null);
   const [approveUser, setApproveUser] = useState<User | null>(null);
   const [rejectUser, setRejectUser] = useState<User | null>(null);
+  const [suspendUser, setSuspendUser] = useState<User | null>(null);
+  const [reactivateUser, setReactivateUser] = useState<User | null>(null);
 
   // Hotel feedback modal
   const [feedbackUser, setFeedbackUser] = useState<User | null>(null);
@@ -62,6 +85,10 @@ export default function NetworkPage() {
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  // Resend invitation toast + cooldown (2 min per invitation)
+  const [resendToast, setResendToast] = useState<{ message: string; success: boolean } | null>(null);
+  const [resendCooldowns, setResendCooldowns] = useState<Record<number, number>>({});
 
   /* ── Data fetching ── */
 
@@ -114,7 +141,7 @@ export default function NetworkPage() {
   useEffect(() => {
     if (openMenuId === null) return;
     function close(e: MouseEvent) {
-      if (menuContainerRef.current && !menuContainerRef.current.contains(e.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpenMenuId(null);
       }
     }
@@ -129,18 +156,16 @@ export default function NetworkPage() {
     fetchCounts();
   }
 
-  async function handleSuspend(user: User) {
-    await adminApi.suspendUser(user.id);
+  function handleSuspend(user: User) {
     setReviewUser(null);
     setOpenMenuId(null);
-    handleRefresh();
+    setSuspendUser(user);
   }
 
-  async function handleReactivate(user: User) {
-    await adminApi.reactivateUser(user.id);
+  function handleReactivate(user: User) {
     setReviewUser(null);
     setOpenMenuId(null);
-    handleRefresh();
+    setReactivateUser(user);
   }
 
   function openFeedbackModal(user: User) {
@@ -154,7 +179,7 @@ export default function NetworkPage() {
     if (!feedbackUser || !feedbackText.trim()) return;
     setSendingFeedback(true);
     try {
-      await adminApi.rejectUser(feedbackUser.id, feedbackText.trim());
+      await adminApi.sendFeedback(feedbackUser.id, feedbackText.trim());
       setFeedbackSent(true);
       setTimeout(() => { setFeedbackUser(null); handleRefresh(); }, 1500);
     } finally {
@@ -175,9 +200,30 @@ export default function NetworkPage() {
       await adminApi.deleteUser(deleteUser.id);
       setDeleteUser(null);
       handleRefresh();
+    } catch (err) {
+      console.error("Failed to delete user:", err);
     } finally {
       setDeleting(false);
     }
+  }
+
+  function isResendOnCooldown(invitationId: number): boolean {
+    const until = resendCooldowns[invitationId];
+    return !!until && Date.now() < until;
+  }
+
+  async function handleResendInvitation(user: User) {
+    const invId = user.invitation_id!;
+    if (isResendOnCooldown(invId)) return;
+    setOpenMenuId(null);
+    try {
+      await adminApi.resendInvitation(invId);
+      setResendCooldowns((prev) => ({ ...prev, [invId]: Date.now() + 2 * 60 * 1000 }));
+      setResendToast({ message: `${t.admin.network.resendSuccess}. ${t.admin.network.resendCooldown}`, success: true });
+    } catch {
+      setResendToast({ message: t.admin.network.resendFailed, success: false });
+    }
+    setTimeout(() => setResendToast(null), 3000);
   }
 
   /* ── Helpers ── */
@@ -193,7 +239,22 @@ export default function NetworkPage() {
   function getKindBadge(kind?: string) {
     if (!kind || kind === "admin") return null;
     return (
-      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] leading-none ${KIND_COLORS[kind] || "bg-humana-stone text-humana-muted"}`}>
+      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${KIND_COLORS[kind] || "bg-humana-stone text-humana-muted"}`}>
+        {kind === "hotel" && (
+          <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75" />
+          </svg>
+        )}
+        {kind === "agency" && (
+          <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+          </svg>
+        )}
+        {kind === "office" && (
+          <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+          </svg>
+        )}
         {KIND_LABELS[kind]?.[locale] || kind}
       </span>
     );
@@ -206,47 +267,59 @@ export default function NetworkPage() {
     });
   }
 
-  function formatLastLogin(dateStr: string | null): string {
-    if (!dateStr) return "–";
-    const diffMs = Date.now() - new Date(dateStr).getTime();
-    const h = Math.floor(diffMs / 3_600_000);
-    if (h < 1) return locale === "es" ? "Ahora" : locale === "pt" ? "Agora" : "Just now";
-    if (h < 24) return `${h}h`;
-    const d = Math.floor(h / 24);
-    if (d < 7) return `${d}d`;
-    return new Date(dateStr).toLocaleDateString(locale === "es" ? "es-ES" : locale === "pt" ? "pt-BR" : "en-US", {
-      day: "numeric", month: "short",
-    });
-  }
-
   function getInitials(name?: string): string {
     return name?.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
   }
 
   /** Context menu items — differ by status and org kind */
-  function getMenuItems(user: User): { label: string; onClick: () => void; danger?: boolean; divider?: boolean }[] {
-    const items: { label: string; onClick: () => void; danger?: boolean; divider?: boolean }[] = [];
+  function getMenuItems(user: User): { label: string; icon: string; onClick: () => void; danger?: boolean; divider?: boolean; disabled?: boolean }[] {
+    const items: { label: string; icon: string; onClick: () => void; danger?: boolean; divider?: boolean; disabled?: boolean }[] = [];
     const isHotel = user.organization?.kind === "hotel";
 
+    if (user.invitation_id && user.invitation_accepted === false) {
+      const onCooldown = isResendOnCooldown(user.invitation_id);
+      items.push({
+        label: t.admin.network.resendInvitation,
+        icon: "resend",
+        onClick: () => handleResendInvitation(user),
+        disabled: onCooldown,
+      });
+    }
+
     if (user.status === "pending") {
-      // Pending: Approve, Reject (+ Send Feedback for hotels)
-      items.push({ label: t.admin.network.approve, onClick: () => { setOpenMenuId(null); setApproveUser(user); } });
-      items.push({ label: t.admin.network.reject, onClick: () => { setOpenMenuId(null); setRejectUser(user); } });
-      if (isHotel) {
-        items.push({ label: t.admin.network.sendFeedback, onClick: () => openFeedbackModal(user) });
+      const needsOnboarding = isHotel || user.organization?.kind === "office";
+      const onboardingDone = !!user.organization?.onboarding_completed;
+      const invitedByAdmin = user.invited_by_organization?.kind === "admin";
+
+      // Hotels & offices: only show approve/reject/review after onboarding is complete
+      if (!needsOnboarding || onboardingDone) {
+        // Hotel preview button
+        if (isHotel && user.organization?.hotel_id) {
+          items.push({ label: t.admin.network.preview, icon: "preview", onClick: () => { setOpenMenuId(null); router.push(`/admin/network/preview/${user.organization.hotel_id}`); } });
+        }
+        items.push({ label: t.admin.network.approve, icon: "approve", onClick: () => { setOpenMenuId(null); setApproveUser(user); } });
+        // "Send feedback" (review) is ONLY for hotels invited by admin
+        if (isHotel && invitedByAdmin) {
+          items.push({ label: t.admin.network.sendFeedback, icon: "feedback", onClick: () => openFeedbackModal(user) });
+        } else {
+          items.push({ label: t.admin.network.reject, icon: "reject", onClick: () => { setOpenMenuId(null); setRejectUser(user); } });
+        }
       }
+      // Always allow delete for pending users
+      items.push({ label: t.admin.network.deleteUser, icon: "delete", onClick: () => openDeleteModal(user), danger: true, divider: items.length > 0 });
     }
 
     if (user.status === "active") {
-      // Active: Suspend, Delete
-      items.push({ label: t.admin.network.suspend, onClick: () => { setOpenMenuId(null); handleSuspend(user); }, danger: true });
-      items.push({ label: t.admin.network.deleteUser, onClick: () => openDeleteModal(user), danger: true });
+      const hasAccepted = !user.invitation_id || user.invitation_accepted !== false;
+      if (hasAccepted) {
+        items.push({ label: t.admin.network.suspend, icon: "suspend", onClick: () => { setOpenMenuId(null); handleSuspend(user); }, danger: true });
+      }
+      items.push({ label: t.admin.network.deleteUser, icon: "delete", onClick: () => openDeleteModal(user), danger: true, divider: !hasAccepted ? false : true });
     }
 
     if (user.status === "suspended" || user.status === "rejected") {
-      // Suspended/Rejected: Reactivate, Delete
-      items.push({ label: t.admin.network.reactivate, onClick: () => { setOpenMenuId(null); handleReactivate(user); } });
-      items.push({ label: t.admin.network.deleteUser, onClick: () => openDeleteModal(user), danger: true, divider: true });
+      items.push({ label: t.admin.network.reactivate, icon: "reactivate", onClick: () => { setOpenMenuId(null); handleReactivate(user); } });
+      items.push({ label: t.admin.network.deleteUser, icon: "delete", onClick: () => openDeleteModal(user), danger: true, divider: true });
     }
 
     return items;
@@ -256,8 +329,8 @@ export default function NetworkPage() {
 
   const tabItems: { key: Tab; label: string; count: number; badge?: boolean }[] = [
     { key: "all", label: t.admin.network.tabs.all, count: totalCount },
-    { key: "active", label: t.admin.network.tabs.active, count: activeCount },
     { key: "pending", label: t.admin.network.tabs.pending, count: pendingCount, badge: pendingCount > 0 },
+    { key: "active", label: t.admin.network.tabs.active, count: activeCount },
     { key: "suspended", label: t.admin.network.tabs.suspended, count: suspendedCount },
   ];
 
@@ -356,7 +429,7 @@ export default function NetworkPage() {
       </div>
 
       {/* ── Table ── */}
-      <div className="rounded-xl border border-humana-line bg-white animate-[fade-in-up_0.4s_ease-out_0.15s_both]">
+      <div className="overflow-visible rounded-xl border border-humana-line bg-white animate-[fade-in-up_0.4s_ease-out_0.15s_both]">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
@@ -373,14 +446,14 @@ export default function NetworkPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-humana-line">
-                  <th className="py-3 pl-6 pr-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.admin.network.table.user}</th>
-                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.admin.network.table.organization}</th>
-                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.admin.network.table.type}</th>
-                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.admin.network.table.status}</th>
-                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.admin.network.table.invitedBy}</th>
-                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.admin.network.table.registered}</th>
-                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.admin.network.table.lastLogin}</th>
-                  <th className="py-3 pl-3 pr-6 w-12"><span className="sr-only">Actions</span></th>
+                  <th className="py-3 pl-6 pr-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted"><span className="inline-flex items-center gap-1.5">{t.admin.network.table.user} <HeaderTooltip text={t.admin.network.table.tooltipUser} /></span></th>
+                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted"><span className="inline-flex items-center gap-1.5">{t.admin.network.table.organization} <HeaderTooltip text={t.admin.network.table.tooltipOrganization} /></span></th>
+                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted"><span className="inline-flex items-center gap-1.5">{t.admin.network.table.type} <HeaderTooltip text={t.admin.network.table.tooltipType} /></span></th>
+                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted"><span className="inline-flex items-center gap-1.5">{t.admin.network.table.status} <HeaderTooltip text={t.admin.network.table.tooltipStatus} /></span></th>
+                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted"><span className="inline-flex items-center gap-1.5">{t.admin.network.table.invitedBy} <HeaderTooltip text={t.admin.network.table.tooltipInvitedBy} /></span></th>
+                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted"><span className="inline-flex items-center gap-1.5">{t.admin.network.table.invitedAt} <HeaderTooltip text={t.admin.network.table.tooltipInvitedAt} /></span></th>
+                  <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted"><span className="inline-flex items-center gap-1.5">{t.admin.network.table.onboarding} <HeaderTooltip text={t.admin.network.table.tooltipOnboarding} /></span></th>
+                  <th className="py-3 pl-3 pr-6 w-12"><span className="sr-only">{t.admin.network.table.actions}</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -396,18 +469,19 @@ export default function NetworkPage() {
                       <td className="py-3.5 pl-6 pr-3">
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-humana-gold/10 text-[11px] font-semibold text-humana-gold">
-                            {getInitials(user.name)}
+                            {user.organization?.onboarding_completed ? getInitials(user.name) : "–"}
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate text-[13px] font-medium text-humana-ink">{user.name}</p>
+                            <p className="truncate text-[13px] font-medium text-humana-ink">{user.organization?.onboarding_completed ? user.name : "–"}</p>
                             <p className="truncate text-[11px] text-humana-muted">{user.email}</p>
+                            {user.phone && <p className="truncate text-[11px] text-humana-subtle">{user.phone}</p>}
                           </div>
                         </div>
                       </td>
 
                       {/* Organization */}
                       <td className="px-3 py-3.5">
-                        <p className="truncate text-[13px] text-humana-ink">{user.organization?.name || "--"}</p>
+                        <p className="truncate text-[13px] text-humana-ink">{user.organization?.onboarding_completed ? (user.organization?.name || "–") : "–"}</p>
                         <p className="truncate text-[11px] text-humana-subtle">{getRoleSubtitle(user)}</p>
                       </td>
 
@@ -415,28 +489,57 @@ export default function NetworkPage() {
                       <td className="px-3 py-3.5">{getKindBadge(user.organization?.kind)}</td>
 
                       {/* Status */}
-                      <td className="px-3 py-3.5"><StatusBadge status={user.status} /></td>
+                      <td className="px-3 py-3.5"><StatusBadge status={user.status} label={t.admin.network.status[user.status as keyof typeof t.admin.network.status] || user.status} /></td>
 
                       {/* Invited by */}
                       <td className="px-3 py-3.5 text-[13px] text-humana-muted whitespace-nowrap">
-                        {user.invited_by_organization && user.invited_by_organization.kind !== "admin"
-                          ? user.invited_by_organization.name
+                        {user.invited_by_organization
+                          ? user.invited_by_organization.kind === "admin"
+                            ? "HUMANA Admin"
+                            : user.invited_by_organization.name
                           : "–"}
                       </td>
 
-                      {/* Registered */}
-                      <td className="px-3 py-3.5 text-[13px] text-humana-muted whitespace-nowrap">{formatDate(user.created_at)}</td>
+                      {/* Invited at */}
+                      <td className="px-3 py-3.5 text-[13px] text-humana-muted whitespace-nowrap">{formatDate(user.invited_at ?? user.created_at)}</td>
 
-                      {/* Last login */}
-                      <td className="px-3 py-3.5 text-[13px] text-humana-muted whitespace-nowrap">{formatLastLogin(user.last_login_at)}</td>
+                      {/* Onboarding */}
+                      <td className="px-3 py-3.5">
+                        {user.organization?.onboarding_completed ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] leading-none text-emerald-600">
+                            <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            {t.admin.network.onboardingComplete}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] leading-none text-amber-600">
+                            <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            {t.admin.network.onboardingPending}
+                          </span>
+                        )}
+                      </td>
 
                       {/* "..." menu */}
-                      <td
-                        className="relative py-3.5 pl-3 pr-6"
-                        ref={openMenuId === user.id ? menuContainerRef : undefined}
-                      >
+                      <td className="py-3.5 pl-3 pr-6">
                         <button
-                          onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                          onClick={(e) => {
+                            if (openMenuId === user.id) {
+                              setOpenMenuId(null);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const openUp = i >= users.length - 2;
+                              setMenuPos({
+                                top: openUp ? rect.top : rect.bottom + 6,
+                                right: window.innerWidth - rect.left + 8,
+                                openUp,
+                              });
+                              setOpenMenuId(user.id);
+                            }
+                          }}
                           className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-lg text-humana-muted transition-colors hover:bg-humana-stone"
                         >
                           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -445,33 +548,6 @@ export default function NetworkPage() {
                             <circle cx="10" cy="16" r="1.8" />
                           </svg>
                         </button>
-
-                        {openMenuId === user.id && (
-                          <div className="absolute right-6 top-full z-30 mt-0.5 w-48 rounded-lg border border-humana-line bg-white py-1 shadow-xl animate-[fade-in-scale_0.12s_ease-out]">
-                            {menuItems.map((item, idx) => (
-                              <div key={idx}>
-                                {item.divider && <div className="my-1 border-t border-humana-line" />}
-                                <button
-                                  onClick={item.onClick}
-                                  className={`cursor-pointer flex w-full items-center gap-2.5 px-4 py-2 text-left text-[13px] transition-colors ${
-                                    item.danger ? "text-red-600 hover:bg-red-50" : "text-humana-ink hover:bg-humana-stone"
-                                  }`}
-                                >
-                                  {item.danger && item.label === t.admin.network.deleteUser ? (
-                                    <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                    </svg>
-                                  ) : item.danger ? (
-                                    <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                    </svg>
-                                  ) : null}
-                                  {item.label}
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </td>
                     </tr>
                   );
@@ -527,6 +603,44 @@ export default function NetworkPage() {
         )}
       </div>
 
+      {/* ── Fixed dropdown menu (rendered outside table to avoid overflow/z-index issues) ── */}
+      {openMenuId !== null && (() => {
+        const menuUser = users.find((u) => u.id === openMenuId);
+        if (!menuUser) return null;
+        const items = getMenuItems(menuUser);
+        return (
+          <div
+            ref={menuRef}
+            className="fixed z-[9999] w-52 rounded-xl border border-humana-line bg-white py-1.5 shadow-2xl ring-1 ring-black/5 animate-[fade-in-scale_0.12s_ease-out]"
+            style={{
+              top: menuPos.openUp ? undefined : menuPos.top,
+              bottom: menuPos.openUp ? `${window.innerHeight - menuPos.top}px` : undefined,
+              right: menuPos.right,
+            }}
+          >
+            {items.map((item, idx) => (
+              <div key={idx}>
+                {item.divider && <div className="my-1 border-t border-humana-line" />}
+                <button
+                  onClick={item.onClick}
+                  disabled={item.disabled}
+                  className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] transition-colors ${
+                    item.disabled
+                      ? "cursor-not-allowed opacity-40"
+                      : item.danger
+                        ? "cursor-pointer text-red-600 hover:bg-red-50"
+                        : "cursor-pointer text-humana-ink hover:bg-humana-stone"
+                  }`}
+                >
+                  <MenuIcon type={item.icon} danger={item.danger} />
+                  {item.label}
+                </button>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* ── Drawers & Modals ── */}
 
       <ReviewDrawer
@@ -534,12 +648,22 @@ export default function NetworkPage() {
         user={reviewUser}
         onClose={() => setReviewUser(null)}
         onApprove={(u) => { setReviewUser(null); setApproveUser(u); }}
-        onReject={(u) => { setReviewUser(null); setRejectUser(u); }}
+        onReject={(u) => {
+          setReviewUser(null);
+          const isAdminInvitedHotel = u.organization?.kind === "hotel" && u.invited_by_organization?.kind === "admin";
+          if (isAdminInvitedHotel) {
+            openFeedbackModal(u);
+          } else {
+            setRejectUser(u);
+          }
+        }}
         onSuspend={handleSuspend}
         onReactivate={handleReactivate}
       />
       <ApproveModal open={!!approveUser} user={approveUser} onClose={() => setApproveUser(null)} onSuccess={handleRefresh} />
       <RejectModal open={!!rejectUser} user={rejectUser} onClose={() => setRejectUser(null)} onSuccess={handleRefresh} />
+      <SuspendModal open={!!suspendUser} user={suspendUser} onClose={() => setSuspendUser(null)} onSuccess={handleRefresh} />
+      <ReactivateModal open={!!reactivateUser} user={reactivateUser} onClose={() => setReactivateUser(null)} onSuccess={handleRefresh} />
 
       {/* Hotel Feedback Modal */}
       {feedbackUser && (
@@ -646,28 +770,105 @@ export default function NetworkPage() {
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3">
-              <button onClick={() => setDeleteUser(null)} disabled={deleting} className="cursor-pointer rounded-lg border border-humana-line px-5 py-2.5 text-[13px] font-medium text-humana-muted transition-colors hover:bg-humana-stone disabled:opacity-50">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setDeleteUser(null)} disabled={deleting} className="flex-1 cursor-pointer rounded-lg border border-humana-line px-5 py-2.5 text-[13px] font-medium text-humana-muted transition-colors hover:bg-humana-stone disabled:opacity-50 text-center justify-center">
                 {locale === "es" ? "Cancelar" : locale === "pt" ? "Cancelar" : "Cancel"}
               </button>
               <button
                 onClick={handleDeleteUser}
                 disabled={deleteConfirmInput !== deleteUser.email || deleting}
-                className="cursor-pointer rounded-lg bg-red-600 px-5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.18em] text-white transition-all duration-200 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex-1 cursor-pointer rounded-lg bg-red-600 px-5 py-2.5 text-[13px] font-semibold uppercase tracking-[0.18em] text-white transition-all duration-200 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {deleting ? t.admin.network.deleting : t.admin.network.deleteConfirm}
+                {deleting ? t.admin.network.deleting : (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                    {t.admin.network.deleteConfirm}
+                  </span>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes modal-enter {
-          0% { opacity: 0; transform: scale(0.95) translateY(10px); }
-          100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
+      {/* Resend Invitation Toast */}
+      {resendToast && (
+        <div className={`fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-lg px-5 py-3 shadow-lg animate-[fade-in-up_0.3s_ease-out] ${resendToast.success ? "bg-emerald-600" : "bg-red-600"} text-white`}>
+          <div className="flex items-center gap-2.5">
+            {resendToast.success ? (
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+            )}
+            <span className="text-[13px] font-medium">{resendToast.message}</span>
+          </div>
+        </div>
+      )}
+
     </div>
   );
+}
+
+/** SVG icon for dropdown menu items. */
+function MenuIcon({ type, danger }: { type: string; danger?: boolean }) {
+  const cls = `h-4 w-4 shrink-0 ${danger ? "text-red-400" : "text-humana-muted"}`;
+  switch (type) {
+    case "preview":
+      return (
+        <svg className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      );
+    case "approve":
+      return (
+        <svg className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      );
+    case "reject":
+      return (
+        <svg className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      );
+    case "feedback":
+      return (
+        <svg className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+        </svg>
+      );
+    case "resend":
+      return (
+        <svg className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+        </svg>
+      );
+    case "reactivate":
+      return (
+        <svg className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M20.985 4.356v4.992" />
+        </svg>
+      );
+    case "suspend":
+      return (
+        <svg className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+      );
+    case "delete":
+      return (
+        <svg className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+        </svg>
+      );
+    default:
+      return null;
+  }
 }
