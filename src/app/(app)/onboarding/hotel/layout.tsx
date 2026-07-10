@@ -135,6 +135,17 @@ function BottomBar() {
   }
 
   async function saveStep2() {
+    // Delete all existing room types first to avoid unique-name conflicts
+    try {
+      const existing = await hotelApi.listRoomTypes();
+      for (const rt of existing.room_types) {
+        await hotelApi.deleteRoomType(rt.id);
+      }
+    } catch {
+      // Continue even if cleanup fails
+    }
+
+    // Create fresh room types from wizard state
     for (const room of state.roomTypes) {
       const payload = {
         name: room.name,
@@ -146,17 +157,7 @@ function BottomBar() {
         description: room.description || undefined,
         bed_type: room.bedType.toLowerCase(),
       };
-      try {
-        if (room.id.startsWith("api_")) {
-          // Room was loaded from API — update instead of create
-          const apiId = Number(room.id.replace("api_", ""));
-          await hotelApi.updateRoomType(apiId, payload);
-        } else {
-          await hotelApi.createRoomType(payload);
-        }
-      } catch {
-        // Skip on error
-      }
+      await hotelApi.createRoomType(payload);
     }
     // Compute total rooms from all room types and update hotel profile
     const totalRooms = state.roomTypes.reduce((sum, rt) => sum + rt.totalUnits, 0);

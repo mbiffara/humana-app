@@ -79,6 +79,10 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
     return (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 0 });
   }
 
+  function capitalizeAmenity(name: string): string {
+    return name.replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
   const stars = hotel?.stars ? "★".repeat(hotel.stars) + "☆".repeat(5 - hotel.stars) : null;
   const galleryImages = hotel?.images || [];
   const allAmenities = hotel?.amenities || [];
@@ -214,6 +218,11 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
               {locale === "es" ? "Habitaciones" : locale === "pt" ? "Quartos" : "Rooms"}
             </span>
             <span className="text-[20px] font-light text-humana-ink">{totalRooms || "—"}</span>
+            {hotel.room_types.length > 0 && (
+              <span className="text-[11px] text-humana-subtle">
+                {hotel.room_types.map((rt) => `${rt.name}: ${rt.total_rooms || 1}`).join(" · ")}
+              </span>
+            )}
           </div>
           <div className="flex flex-col gap-1 rounded-lg border border-humana-line bg-white px-5 py-4">
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">Check-in</span>
@@ -240,7 +249,7 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                   <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
                   <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                {a.name}
+                {capitalizeAmenity(a.name)}
               </span>
             ))}
           </div>
