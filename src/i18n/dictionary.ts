@@ -488,6 +488,12 @@ type Dictionary = {
       starter: { name: string; desc: string };
       professional: { name: string; desc: string };
       enterprise: { name: string; desc: string };
+      popular: string; free: string; view: string; cancel: string;
+      features: {
+        emailSupport: string; prioritySupport: string; dedicatedSupport: string;
+        basicAnalytics: string; advancedAnalytics: string; fullAnalytics: string;
+        hotelAccess: string; retreatAccess: string; retreatCreation: string;
+      };
       [key: string]: unknown;
     };
     settings: {
@@ -1342,6 +1348,21 @@ export const dictionary: Record<Locale, Dictionary> = {
         starter: { name: "Starter", desc: "For agencies getting started with HUMANA." },
         professional: { name: "Professional", desc: "For growing agencies with regular bookings." },
         enterprise: { name: "Enterprise", desc: "For established agencies and hotel groups." },
+        popular: "Popular",
+        free: "Free",
+        view: "View",
+        cancel: "Cancel",
+        features: {
+          emailSupport: "Email support",
+          prioritySupport: "Priority support",
+          dedicatedSupport: "Dedicated support",
+          basicAnalytics: "Basic analytics",
+          advancedAnalytics: "Advanced analytics",
+          fullAnalytics: "Full analytics",
+          hotelAccess: "Hotel access",
+          retreatAccess: "Retreat access",
+          retreatCreation: "Retreat creation",
+        },
       },
       settings: {
         eyebrow: "SETTINGS",
@@ -2207,6 +2228,21 @@ export const dictionary: Record<Locale, Dictionary> = {
         starter: { name: "Starter", desc: "Para agencias que comienzan con HUMANA." },
         professional: { name: "Professional", desc: "Para agencias en crecimiento con reservas regulares." },
         enterprise: { name: "Enterprise", desc: "Para agencias establecidas y grupos hoteleros." },
+        popular: "Popular",
+        free: "Gratis",
+        view: "Ver",
+        cancel: "Cancelar",
+        features: {
+          emailSupport: "Soporte por email",
+          prioritySupport: "Soporte prioritario",
+          dedicatedSupport: "Soporte dedicado",
+          basicAnalytics: "Analíticas básicas",
+          advancedAnalytics: "Analíticas avanzadas",
+          fullAnalytics: "Analíticas completas",
+          hotelAccess: "Acceso a hoteles",
+          retreatAccess: "Acceso a retiros",
+          retreatCreation: "Creación de retiros",
+        },
       },
       settings: {
         eyebrow: "CONFIGURACIÓN",
@@ -3073,6 +3109,21 @@ export const dictionary: Record<Locale, Dictionary> = {
         starter: { name: "Starter", desc: "Para agências iniciando com a HUMANA." },
         professional: { name: "Professional", desc: "Para agências em crescimento com reservas regulares." },
         enterprise: { name: "Enterprise", desc: "Para agências estabelecidas e grupos hoteleiros." },
+        popular: "Popular",
+        free: "Grátis",
+        view: "Ver",
+        cancel: "Cancelar",
+        features: {
+          emailSupport: "Suporte por email",
+          prioritySupport: "Suporte prioritário",
+          dedicatedSupport: "Suporte dedicado",
+          basicAnalytics: "Análises básicas",
+          advancedAnalytics: "Análises avançadas",
+          fullAnalytics: "Análises completas",
+          hotelAccess: "Acesso a hotéis",
+          retreatAccess: "Acesso a retiros",
+          retreatCreation: "Criação de retiros",
+        },
       },
       settings: {
         eyebrow: "CONFIGURAÇÕES",

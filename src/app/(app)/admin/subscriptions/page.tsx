@@ -9,30 +9,30 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { adminApi } from "@/lib/api/admin";
 import type { SubscriptionPlan, Subscription, PaginationMeta } from "@/lib/types";
 
-/** Support level labels. */
-const SUPPORT_LABELS: Record<string, string> = {
-  email: "Email support",
-  priority: "Priority support",
-  dedicated: "Dedicated support",
+/** Map support/analytics keys from the API to i18n feature keys. */
+const SUPPORT_KEYS: Record<string, "emailSupport" | "prioritySupport" | "dedicatedSupport"> = {
+  email: "emailSupport",
+  priority: "prioritySupport",
+  dedicated: "dedicatedSupport",
+};
+const ANALYTICS_KEYS: Record<string, "basicAnalytics" | "advancedAnalytics" | "fullAnalytics"> = {
+  basic: "basicAnalytics",
+  advanced: "advancedAnalytics",
+  full: "fullAnalytics",
 };
 
-/** Analytics level labels. */
-const ANALYTICS_LABELS: Record<string, string> = {
-  basic: "Basic analytics",
-  advanced: "Advanced analytics",
-  full: "Full analytics",
-};
+type FeatureKey = keyof typeof import("@/i18n/dictionary").dictionary.en.admin.subscriptions.features;
 
-/** Build curated feature list from plan features jsonb. */
-function getPlanFeatures(features: Record<string, unknown>, position: number): string[] {
-  const list: string[] = [];
+/** Build curated feature list from plan features jsonb, returning i18n keys. */
+function getPlanFeatureKeys(features: Record<string, unknown>, position: number): FeatureKey[] {
+  const list: FeatureKey[] = [];
   const support = features.support as string | undefined;
   const analytics = features.analytics as string | undefined;
-  if (support) list.push(SUPPORT_LABELS[support] || `${support} support`);
-  if (analytics) list.push(ANALYTICS_LABELS[analytics] || `${analytics} analytics`);
-  list.push("Hotel access");
-  list.push("Retreat access");
-  if (position >= 1) list.push("Retreat creation");
+  if (support && SUPPORT_KEYS[support]) list.push(SUPPORT_KEYS[support]);
+  if (analytics && ANALYTICS_KEYS[analytics]) list.push(ANALYTICS_KEYS[analytics]);
+  list.push("hotelAccess");
+  list.push("retreatAccess");
+  if (position >= 1) list.push("retreatCreation");
   return list;
 }
 
@@ -92,7 +92,7 @@ export default function SubscriptionsPage() {
   /** Format price from cents. */
   function formatPrice(cents: number, currency: string): string {
     const amount = cents / 100;
-    if (amount === 0) return "Free";
+    if (amount === 0) return t.admin.subscriptions.free;
     return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 0 }).format(amount);
   }
 
@@ -158,7 +158,7 @@ export default function SubscriptionsPage() {
         <div className="mb-12 grid grid-cols-3 gap-5 animate-[fade-in-up_0.4s_ease-out_0.1s_both]">
           {plans.map((plan) => {
             const style = getTierStyle(plan.position || 1);
-            const displayFeatures = getPlanFeatures(plan.features || {}, plan.position || 0);
+            const featureKeys = getPlanFeatureKeys(plan.features || {}, plan.position || 0);
             const planKey = plan.slug as "starter" | "professional" | "enterprise";
             const localizedPlan = t.admin.subscriptions[planKey] as { name: string; desc: string } | undefined;
 
@@ -174,7 +174,7 @@ export default function SubscriptionsPage() {
                   </span>
                   {plan.position === 2 && (
                     <span className="rounded bg-humana-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-white">
-                      Popular
+                      {t.admin.subscriptions.popular}
                     </span>
                   )}
                 </div>
@@ -199,12 +199,12 @@ export default function SubscriptionsPage() {
 
                 {/* Features with checkmarks */}
                 <ul className="flex flex-1 flex-col gap-2.5">
-                  {displayFeatures.map((feature) => (
-                    <li key={feature} className={`flex items-center gap-2.5 text-[13px] ${style.text}`}>
+                  {featureKeys.map((key) => (
+                    <li key={key} className={`flex items-center gap-2.5 text-[13px] ${style.text}`}>
                       <svg className={`h-4 w-4 shrink-0 ${style.check}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
-                      {feature}
+                      {(t.admin.subscriptions.features as Record<string, string>)[key]}
                     </li>
                   ))}
                 </ul>
@@ -321,7 +321,7 @@ export default function SubscriptionsPage() {
                     </span>
                     {/* Action */}
                     <button className="cursor-pointer text-[12px] font-medium text-humana-gold transition-colors hover:text-[#c5a030]">
-                      View
+                      {t.admin.subscriptions.view}
                     </button>
                   </div>
                 );
@@ -365,7 +365,7 @@ export default function SubscriptionsPage() {
                 disabled={saving}
                 className="flex-1 cursor-pointer rounded-lg border border-humana-line px-5 py-2.5 text-center text-[13px] font-medium text-humana-muted transition-colors hover:bg-humana-stone disabled:opacity-50"
               >
-                Cancel
+                {t.admin.subscriptions.cancel}
               </button>
               <button
                 onClick={handleSavePrice}
