@@ -316,7 +316,7 @@ export default function SettingsPage() {
 
   const deleteConfirmValid =
     deletingCountry !== null &&
-    deleteConfirmText.trim() === deletingCountry.name &&
+    deleteConfirmText.trim().toLowerCase() === deletingCountry.name.toLowerCase() &&
     deletePassword.length >= 8;
 
   if (loading) {
