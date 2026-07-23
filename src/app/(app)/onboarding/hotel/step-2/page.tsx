@@ -343,19 +343,6 @@ function AvailabilityCalendar({
     return set;
   }, [room.availability]);
 
-  const availableDates = useMemo(() => {
-    const set = new Set<string>();
-    for (const block of room.availability) {
-      if (block.blocked) continue;
-      const start = parseDate(block.startDate);
-      const end = parseDate(block.endDate);
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        set.add(formatDate(d));
-      }
-    }
-    return set;
-  }, [room.availability]);
-
   function handleDayClick(dateStr: string) {
     if (!selStart || (selStart && selEnd)) {
       setSelStart(dateStr);
@@ -370,13 +357,14 @@ function AvailabilityCalendar({
     }
   }
 
-  function handleApply(blocked: boolean) {
+  // All dates are open by default — the only action is blocking units.
+  function handleBlock() {
     if (!selStart || !selEnd) return;
     addAvailabilityBlock(room.id, {
       startDate: selStart,
       endDate: selEnd,
-      units: blocked ? 0 : units,
-      blocked,
+      units,
+      blocked: true,
     });
     setSelStart(null);
     setSelEnd(null);
@@ -454,15 +442,13 @@ function AvailabilityCalendar({
               const day = i + 1;
               const dateStr = formatDate(new Date(viewYear, viewMonth, day));
               const isBlocked = blockedDates.has(dateStr);
-              const isAvailable = availableDates.has(dateStr);
               const isInSelection =
                 selStart && selEnd ? isDateInRange(dateStr, selStart, selEnd) : false;
               const isSelStart = dateStr === selStart;
               const isSelEnd = dateStr === selEnd;
 
-              let bg = "bg-transparent hover:bg-humana-stone";
-              if (isBlocked) bg = "bg-red-50 text-red-400";
-              else if (isAvailable) bg = "bg-emerald-50 text-emerald-700";
+              let bg = "bg-emerald-50/60 text-humana-ink hover:bg-humana-stone";
+              if (isBlocked) bg = "bg-red-50 text-red-400 line-through";
               if (isInSelection || isSelStart || isSelEnd) bg = "bg-humana-gold-light text-humana-gold ring-1 ring-humana-gold/30";
 
               return (
@@ -481,7 +467,7 @@ function AvailabilityCalendar({
           {/* Legend */}
           <div className="mt-4 flex items-center gap-4 border-t border-humana-line pt-4">
             <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded bg-emerald-100 border border-emerald-200" />
+              <div className="h-3 w-3 rounded bg-emerald-50 border border-emerald-200" />
               <span className="text-[11px] text-humana-subtle">{h.legendAvailable}</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -532,22 +518,13 @@ function AvailabilityCalendar({
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleApply(false)}
-                      className="cursor-pointer flex-1 rounded bg-humana-ink py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition-all hover:bg-black active:scale-[0.98]"
-                    >
-                      {h.applyDates}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleApply(true)}
-                      className="cursor-pointer flex-1 rounded border border-red-200 bg-red-50 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-red-600 transition-all hover:bg-red-100 active:scale-[0.98]"
-                    >
-                      {h.blockDates}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleBlock}
+                    className="cursor-pointer w-full rounded bg-humana-ink py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white transition-all hover:bg-black active:scale-[0.98]"
+                  >
+                    {h.blockDates}
+                  </button>
                 </>
               )}
             </div>
@@ -567,18 +544,17 @@ function AvailabilityCalendar({
                 {room.availability.map((block) => (
                   <div
                     key={block.id}
-                    className={`flex items-center justify-between rounded px-3 py-2 text-[12px] ${
-                      block.blocked
-                        ? "bg-red-50 text-red-600"
-                        : "bg-emerald-50 text-emerald-700"
-                    }`}
+                    className="flex items-center justify-between rounded bg-red-50 px-3 py-2 text-[12px] text-red-600"
                   >
                     <div className="flex flex-col">
                       <span className="font-medium">
                         {formatDateHuman(block.startDate, locale)} → {formatDateHuman(block.endDate, locale)}
                       </span>
                       <span className="text-[11px] opacity-70">
-                        {block.blocked ? h.blockedLabel : h.unitsCount(block.units)}
+                        {h.blockedLabel}
+                        {block.units > 0 && block.units < room.totalUnits
+                          ? ` · ${h.unitsCount(block.units)}`
+                          : ""}
                       </span>
                     </div>
                     <button
@@ -617,8 +593,7 @@ function AvailabilityCalendar({
           <button
             type="button"
             onClick={onNext}
-            disabled={room.availability.length === 0}
-            className="cursor-pointer flex items-center gap-2 whitespace-nowrap px-8 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] bg-humana-ink text-white hover:bg-black transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="cursor-pointer flex items-center gap-2 whitespace-nowrap px-8 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] bg-humana-ink text-white hover:bg-black transition-all duration-200 active:scale-[0.98]"
           >
             {h.nextPhotos}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

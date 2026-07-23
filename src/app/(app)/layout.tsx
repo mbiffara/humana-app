@@ -12,6 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, loading, isAdmin } = useAuth();
   const isOnboarding = pathname.startsWith("/onboarding/");
+  const isHotelWorkspace = pathname.startsWith("/hotel/");
 
   // Once the persisted session has been read, bounce unauthenticated visitors
   // back to the login portal.
@@ -56,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <BookingProvider>
       <WizardProvider>
-        {!isAdmin && !isOnboarding && <TopNav />}
+        {!isAdmin && !isOnboarding && !isHotelWorkspace && <TopNav />}
         <main className="flex-1">{children}</main>
       </WizardProvider>
     </BookingProvider>

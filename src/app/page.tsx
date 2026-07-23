@@ -40,6 +40,8 @@ export default function LoginPage() {
       else if (kind === "agency") router.replace("/onboarding/agency");
       else if (kind === "office") router.replace("/onboarding/office");
       else router.replace("/dashboard");
+    } else if (user.organization?.kind === "hotel") {
+      router.replace("/hotel/calendar");
     } else {
       router.replace("/dashboard");
     }
@@ -70,6 +72,8 @@ export default function LoginPage() {
         } else {
           router.push("/dashboard");
         }
+      } else if (user.organization?.kind === "hotel") {
+        router.push("/hotel/calendar");
       } else {
         router.push("/dashboard");
       }

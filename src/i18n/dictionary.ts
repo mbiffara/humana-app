@@ -20,6 +20,46 @@ export type Retreat = {
 };
 
 type Dictionary = {
+  hotelWs: {
+    badge: string;
+    nav: { calendar: string; rooms: string };
+    calendar: {
+      title: string;
+      subtitle: string;
+      perNight: string;
+      roomsLabel: string;
+      operationalLabel: string;
+      soldOut: string;
+      blockedCount: (n: number) => string;
+      legendBlocked: string;
+      selectHint: string;
+      unitsToBlock: string;
+      allUnits: string;
+      reasonPlaceholder: string;
+      blockAction: string;
+      cancel: string;
+      blockedPeriods: string;
+      noBlocks: string;
+      unassigned: string;
+      unassignedHint: string;
+      empty: string;
+      emptyHint: string;
+      legendAvailable: string;
+      legendLow: string;
+      legendFull: string;
+    };
+    rooms: {
+      title: string;
+      subtitle: string;
+      addRoom: string;
+      numberPlaceholder: string;
+      statuses: { available: string; maintenance: string; out_of_service: string };
+      empty: string;
+      emptyHint: string;
+      autoLabel: string;
+      confirmDelete: string;
+    };
+  };
   login: {
     langSupport: string;
     eyebrow: string;
@@ -625,7 +665,6 @@ type Dictionary = {
       legendSelected: string;
       legendBlocked: string;
       availableUnits: string;
-      applyDates: string;
       blockDates: string;
       configuredBlocks: string;
       noBlocksYet: string;
@@ -721,6 +760,46 @@ const sharedPerGuest = {
 export const dictionary: Record<Locale, Dictionary> = {
   /* ───────────────────── ENGLISH ───────────────────── */
   en: {
+    hotelWs: {
+      badge: "Hotel Partner",
+      nav: { calendar: "Calendar", rooms: "Rooms" },
+      calendar: {
+        title: "Availability Calendar",
+        subtitle: "Room availability across your property, day by day.",
+        perNight: "per night",
+        roomsLabel: "rooms",
+        operationalLabel: "operational",
+        soldOut: "Sold out",
+        blockedCount: (n: number) => `${n} blocked`,
+        legendBlocked: "Blocked",
+        selectHint: "Click a day, then another in the same row, to block a range.",
+        unitsToBlock: "Units to block",
+        allUnits: "All units",
+        reasonPlaceholder: "Reason (optional)",
+        blockAction: "Block dates",
+        cancel: "Cancel",
+        blockedPeriods: "Blocked periods",
+        noBlocks: "No blocked periods in this month.",
+        unassigned: "Unassigned bookings",
+        unassignedHint: "Bookings without a room category. They are not counted in the per-type availability above.",
+        empty: "Your room inventory starts here",
+        emptyHint: "Define your room types to activate the availability calendar.",
+        legendAvailable: "Available",
+        legendLow: "Limited",
+        legendFull: "Fully booked",
+      },
+      rooms: {
+        title: "Rooms",
+        subtitle: "Name, number, and manage every room in your property.",
+        addRoom: "Add room",
+        numberPlaceholder: "Room name or number",
+        statuses: { available: "Available", maintenance: "Maintenance", out_of_service: "Out of service" },
+        empty: "Your rooms will appear here",
+        emptyHint: "Define your room types and their quantities to generate rooms.",
+        autoLabel: "Auto-generated",
+        confirmDelete: "Remove this room? Its booking history is preserved.",
+      },
+    },
     login: {
       langSupport: "Institutional support",
       eyebrow: "WELLNESS PLATFORM",
@@ -1508,15 +1587,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         describeRoomSub: "Fill in the basic details for this room type.",
         nextAvailability: "Next: Availability",
         availabilityTitle: "Set availability.",
-        availabilitySub: "Select date ranges and assign available units or block dates.",
+        availabilitySub: "All dates are open for booking by default. Select a range to block dates when rooms are unavailable (seasonal closures, renovations).",
         legendAvailable: "Available",
         legendSelected: "Selected",
         legendBlocked: "Blocked",
-        availableUnits: "Units",
-        applyDates: "Apply",
+        availableUnits: "Units to block",
         blockDates: "Block",
-        configuredBlocks: "Configured Blocks",
-        noBlocksYet: "No availability blocks configured yet. Select dates on the calendar to begin.",
+        configuredBlocks: "Blocked Periods",
+        noBlocksYet: "No blocked dates \u2014 every day is open for booking. Select a range on the calendar to block dates.",
         nextPhotos: "Next: Photos",
         roomPhotosTitle: "Add room photos.",
         roomPhotosSub: "Upload up to 8 photos for this room type. The first photo will be the cover.",
@@ -1601,6 +1679,46 @@ export const dictionary: Record<Locale, Dictionary> = {
 
   /* ───────────────────── ESPAÑOL ───────────────────── */
   es: {
+    hotelWs: {
+      badge: "Hotel Partner",
+      nav: { calendar: "Calendario", rooms: "Habitaciones" },
+      calendar: {
+        title: "Calendario de Disponibilidad",
+        subtitle: "Disponibilidad de habitaciones de tu propiedad, día a día.",
+        perNight: "por noche",
+        roomsLabel: "habitaciones",
+        operationalLabel: "operativas",
+        soldOut: "Completo",
+        blockedCount: (n: number) => `${n} bloqueadas`,
+        legendBlocked: "Bloqueado",
+        selectHint: "Haz clic en un día y luego en otro de la misma fila para bloquear un rango.",
+        unitsToBlock: "Unidades a bloquear",
+        allUnits: "Todas las unidades",
+        reasonPlaceholder: "Motivo (opcional)",
+        blockAction: "Bloquear fechas",
+        cancel: "Cancelar",
+        blockedPeriods: "Períodos bloqueados",
+        noBlocks: "No hay períodos bloqueados en este mes.",
+        unassigned: "Reservas sin asignar",
+        unassignedHint: "Reservas sin categoría de habitación. No se cuentan en la disponibilidad por tipo.",
+        empty: "Tu inventario de habitaciones comienza aquí",
+        emptyHint: "Define tus tipos de habitación para activar el calendario de disponibilidad.",
+        legendAvailable: "Disponible",
+        legendLow: "Limitada",
+        legendFull: "Completo",
+      },
+      rooms: {
+        title: "Habitaciones",
+        subtitle: "Nombra, numera y gestiona cada habitación de tu propiedad.",
+        addRoom: "Agregar habitación",
+        numberPlaceholder: "Nombre o número de habitación",
+        statuses: { available: "Disponible", maintenance: "Mantenimiento", out_of_service: "Fuera de servicio" },
+        empty: "Tus habitaciones aparecerán aquí",
+        emptyHint: "Define tus tipos de habitación y sus cantidades para generar habitaciones.",
+        autoLabel: "Autogenerada",
+        confirmDelete: "¿Quitar esta habitación? Su historial de reservas se conserva.",
+      },
+    },
     login: {
       langSupport: "Soporte institucional",
       eyebrow: "PLATAFORMA WELLNESS",
@@ -2388,15 +2506,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         describeRoomSub: "Completa los detalles b\u00E1sicos de este tipo de habitaci\u00F3n.",
         nextAvailability: "Siguiente: Disponibilidad",
         availabilityTitle: "Configura la disponibilidad.",
-        availabilitySub: "Selecciona rangos de fechas y asigna unidades disponibles o bloquea fechas.",
+        availabilitySub: "Todas las fechas est\u00E1n abiertas para reservas por defecto. Selecciona un rango para bloquear fechas cuando las habitaciones no est\u00E9n disponibles (cierres de temporada, renovaciones).",
         legendAvailable: "Disponible",
         legendSelected: "Seleccionado",
         legendBlocked: "Bloqueado",
-        availableUnits: "Unidades",
-        applyDates: "Aplicar",
+        availableUnits: "Unidades a bloquear",
         blockDates: "Bloquear",
-        configuredBlocks: "Bloques Configurados",
-        noBlocksYet: "No hay bloques configurados a\u00FAn. Selecciona fechas en el calendario para comenzar.",
+        configuredBlocks: "Per\u00EDodos Bloqueados",
+        noBlocksYet: "No hay fechas bloqueadas \u2014 todos los d\u00EDas est\u00E1n abiertos para reservas. Selecciona un rango en el calendario para bloquear fechas.",
         nextPhotos: "Siguiente: Fotos",
         roomPhotosTitle: "Agrega fotos de la habitaci\u00F3n.",
         roomPhotosSub: "Sube hasta 8 fotos para este tipo de habitaci\u00F3n. La primera foto ser\u00E1 la portada.",
@@ -2481,6 +2598,46 @@ export const dictionary: Record<Locale, Dictionary> = {
 
   /* ───────────────────── PORTUGUÊS ───────────────────── */
   pt: {
+    hotelWs: {
+      badge: "Hotel Partner",
+      nav: { calendar: "Calendário", rooms: "Quartos" },
+      calendar: {
+        title: "Calendário de Disponibilidade",
+        subtitle: "Disponibilidade de quartos da sua propriedade, dia a dia.",
+        perNight: "por noite",
+        roomsLabel: "quartos",
+        operationalLabel: "operacionais",
+        soldOut: "Esgotado",
+        blockedCount: (n: number) => `${n} bloqueados`,
+        legendBlocked: "Bloqueado",
+        selectHint: "Clique num dia e depois noutro da mesma linha para bloquear um intervalo.",
+        unitsToBlock: "Unidades a bloquear",
+        allUnits: "Todas as unidades",
+        reasonPlaceholder: "Motivo (opcional)",
+        blockAction: "Bloquear datas",
+        cancel: "Cancelar",
+        blockedPeriods: "Períodos bloqueados",
+        noBlocks: "Não há períodos bloqueados neste mês.",
+        unassigned: "Reservas não atribuídas",
+        unassignedHint: "Reservas sem categoria de quarto. Não são contadas na disponibilidade por tipo.",
+        empty: "O seu inventário de quartos começa aqui",
+        emptyHint: "Defina os seus tipos de quarto para ativar o calendário de disponibilidade.",
+        legendAvailable: "Disponível",
+        legendLow: "Limitada",
+        legendFull: "Esgotado",
+      },
+      rooms: {
+        title: "Quartos",
+        subtitle: "Nomeie, numere e gerencie cada quarto da sua propriedade.",
+        addRoom: "Adicionar quarto",
+        numberPlaceholder: "Nome ou número do quarto",
+        statuses: { available: "Disponível", maintenance: "Manutenção", out_of_service: "Fora de serviço" },
+        empty: "Os seus quartos aparecerão aqui",
+        emptyHint: "Defina os seus tipos de quarto e as suas quantidades para gerar quartos.",
+        autoLabel: "Gerado automaticamente",
+        confirmDelete: "Remover este quarto? O histórico de reservas é preservado.",
+      },
+    },
     login: {
       langSupport: "Suporte institucional",
       eyebrow: "PLATAFORMA WELLNESS",
@@ -3269,15 +3426,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         describeRoomSub: "Preencha os detalhes b\u00E1sicos deste tipo de quarto.",
         nextAvailability: "Pr\u00F3ximo: Disponibilidade",
         availabilityTitle: "Configure a disponibilidade.",
-        availabilitySub: "Selecione intervalos de datas e atribua unidades dispon\u00EDveis ou bloqueie datas.",
+        availabilitySub: "Todas as datas est\u00E3o abertas para reservas por padr\u00E3o. Selecione um intervalo para bloquear datas quando os quartos n\u00E3o estiverem dispon\u00EDveis (fechamentos sazonais, renova\u00E7\u00F5es).",
         legendAvailable: "Dispon\u00EDvel",
         legendSelected: "Selecionado",
         legendBlocked: "Bloqueado",
-        availableUnits: "Unidades",
-        applyDates: "Aplicar",
+        availableUnits: "Unidades a bloquear",
         blockDates: "Bloquear",
-        configuredBlocks: "Blocos Configurados",
-        noBlocksYet: "Nenhum bloco configurado ainda. Selecione datas no calend\u00E1rio para come\u00E7ar.",
+        configuredBlocks: "Per\u00EDodos Bloqueados",
+        noBlocksYet: "Nenhuma data bloqueada \u2014 todos os dias est\u00E3o abertos para reservas. Selecione um intervalo no calend\u00E1rio para bloquear datas.",
         nextPhotos: "Pr\u00F3ximo: Fotos",
         roomPhotosTitle: "Adicione fotos do quarto.",
         roomPhotosSub: "Envie at\u00E9 8 fotos para este tipo de quarto. A primeira foto ser\u00E1 a capa.",

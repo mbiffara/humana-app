@@ -157,7 +157,21 @@ function BottomBar() {
         description: room.description || undefined,
         bed_type: room.bedType.toLowerCase(),
       };
-      await hotelApi.createRoomType(payload);
+      const created = await hotelApi.createRoomType(payload);
+
+      // Persist blocked date ranges (all other dates are open by default).
+      for (const block of room.availability) {
+        if (!block.blocked) continue;
+        await hotelApi.createAvailabilityBlock({
+          room_type_id: created.room_type.id,
+          starts_on: block.startDate,
+          ends_on: block.endDate,
+          // Partial closures carry a unit count; a full closure (or legacy
+          // blocks saved with units 0) closes the whole room type.
+          units:
+            block.units > 0 && block.units < room.totalUnits ? block.units : undefined,
+        });
+      }
     }
     // Compute total rooms from all room types and update hotel profile
     const totalRooms = state.roomTypes.reduce((sum, rt) => sum + rt.totalUnits, 0);

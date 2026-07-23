@@ -28,6 +28,35 @@ export const hotelApi = {
   listImages: () => api.get<{ images: HotelImage[] }>("/hotel/images"),
   batchImages: (images: ImageCreate[]) =>
     api.post<{ images: HotelImage[] }>("/hotel/images/batch", { images }),
+
+  // Rooms (physical, numbered rooms within each room type)
+  listRooms: (params?: { room_type_id?: number; status?: string }) => {
+    const query = new URLSearchParams(
+      Object.entries(params ?? {})
+        .filter(([, v]) => v !== undefined && v !== "")
+        .map(([k, v]) => [k, String(v)]),
+    ).toString();
+    return api.get<{ rooms: Room[] }>(`/hotel/rooms${query ? `?${query}` : ""}`);
+  },
+  createRoom: (data: RoomCreate) => api.post<{ room: Room }>("/hotel/rooms", { room: data }),
+  updateRoom: (id: number, data: Partial<RoomCreate>) =>
+    api.patch<{ room: Room }>(`/hotel/rooms/${id}`, { room: data }),
+  deleteRoom: (id: number) => api.delete(`/hotel/rooms/${id}`),
+
+  // Availability blocks (date-ranged closures; all dates open by default)
+  listAvailabilityBlocks: (roomTypeId?: number) =>
+    api.get<{ availability_blocks: ApiAvailabilityBlock[] }>(
+      `/hotel/availability_blocks${roomTypeId ? `?room_type_id=${roomTypeId}` : ""}`,
+    ),
+  createAvailabilityBlock: (data: AvailabilityBlockCreate) =>
+    api.post<{ availability_block: ApiAvailabilityBlock }>("/hotel/availability_blocks", {
+      availability_block: data,
+    }),
+  deleteAvailabilityBlock: (id: number) => api.delete(`/hotel/availability_blocks/${id}`),
+
+  // Availability calendar
+  getCalendar: (from: string, to: string) =>
+    api.get<CalendarResponse>(`/hotel/calendar?from=${from}&to=${to}`),
 };
 
 // Types
@@ -107,6 +136,64 @@ export interface RoomTypeCreate {
   description?: string;
   total_rooms?: number;
   bed_type?: string;
+}
+
+export type RoomStatus = "available" | "maintenance" | "out_of_service";
+
+export interface Room {
+  id: number;
+  hotel_id: number;
+  room_type_id: number;
+  number: string;
+  status: RoomStatus;
+  auto_generated: boolean;
+  notes: string | null;
+}
+
+export interface RoomCreate {
+  room_type_id: number;
+  number: string;
+  status?: RoomStatus;
+  notes?: string;
+}
+
+export interface ApiAvailabilityBlock {
+  id: number;
+  hotel_id: number;
+  room_type_id: number;
+  starts_on: string;
+  ends_on: string;
+  units: number | null;
+  reason: string | null;
+}
+
+export interface AvailabilityBlockCreate {
+  room_type_id: number;
+  starts_on: string;
+  ends_on: string;
+  units?: number;
+  reason?: string;
+}
+
+export interface CalendarDay {
+  date: string;
+  booked: number;
+  blocked: number;
+  available: number;
+}
+
+export interface CalendarRoomType {
+  room_type: RoomType & { price_per_night: number };
+  rooms_total: number;
+  rooms_operational: number;
+  days: CalendarDay[];
+}
+
+export interface CalendarResponse {
+  from: string;
+  to: string;
+  room_types: CalendarRoomType[];
+  unassigned_bookings: { date: string; count: number }[];
 }
 
 export interface Amenity {
