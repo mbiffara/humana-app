@@ -5,7 +5,7 @@
  *  the grid and can be removed there. */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import {
@@ -53,7 +53,12 @@ export default function HotelCalendarPage() {
     return list;
   }, [month]);
 
+  // Guards against out-of-order responses: only the latest request may
+  // apply its results (e.g. fast month switching).
+  const requestIdRef = useRef(0);
+
   const fetchCalendar = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     try {
       const from = iso(month);
@@ -62,12 +67,13 @@ export default function HotelCalendarPage() {
         hotelApi.getCalendar(from, to),
         hotelApi.listAvailabilityBlocks(),
       ]);
+      if (requestId !== requestIdRef.current) return;
       setData(cal);
       setBlocks(blk.availability_blocks);
     } catch {
-      setData(null);
+      if (requestId === requestIdRef.current) setData(null);
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
   }, [month]);
 

@@ -24,6 +24,10 @@ export default function HotelRoomsPage() {
 
   // Per-room-type "add room" input value
   const [newRoomNames, setNewRoomNames] = useState<Record<number, string>>({});
+  // In-progress room renames, keyed by room id. Cleared after save so the
+  // input falls back to the server value — a rejected rename (e.g. duplicate
+  // number) visibly reverts instead of lingering as if it were saved.
+  const [drafts, setDrafts] = useState<Record<number, string>>({});
   // Room id pending delete confirmation (two-step, no browser dialog)
   const [pendingDelete, setPendingDelete] = useState<number | null>(null);
 
@@ -49,12 +53,20 @@ export default function HotelRoomsPage() {
 
   async function renameRoom(room: Room, number: string) {
     const trimmed = number.trim();
-    if (!trimmed || trimmed === room.number) return;
     try {
-      const res = await hotelApi.updateRoom(room.id, { number: trimmed });
-      setRooms((prev) => prev.map((r) => (r.id === room.id ? res.room : r)));
+      if (trimmed && trimmed !== room.number) {
+        const res = await hotelApi.updateRoom(room.id, { number: trimmed });
+        setRooms((prev) => prev.map((r) => (r.id === room.id ? res.room : r)));
+      }
     } catch {
-      fetchData(); // revert the input to server state (e.g. duplicate number)
+      // rejected (e.g. duplicate number) — dropping the draft below reverts
+      // the input to the server value
+    } finally {
+      setDrafts((prev) => {
+        const next = { ...prev };
+        delete next[room.id];
+        return next;
+      });
     }
   }
 
@@ -166,7 +178,10 @@ export default function HotelRoomsPage() {
                     >
                       {/* Editable number */}
                       <input
-                        defaultValue={room.number}
+                        value={drafts[room.id] ?? room.number}
+                        onChange={(e) =>
+                          setDrafts((prev) => ({ ...prev, [room.id]: e.target.value }))
+                        }
                         onBlur={(e) => renameRoom(room, e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
                         className="min-w-[160px] flex-1 rounded-md border border-transparent bg-transparent px-2 py-1.5 text-[14px] text-humana-ink outline-none transition-colors hover:border-humana-line focus:border-humana-gold focus:bg-white"
