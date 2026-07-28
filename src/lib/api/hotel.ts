@@ -254,7 +254,6 @@ export interface RateTier {
   ends_on: string | null;
   price_per_night_cents: number;
   price_per_night: number;
-  position: number;
 }
 
 export interface RateTierCreate {
@@ -262,7 +261,6 @@ export interface RateTierCreate {
   starts_on?: string | null;
   ends_on?: string | null;
   price_per_night_cents: number;
-  position?: number;
 }
 
 export interface RoomTypeCreate {
