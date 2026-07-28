@@ -58,6 +58,9 @@ export const hotelApi = {
   getCalendar: (from: string, to: string) =>
     api.get<CalendarResponse>(`/hotel/calendar?from=${from}&to=${to}`),
 
+  // Dashboard (HT-02)
+  getDashboard: () => api.get<{ dashboard: HotelDashboard }>("/hotel/dashboard"),
+
   // Retreats
   listRetreats: (status?: string) =>
     api.get<{ retreats: ApiRetreat[] }>(`/hotel/retreats${status ? `?status=${status}` : ""}`),
@@ -143,6 +146,41 @@ export const hotelApi = {
 };
 
 // Types
+export interface HotelDashboard {
+  hotel: {
+    name: string;
+    city: string | null;
+    country: string | null;
+    rooms_total: number;
+    member_since: string;
+  };
+  occupancy: { rate: number; previous_rate: number };
+  revenue: { current_cents: number; previous_cents: number; currency: string };
+  upcoming: { guests: number; check_ins_today: number };
+  next_check_ins: {
+    id: number;
+    reference: string;
+    starts_on: string;
+    days_until: number;
+    guest_name: string | null;
+    room_type: string | null;
+    nights: number | null;
+    agency: string | null;
+  }[];
+  retreats: {
+    in_progress: number;
+    upcoming: number;
+    items: {
+      id: number;
+      name: string;
+      starts_on: string | null;
+      ends_on: string | null;
+      capacity: number | null;
+      state: "in_progress" | "upcoming";
+    }[];
+  };
+}
+
 export interface HotelProfile {
   id: number;
   name: string;

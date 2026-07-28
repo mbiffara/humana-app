@@ -22,7 +22,48 @@ export type Retreat = {
 type Dictionary = {
   hotelWs: {
     badge: string;
-    nav: { calendar: string; rooms: string; retreats: string };
+    nav: { dashboard: string; calendar: string; rooms: string; retreats: string };
+    dashboard: {
+      eyebrowWeek: (week: number) => string;
+      welcome: (name: string) => string;
+      roomsCount: (n: number) => string;
+      memberSince: (date: string) => string;
+      lastThirtyDays: string;
+      kpis: {
+        occupancy: string;
+        occupancyDelta: (pts: number) => string;
+        revenue: string;
+        revenueDelta: (amount: string, month: string) => string;
+        upcomingGuests: string;
+        upcomingHint: (n: number) => string;
+        activeRetreats: string;
+        retreatsHint: (inProgress: number, upcoming: number) => string;
+      };
+      checkIns: {
+        eyebrow: string;
+        title: string;
+        viewAll: string;
+        today: string;
+        inDays: (n: number) => string;
+        empty: string;
+        emptyHint: string;
+      };
+      retreats: {
+        eyebrow: string;
+        title: string;
+        guests: (n: number) => string;
+        inProgress: string;
+        upcoming: string;
+        empty: string;
+        emptyHint: string;
+      };
+      quickActions: {
+        title: string;
+        blockDates: string;
+        createRetreat: string;
+        updatePricing: string;
+      };
+    };
     calendar: {
       title: string;
       subtitle: string;
@@ -921,7 +962,49 @@ export const dictionary: Record<Locale, Dictionary> = {
   en: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { calendar: "Calendar", rooms: "Rooms", retreats: "Retreats" },
+      nav: { dashboard: "Dashboard", calendar: "Calendar", rooms: "Rooms", retreats: "Retreats" },
+      dashboard: {
+        eyebrowWeek: (week: number) => `Week ${week}`,
+        welcome: (name: string) => `Welcome back, ${name}`,
+        roomsCount: (n: number) => `${n} room${n === 1 ? "" : "s"}`,
+        memberSince: (date: string) => `Member since ${date}`,
+        lastThirtyDays: "Last 30 days",
+        kpis: {
+          occupancy: "Occupancy rate",
+          occupancyDelta: (pts: number) => `${pts >= 0 ? "+" : ""}${pts}% vs. last month`,
+          revenue: "Revenue this month",
+          revenueDelta: (amount: string, month: string) => `${amount} vs. ${month}`,
+          upcomingGuests: "Upcoming guests",
+          upcomingHint: (n: number) => `Next 7 days · ${n} check-in${n === 1 ? "" : "s"} today`,
+          activeRetreats: "Active retreats",
+          retreatsHint: (inProgress: number, upcoming: number) =>
+            `${inProgress} in progress · ${upcoming} upcoming`,
+        },
+        checkIns: {
+          eyebrow: "Upcoming",
+          title: "Next check-ins",
+          viewAll: "View all",
+          today: "Check-in today",
+          inDays: (n: number) => `In ${n} day${n === 1 ? "" : "s"}`,
+          empty: "No upcoming check-ins",
+          emptyHint: "Reservations made through the HUMANA network will appear here.",
+        },
+        retreats: {
+          eyebrow: "Retreats",
+          title: "Active programs",
+          guests: (n: number) => `${n} guests`,
+          inProgress: "In progress",
+          upcoming: "Upcoming",
+          empty: "No active programs",
+          emptyHint: "Publish a retreat to see it here.",
+        },
+        quickActions: {
+          title: "Quick actions",
+          blockDates: "Block dates",
+          createRetreat: "Create new retreat",
+          updatePricing: "Update room pricing",
+        },
+      },
       calendar: {
         title: "Availability Calendar",
         subtitle: "Room availability across your property, day by day.",
@@ -2002,7 +2085,49 @@ export const dictionary: Record<Locale, Dictionary> = {
   es: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { calendar: "Calendario", rooms: "Habitaciones", retreats: "Retiros" },
+      nav: { dashboard: "Dashboard", calendar: "Calendario", rooms: "Habitaciones", retreats: "Retiros" },
+      dashboard: {
+        eyebrowWeek: (week: number) => `Semana ${week}`,
+        welcome: (name: string) => `Bienvenido de nuevo, ${name}`,
+        roomsCount: (n: number) => `${n} ${n === 1 ? "habitación" : "habitaciones"}`,
+        memberSince: (date: string) => `Miembro desde ${date}`,
+        lastThirtyDays: "Últimos 30 días",
+        kpis: {
+          occupancy: "Tasa de ocupación",
+          occupancyDelta: (pts: number) => `${pts >= 0 ? "+" : ""}${pts}% vs. mes anterior`,
+          revenue: "Ingresos este mes",
+          revenueDelta: (amount: string, month: string) => `${amount} vs. ${month}`,
+          upcomingGuests: "Próximos huéspedes",
+          upcomingHint: (n: number) => `Próximos 7 días · ${n} check-in${n === 1 ? "" : "s"} hoy`,
+          activeRetreats: "Retiros activos",
+          retreatsHint: (inProgress: number, upcoming: number) =>
+            `${inProgress} en curso · ${upcoming} próximos`,
+        },
+        checkIns: {
+          eyebrow: "Próximos",
+          title: "Próximos check-ins",
+          viewAll: "Ver todos",
+          today: "Check-in hoy",
+          inDays: (n: number) => `En ${n} día${n === 1 ? "" : "s"}`,
+          empty: "Sin check-ins próximos",
+          emptyHint: "Las reservas realizadas a través de la red HUMANA aparecerán aquí.",
+        },
+        retreats: {
+          eyebrow: "Retiros",
+          title: "Programas activos",
+          guests: (n: number) => `${n} huéspedes`,
+          inProgress: "En curso",
+          upcoming: "Próximo",
+          empty: "Sin programas activos",
+          emptyHint: "Publica un retiro para verlo aquí.",
+        },
+        quickActions: {
+          title: "Acciones rápidas",
+          blockDates: "Bloquear fechas",
+          createRetreat: "Crear nuevo retiro",
+          updatePricing: "Actualizar precios de habitaciones",
+        },
+      },
       calendar: {
         title: "Calendario de Disponibilidad",
         subtitle: "Disponibilidad de habitaciones de tu propiedad, día a día.",
@@ -2176,7 +2301,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             facilitators: "Facilitadores",
             included: "Qué incluye",
             pricingRooms: "Precios y habitaciones",
-            roomsCount: (n: number) => `${n} habitación${n === 1 ? "" : "es"}`,
+            roomsCount: (n: number) => `${n} ${n === 1 ? "habitación" : "habitaciones"}`,
             perGuest: "/huésped",
             gallery: "Galería",
             imagesCount: (n: number) => `${n} imagen${n === 1 ? "" : "es"}`,
@@ -3083,7 +3208,49 @@ export const dictionary: Record<Locale, Dictionary> = {
   pt: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { calendar: "Calendário", rooms: "Quartos", retreats: "Retiros" },
+      nav: { dashboard: "Dashboard", calendar: "Calendário", rooms: "Quartos", retreats: "Retiros" },
+      dashboard: {
+        eyebrowWeek: (week: number) => `Semana ${week}`,
+        welcome: (name: string) => `Bem-vindo de volta, ${name}`,
+        roomsCount: (n: number) => `${n} quarto${n === 1 ? "" : "s"}`,
+        memberSince: (date: string) => `Membro desde ${date}`,
+        lastThirtyDays: "Últimos 30 dias",
+        kpis: {
+          occupancy: "Taxa de ocupação",
+          occupancyDelta: (pts: number) => `${pts >= 0 ? "+" : ""}${pts}% vs. mês anterior`,
+          revenue: "Receita deste mês",
+          revenueDelta: (amount: string, month: string) => `${amount} vs. ${month}`,
+          upcomingGuests: "Próximos hóspedes",
+          upcomingHint: (n: number) => `Próximos 7 dias · ${n} check-in${n === 1 ? "" : "s"} hoje`,
+          activeRetreats: "Retiros ativos",
+          retreatsHint: (inProgress: number, upcoming: number) =>
+            `${inProgress} em andamento · ${upcoming} próximos`,
+        },
+        checkIns: {
+          eyebrow: "Próximos",
+          title: "Próximos check-ins",
+          viewAll: "Ver todos",
+          today: "Check-in hoje",
+          inDays: (n: number) => `Em ${n} dia${n === 1 ? "" : "s"}`,
+          empty: "Sem check-ins próximos",
+          emptyHint: "As reservas feitas através da rede HUMANA aparecerão aqui.",
+        },
+        retreats: {
+          eyebrow: "Retiros",
+          title: "Programas ativos",
+          guests: (n: number) => `${n} hóspedes`,
+          inProgress: "Em andamento",
+          upcoming: "Próximo",
+          empty: "Sem programas ativos",
+          emptyHint: "Publique um retiro para vê-lo aqui.",
+        },
+        quickActions: {
+          title: "Ações rápidas",
+          blockDates: "Bloquear datas",
+          createRetreat: "Criar novo retiro",
+          updatePricing: "Atualizar preços dos quartos",
+        },
+      },
       calendar: {
         title: "Calendário de Disponibilidade",
         subtitle: "Disponibilidade de quartos da sua propriedade, dia a dia.",
