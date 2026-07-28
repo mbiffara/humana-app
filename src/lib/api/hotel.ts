@@ -381,10 +381,18 @@ export interface RetreatProgramReplace {
     day_number: number;
     title?: string;
     description?: string;
-    activities: { name: string; time?: string; position?: number }[];
+    activities: {
+      name: string;
+      time?: string;
+      position?: number;
+      duration_minutes?: number;
+      description?: string;
+      category?: string;
+      icon?: string;
+    }[];
   }[];
   facilitators: RetreatFacilitatorCreate[];
-  inclusions: { name: string; position?: number }[];
+  inclusions: { name: string; position?: number; category?: string; icon?: string }[];
 }
 
 export interface ApiRetreatDay {
