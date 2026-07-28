@@ -54,13 +54,17 @@ function WizardShell({ children }: { children: ReactNode }) {
   // Deep link into an existing retreat: /hotel/retreats/create/step-N?id=123
   const editId = searchParams.get("id");
   useEffect(() => {
-    if (!hydrated || !editId) return;
+    if (!hydrated) return;
     const id = Number(editId);
-    if (Number.isFinite(id) && id > 0 && state.retreatId !== id) {
+    if (editId && Number.isFinite(id) && id > 0 && state.retreatId !== id) {
       loadRetreat(id).catch(() => setSaveError(true));
+    } else if (state.retreatId && !state.status) {
+      // Session state predates status tracking — refresh so the last step
+      // knows whether to publish or just save changes
+      loadRetreat(state.retreatId).catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, editId]);
+  }, [hydrated, editId, state.retreatId, state.status]);
 
   useEffect(() => {
     hotelApi
@@ -88,7 +92,7 @@ function WizardShell({ children }: { children: ReactNode }) {
       await hotelApi.updateRetreat(state.retreatId, payload);
     } else {
       const res = await hotelApi.createRetreat(payload);
-      set({ retreatId: res.retreat.id });
+      set({ retreatId: res.retreat.id, status: res.retreat.status });
     }
   }, [state, set, hotel]);
 
@@ -159,6 +163,9 @@ function WizardShell({ children }: { children: ReactNode }) {
     );
   }, [state]);
 
+  // Editing a retreat that's already live: the last step saves instead of publishing
+  const isPublished = Boolean(state.status && !["draft", "pending_review"].includes(state.status));
+
   const canProceed = (() => {
     switch (activeIndex) {
       case 0:
@@ -197,8 +204,20 @@ function WizardShell({ children }: { children: ReactNode }) {
           await saveGallery();
           break;
         case 4: {
-          if (state.retreatId) await hotelApi.publishRetreat(state.retreatId);
-          router.push("/hotel/retreats/create/confirmation");
+          if (!state.retreatId) return;
+          if (isPublished) {
+            // Already live — persist every section (idempotent) and return
+            await saveBasicInfo();
+            await saveProgram();
+            await savePricing();
+            await saveGallery();
+            reset();
+            router.push("/hotel/retreats");
+          } else {
+            await hotelApi.publishRetreat(state.retreatId);
+            set({ status: "active" });
+            router.push("/hotel/retreats/create/confirmation");
+          }
           return;
         }
       }
@@ -306,7 +325,7 @@ function WizardShell({ children }: { children: ReactNode }) {
                 style={{ width: `${progressPct}%` }}
               />
             </div>
-            {isLastStep && (
+            {isLastStep && !isPublished && (
               <p className="mt-2 text-[12px] text-humana-muted">{tw.preview.readyToPublish}</p>
             )}
           </div>
@@ -340,15 +359,17 @@ function WizardShell({ children }: { children: ReactNode }) {
               onClick={handleNext}
               disabled={saving || !canProceed}
               className={`flex-1 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity ${
-                isLastStep ? "bg-humana-gold" : "bg-humana-ink"
+                isLastStep && !isPublished ? "bg-humana-gold" : "bg-humana-ink"
               } ${saving || !canProceed ? "cursor-not-allowed opacity-40" : "cursor-pointer hover:opacity-85"}`}
             >
               {saving
-                ? isLastStep
+                ? isLastStep && !isPublished
                   ? tw.review.publishing
                   : tw.saving
                 : isLastStep
-                  ? tw.review.publish
+                  ? isPublished
+                    ? tw.review.saveChanges
+                    : tw.review.publish
                   : tw.next}
             </button>
           </div>

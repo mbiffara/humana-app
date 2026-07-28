@@ -202,6 +202,7 @@ type Dictionary = {
           imagesCount: (n: number) => string;
           publish: string;
           publishing: string;
+          saveChanges: string;
         };
         confirmation: {
           eyebrow: string;
@@ -1108,6 +1109,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             imagesCount: (n: number) => `${n} image${n === 1 ? "" : "s"}`,
             publish: "Publish retreat",
             publishing: "Publishing…",
+            saveChanges: "Save changes",
           },
           confirmation: {
             eyebrow: "Retreat published",
@@ -2193,6 +2195,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             imagesCount: (n: number) => `${n} imagen${n === 1 ? "" : "es"}`,
             publish: "Publicar retiro",
             publishing: "Publicando…",
+            saveChanges: "Guardar cambios",
           },
           confirmation: {
             eyebrow: "Retiro publicado",
@@ -3278,6 +3281,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             imagesCount: (n: number) => `${n} imagem${n === 1 ? "" : "ns"}`,
             publish: "Publicar retiro",
             publishing: "Publicando…",
+            saveChanges: "Salvar alterações",
           },
           confirmation: {
             eyebrow: "Retiro publicado",

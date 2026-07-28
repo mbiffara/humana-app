@@ -14,7 +14,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { hotelApi, type ApiRetreatDetail, type RetreatType } from "@/lib/api/hotel";
+import {
+  hotelApi,
+  type ApiRetreatDetail,
+  type RetreatStatus,
+  type RetreatType,
+} from "@/lib/api/hotel";
 
 export type ProgramActivity = { id: string; time: string; name: string };
 
@@ -37,6 +42,8 @@ export type PricingEntry = { roomTypeId: number; price: string };
 
 export type RetreatWizardState = {
   retreatId: number | null;
+  /** Server-side status — drives publish vs. save-changes on the last step */
+  status: RetreatStatus | null;
   name: string;
   retreatType: RetreatType;
   nights: number;
@@ -55,6 +62,7 @@ export type RetreatWizardState = {
 
 const initial: RetreatWizardState = {
   retreatId: null,
+  status: null,
   name: "",
   retreatType: "wellness",
   nights: 5,
@@ -89,6 +97,7 @@ export function computeEndDate(startDate: string, nights: number): string {
 function stateFromApi(r: ApiRetreatDetail): RetreatWizardState {
   return {
     retreatId: r.id,
+    status: r.status,
     name: r.name,
     retreatType: r.retreat_type,
     nights: r.duration_nights,
