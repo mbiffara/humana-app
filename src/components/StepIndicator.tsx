@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-const stepRoutes = [
+const defaultRoutes = [
   "/create-retreat/step-1",
   "/create-retreat/step-2",
   "/create-retreat/step-3",
@@ -15,11 +15,14 @@ export function StepIndicator({
   steps,
   currentStep,
   className,
+  routes,
 }: {
   steps: string[];
   currentStep: number;
   className?: string;
+  routes?: string[];
 }) {
+  const stepRoutes = routes ?? defaultRoutes;
   return (
     <div className={className ?? "flex items-center justify-center gap-0 px-16 py-6"}>
       {steps.map((label, i) => {
