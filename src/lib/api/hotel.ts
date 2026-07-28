@@ -57,6 +57,89 @@ export const hotelApi = {
   // Availability calendar
   getCalendar: (from: string, to: string) =>
     api.get<CalendarResponse>(`/hotel/calendar?from=${from}&to=${to}`),
+
+  // Retreats
+  listRetreats: (status?: string) =>
+    api.get<{ retreats: ApiRetreat[] }>(`/hotel/retreats${status ? `?status=${status}` : ""}`),
+  getRetreat: (id: number) => api.get<{ retreat: ApiRetreatDetail }>(`/hotel/retreats/${id}`),
+  createRetreat: (data: RetreatCreate) =>
+    api.post<{ retreat: ApiRetreatDetail }>("/hotel/retreats", { retreat: data }),
+  updateRetreat: (id: number, data: Partial<RetreatCreate>) =>
+    api.patch<{ retreat: ApiRetreatDetail }>(`/hotel/retreats/${id}`, { retreat: data }),
+  deleteRetreat: (id: number) => api.delete(`/hotel/retreats/${id}`),
+  publishRetreat: (id: number) =>
+    api.post<{ retreat: ApiRetreatDetail }>(`/hotel/retreats/${id}/publish`),
+
+  // Retreat program (days + activities)
+  createRetreatDay: (retreatId: number, data: RetreatDayCreate) =>
+    api.post<{ day: ApiRetreatDay }>(`/hotel/retreats/${retreatId}/days`, { retreat_day: data }),
+  updateRetreatDay: (retreatId: number, dayId: number, data: Partial<RetreatDayCreate>) =>
+    api.patch<{ day: ApiRetreatDay }>(`/hotel/retreats/${retreatId}/days/${dayId}`, {
+      retreat_day: data,
+    }),
+  deleteRetreatDay: (retreatId: number, dayId: number) =>
+    api.delete(`/hotel/retreats/${retreatId}/days/${dayId}`),
+  createRetreatActivity: (retreatId: number, dayId: number, data: RetreatActivityCreate) =>
+    api.post<{ activity: ApiRetreatActivity }>(
+      `/hotel/retreats/${retreatId}/days/${dayId}/activities`,
+      { retreat_activity: data },
+    ),
+  updateRetreatActivity: (
+    retreatId: number,
+    dayId: number,
+    activityId: number,
+    data: Partial<RetreatActivityCreate>,
+  ) =>
+    api.patch<{ activity: ApiRetreatActivity }>(
+      `/hotel/retreats/${retreatId}/days/${dayId}/activities/${activityId}`,
+      { retreat_activity: data },
+    ),
+  deleteRetreatActivity: (retreatId: number, dayId: number, activityId: number) =>
+    api.delete(`/hotel/retreats/${retreatId}/days/${dayId}/activities/${activityId}`),
+
+  // Retreat facilitators
+  createRetreatFacilitator: (retreatId: number, data: RetreatFacilitatorCreate) =>
+    api.post<{ facilitator: ApiRetreatFacilitator }>(`/hotel/retreats/${retreatId}/facilitators`, {
+      retreat_facilitator: data,
+    }),
+  updateRetreatFacilitator: (
+    retreatId: number,
+    facilitatorId: number,
+    data: Partial<RetreatFacilitatorCreate>,
+  ) =>
+    api.patch<{ facilitator: ApiRetreatFacilitator }>(
+      `/hotel/retreats/${retreatId}/facilitators/${facilitatorId}`,
+      { retreat_facilitator: data },
+    ),
+  deleteRetreatFacilitator: (retreatId: number, facilitatorId: number) =>
+    api.delete(`/hotel/retreats/${retreatId}/facilitators/${facilitatorId}`),
+
+  // Retreat inclusions ("what's included" chips)
+  createRetreatInclusion: (retreatId: number, data: RetreatInclusionCreate) =>
+    api.post<{ inclusion: ApiRetreatInclusion }>(`/hotel/retreats/${retreatId}/inclusions`, {
+      retreat_inclusion: data,
+    }),
+  deleteRetreatInclusion: (retreatId: number, inclusionId: number) =>
+    api.delete(`/hotel/retreats/${retreatId}/inclusions/${inclusionId}`),
+
+  // Retreat pricing (per room type)
+  createRetreatPricing: (retreatId: number, data: RetreatPricingCreate) =>
+    api.post<{ pricing: ApiRetreatPricing }>(`/hotel/retreats/${retreatId}/pricings`, {
+      retreat_pricing: data,
+    }),
+  updateRetreatPricing: (retreatId: number, pricingId: number, data: Partial<RetreatPricingCreate>) =>
+    api.patch<{ pricing: ApiRetreatPricing }>(
+      `/hotel/retreats/${retreatId}/pricings/${pricingId}`,
+      { retreat_pricing: data },
+    ),
+  deleteRetreatPricing: (retreatId: number, pricingId: number) =>
+    api.delete(`/hotel/retreats/${retreatId}/pricings/${pricingId}`),
+
+  // Retreat gallery (replace-all; first image becomes the cover)
+  batchRetreatImages: (retreatId: number, images: RetreatImageCreate[]) =>
+    api.post<{ images: ApiRetreatImage[] }>(`/hotel/retreats/${retreatId}/images/batch`, {
+      images,
+    }),
 };
 
 // Types
@@ -222,4 +305,169 @@ export interface HotelImage {
 export interface ImageCreate {
   image_url: string;
   category?: string;
+}
+
+// Retreats — shapes mirror ApiSerializers.retreat and friends
+export type RetreatType = "wellness" | "spiritual" | "corporate" | "adventure" | "medical";
+export type RetreatStatus =
+  | "draft"
+  | "pending_review"
+  | "active"
+  | "upcoming"
+  | "closed"
+  | "cancelled";
+
+export interface ApiRetreat {
+  id: number;
+  name: string;
+  slug: string;
+  retreat_type: RetreatType;
+  status: RetreatStatus;
+  duration_nights: number;
+  starts_on: string | null;
+  ends_on: string | null;
+  capacity: number | null;
+  language: string | null;
+  description: string | null;
+  short_description: string | null;
+  location: string | null;
+  country: string | null;
+  country_code: string | null;
+  min_price_cents: number;
+  min_price: number;
+  currency: string;
+  cover_image_url: string | null;
+  featured: boolean;
+  certified: boolean;
+  published_at: string | null;
+  created_by_type: string;
+  hotel: { id: number; name: string; city: string; country: string } | null;
+  created_at: string;
+  commission_rate?: number;
+  commission_percent?: number;
+}
+
+export interface ApiRetreatDetail extends ApiRetreat {
+  days: ApiRetreatDay[];
+  facilitators: ApiRetreatFacilitator[];
+  inclusions: ApiRetreatInclusion[];
+  pricing: ApiRetreatPricing[];
+  images: ApiRetreatImage[];
+}
+
+export interface RetreatCreate {
+  name: string;
+  retreat_type: RetreatType;
+  duration_nights: number;
+  starts_on?: string;
+  ends_on?: string;
+  capacity?: number;
+  language?: string;
+  description?: string;
+  short_description?: string;
+  location?: string;
+  country?: string;
+  country_code?: string;
+  currency?: string;
+  cover_image_url?: string;
+}
+
+export interface ApiRetreatDay {
+  id: number;
+  day_number: number;
+  title: string | null;
+  description: string | null;
+  activities: ApiRetreatActivity[];
+}
+
+export interface RetreatDayCreate {
+  day_number: number;
+  title?: string;
+  description?: string;
+}
+
+export interface ApiRetreatActivity {
+  id: number;
+  name: string;
+  time: string | null;
+  duration_minutes: number | null;
+  position: number;
+  description: string | null;
+  category: string | null;
+  icon: string | null;
+}
+
+export interface RetreatActivityCreate {
+  name: string;
+  time?: string;
+  duration_minutes?: number;
+  position?: number;
+  description?: string;
+  category?: string;
+  icon?: string;
+}
+
+export interface ApiRetreatFacilitator {
+  id: number;
+  name: string;
+  role: "lead" | "assistant";
+  specialty: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  position: number;
+}
+
+export interface RetreatFacilitatorCreate {
+  name: string;
+  role: "lead" | "assistant";
+  specialty?: string;
+  avatar_url?: string;
+  bio?: string;
+  position?: number;
+}
+
+export interface ApiRetreatInclusion {
+  id: number;
+  name: string;
+  category: string | null;
+  icon: string | null;
+  position: number;
+}
+
+export interface RetreatInclusionCreate {
+  name: string;
+  category?: string;
+  icon?: string;
+  position?: number;
+}
+
+export interface ApiRetreatPricing {
+  id: number;
+  room_type: RoomType;
+  price_per_guest_cents: number;
+  price_per_guest: number;
+  currency: string;
+  occupancy_label: string | null;
+  max_guests: number | null;
+}
+
+export interface RetreatPricingCreate {
+  room_type_id: number;
+  price_per_guest_cents: number;
+  currency?: string;
+  occupancy_label?: string;
+  max_guests?: number;
+}
+
+export interface ApiRetreatImage {
+  id: number;
+  image_url: string;
+  position: number;
+  alt_text: string | null;
+  is_cover: boolean;
+}
+
+export interface RetreatImageCreate {
+  image_url: string;
+  alt_text?: string;
 }

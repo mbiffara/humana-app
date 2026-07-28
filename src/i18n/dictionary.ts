@@ -22,7 +22,7 @@ export type Retreat = {
 type Dictionary = {
   hotelWs: {
     badge: string;
-    nav: { calendar: string; rooms: string };
+    nav: { calendar: string; rooms: string; retreats: string };
     calendar: {
       title: string;
       subtitle: string;
@@ -58,6 +58,165 @@ type Dictionary = {
       emptyHint: string;
       autoLabel: string;
       confirmDelete: string;
+    };
+    retreats: {
+      title: string;
+      subtitle: string;
+      create: string;
+      empty: string;
+      emptyHint: string;
+      stats: { duration: string; capacity: string; price: string; nextDate: string };
+      nights: (n: number) => string;
+      guestsMax: (n: number) => string;
+      perPerson: string;
+      editDetails: string;
+      viewProgram: string;
+      viewGallery: string;
+      delete: string;
+      confirmDelete: string;
+      statuses: {
+        draft: string;
+        pending_review: string;
+        active: string;
+        upcoming: string;
+        closed: string;
+        cancelled: string;
+      };
+      wizard: {
+        eyebrow: string;
+        editEyebrow: string;
+        title: string;
+        subtitle: string;
+        steps: { info: string; program: string; pricing: string; gallery: string; review: string };
+        stepOf: (n: number, total: number) => string;
+        back: string;
+        next: string;
+        saving: string;
+        saveError: string;
+        preview: {
+          title: string;
+          hotel: string;
+          nameLabel: string;
+          type: string;
+          dates: string;
+          capacity: string;
+          program: string;
+          basePrice: string;
+          gallery: string;
+          pending: string;
+          progress: string;
+          readyToPublish: string;
+          daysCount: (n: number) => string;
+          imagesCount: (n: number) => string;
+          guests: (n: number) => string;
+        };
+        types: {
+          wellness: string;
+          spiritual: string;
+          corporate: string;
+          adventure: string;
+          medical: string;
+        };
+        info: {
+          title: string;
+          subtitle: string;
+          name: string;
+          namePlaceholder: string;
+          type: string;
+          nights: string;
+          startDate: string;
+          endDate: string;
+          endDateAuto: string;
+          capacity: string;
+          language: string;
+          description: string;
+          descriptionPlaceholder: string;
+        };
+        program: {
+          title: string;
+          subtitle: (n: number) => string;
+          dayLabel: (n: number) => string;
+          dayTitlePlaceholder: string;
+          activitiesCount: (n: number) => string;
+          addActivity: string;
+          activityPlaceholder: string;
+          facilitators: string;
+          facilitatorCount: (n: number, max: number) => string;
+          addFacilitator: string;
+          facilitatorNamePlaceholder: string;
+          specialtyPlaceholder: string;
+          lead: string;
+          assistant: string;
+          included: string;
+          addItem: string;
+          itemPlaceholder: string;
+        };
+        pricing: {
+          title: string;
+          subtitle: string;
+          room: string;
+          roomsCapacity: string;
+          pricePerGuest: string;
+          totalPrice: string;
+          guests: (n: number) => string;
+          earningsTitle: string;
+          agencyCommission: (pct: number) => string;
+          officeCommission: (pct: number) => string;
+          creatorIncome: (pct: number) => string;
+          totalEarnings: string;
+          empty: string;
+          emptyHint: string;
+        };
+        gallery: {
+          title: string;
+          subtitle: string;
+          dropHint: string;
+          browse: string;
+          formats: string;
+          cover: string;
+          reorderHint: string;
+          previewCount: (n: number, max: number) => string;
+        };
+        review: {
+          title: string;
+          subtitle: string;
+          edit: string;
+          hotel: string;
+          basicInfo: string;
+          nameLabel: string;
+          typeLabel: string;
+          durationLabel: string;
+          capacityLabel: string;
+          languageLabel: string;
+          program: string;
+          activitiesCount: (n: number) => string;
+          facilitators: string;
+          included: string;
+          pricingRooms: string;
+          roomsCount: (n: number) => string;
+          perGuest: string;
+          gallery: string;
+          imagesCount: (n: number) => string;
+          publish: string;
+          publishing: string;
+        };
+        confirmation: {
+          eyebrow: string;
+          title: (name: string) => string;
+          subtitle: string;
+          reference: string;
+          retreat: string;
+          startDate: string;
+          hotel: string;
+          capacity: string;
+          type: string;
+          priceFrom: string;
+          roomsConfigured: string;
+          typesCount: (n: number) => string;
+          viewRetreat: string;
+          backToRetreats: string;
+        };
+      };
     };
   };
   login: {
@@ -762,7 +921,7 @@ export const dictionary: Record<Locale, Dictionary> = {
   en: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { calendar: "Calendar", rooms: "Rooms" },
+      nav: { calendar: "Calendar", rooms: "Rooms", retreats: "Retreats" },
       calendar: {
         title: "Availability Calendar",
         subtitle: "Room availability across your property, day by day.",
@@ -798,6 +957,168 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyHint: "Define your room types and their quantities to generate rooms.",
         autoLabel: "Auto-generated",
         confirmDelete: "Remove this room? Its booking history is preserved.",
+      },
+      retreats: {
+        title: "Your retreats",
+        subtitle: "Create and manage wellness retreat programs hosted at your property.",
+        create: "Create retreat",
+        empty: "Your retreats start here",
+        emptyHint: "Create your first wellness retreat program and share it with the HUMANA network.",
+        stats: { duration: "Duration", capacity: "Capacity", price: "Price", nextDate: "Next date" },
+        nights: (n: number) => `${n} night${n === 1 ? "" : "s"}`,
+        guestsMax: (n: number) => `${n} guests max`,
+        perPerson: "/person",
+        editDetails: "Edit details",
+        viewProgram: "View program",
+        viewGallery: "View gallery",
+        delete: "Delete",
+        confirmDelete: "Delete this draft retreat? This can't be undone.",
+        statuses: {
+          draft: "Draft",
+          pending_review: "In review",
+          active: "Active",
+          upcoming: "Upcoming",
+          closed: "Closed",
+          cancelled: "Cancelled",
+        },
+        wizard: {
+          eyebrow: "Create new retreat",
+          editEyebrow: "Edit retreat",
+          title: "Create retreat at your property",
+          subtitle: "Configure the retreat details to be hosted at your hotel.",
+          steps: { info: "Info", program: "Program", pricing: "Pricing", gallery: "Gallery", review: "Review" },
+          stepOf: (n: number, total: number) => `Step ${n} of ${total}`,
+          back: "Back",
+          next: "Next",
+          saving: "Saving…",
+          saveError: "We couldn't save your changes. Please try again.",
+          preview: {
+            title: "Retreat preview",
+            hotel: "Hotel",
+            nameLabel: "Name",
+            type: "Type",
+            dates: "Dates",
+            capacity: "Capacity",
+            program: "Program",
+            basePrice: "Base price",
+            gallery: "Gallery",
+            pending: "Pending",
+            progress: "Progress",
+            readyToPublish: "Ready to publish",
+            daysCount: (n: number) => `${n} day${n === 1 ? "" : "s"}`,
+            imagesCount: (n: number) => `${n} image${n === 1 ? "" : "s"}`,
+            guests: (n: number) => `${n} guests`,
+          },
+          types: {
+            wellness: "Wellness",
+            spiritual: "Spiritual",
+            corporate: "Corporate",
+            adventure: "Adventure",
+            medical: "Medical",
+          },
+          info: {
+            title: "Basic information",
+            subtitle: "Complete the general details of your retreat.",
+            name: "Retreat name",
+            namePlaceholder: "e.g. The Art of Silence",
+            type: "Experience type",
+            nights: "Duration (nights)",
+            startDate: "Start date",
+            endDate: "End date",
+            endDateAuto: "(auto)",
+            capacity: "Max capacity",
+            language: "Retreat language",
+            description: "Description",
+            descriptionPlaceholder:
+              "Describe the experience, its purpose, and what makes it unique…",
+          },
+          program: {
+            title: "Retreat program",
+            subtitle: (n: number) =>
+              `Define the day-by-day activities for your ${n}-night retreat.`,
+            dayLabel: (n: number) => `Day ${n}`,
+            dayTitlePlaceholder: "e.g. Arrival & Welcome",
+            activitiesCount: (n: number) => `${n} ${n === 1 ? "activity" : "activities"}`,
+            addActivity: "Add activity",
+            activityPlaceholder: "Activity name",
+            facilitators: "Facilitators",
+            facilitatorCount: (n: number, max: number) => `${n} of ${max}`,
+            addFacilitator: "Add facilitator",
+            facilitatorNamePlaceholder: "Full name",
+            specialtyPlaceholder: "Specialty (e.g. Yoga and movement instructor)",
+            lead: "Lead",
+            assistant: "Assistant",
+            included: "What's included",
+            addItem: "Add item",
+            itemPlaceholder: "e.g. Plant-based meals",
+          },
+          pricing: {
+            title: "Room pricing",
+            subtitle: "Set the price per person by room type for your retreat.",
+            room: "Room",
+            roomsCapacity: "Rooms / Capacity",
+            pricePerGuest: "Price / Guest",
+            totalPrice: "Total price",
+            guests: (n: number) => `${n} guest${n === 1 ? "" : "s"}`,
+            earningsTitle: "Total estimated earnings",
+            agencyCommission: (pct: number) => `Agency commission (${pct}%)`,
+            officeCommission: (pct: number) => `Office commission (${pct}%)`,
+            creatorIncome: (pct: number) => `Creator income (${pct}%)`,
+            totalEarnings: "Total estimated earnings",
+            empty: "No room types yet",
+            emptyHint: "Define your room types first so you can price the retreat per room.",
+          },
+          gallery: {
+            title: "Image gallery",
+            subtitle:
+              "Upload photos of your property, common areas, and amenities. Minimum 3, maximum 10.",
+            dropHint: "Drag your images here",
+            browse: "or click to select files",
+            formats: "JPG, PNG or WebP · Max 10 MB each",
+            cover: "Cover",
+            reorderHint: "Drag to reorder · First one is the cover",
+            previewCount: (n: number, max: number) => `Preview (${n}/${max})`,
+          },
+          review: {
+            title: "Review & publish",
+            subtitle: "Review all details before publishing your retreat.",
+            edit: "Edit",
+            hotel: "Hotel",
+            basicInfo: "Basic information",
+            nameLabel: "Name",
+            typeLabel: "Type",
+            durationLabel: "Duration",
+            capacityLabel: "Capacity",
+            languageLabel: "Language",
+            program: "Program",
+            activitiesCount: (n: number) => `${n} ${n === 1 ? "activity" : "activities"}`,
+            facilitators: "Facilitators",
+            included: "What's included",
+            pricingRooms: "Pricing & rooms",
+            roomsCount: (n: number) => `${n} room${n === 1 ? "" : "s"}`,
+            perGuest: "/guest",
+            gallery: "Gallery",
+            imagesCount: (n: number) => `${n} image${n === 1 ? "" : "s"}`,
+            publish: "Publish retreat",
+            publishing: "Publishing…",
+          },
+          confirmation: {
+            eyebrow: "Retreat published",
+            title: (name: string) => `${name} published!`,
+            subtitle: "Your retreat is now available on the HUMANA platform.",
+            reference: "Reference",
+            retreat: "Retreat",
+            startDate: "Start date",
+            hotel: "Hotel",
+            capacity: "Capacity",
+            type: "Type",
+            priceFrom: "Price from",
+            roomsConfigured: "Rooms configured",
+            typesCount: (n: number) => `${n} type${n === 1 ? "" : "s"}`,
+            viewRetreat: "View retreat",
+            backToRetreats: "Back to retreats",
+          },
+        },
       },
     },
     login: {
@@ -1681,7 +2002,7 @@ export const dictionary: Record<Locale, Dictionary> = {
   es: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { calendar: "Calendario", rooms: "Habitaciones" },
+      nav: { calendar: "Calendario", rooms: "Habitaciones", retreats: "Retiros" },
       calendar: {
         title: "Calendario de Disponibilidad",
         subtitle: "Disponibilidad de habitaciones de tu propiedad, día a día.",
@@ -1717,6 +2038,168 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyHint: "Define tus tipos de habitación y sus cantidades para generar habitaciones.",
         autoLabel: "Autogenerada",
         confirmDelete: "¿Quitar esta habitación? Su historial de reservas se conserva.",
+      },
+      retreats: {
+        title: "Tus retiros",
+        subtitle: "Crea y gestiona programas de retiro de bienestar en tu propiedad.",
+        create: "Crear retiro",
+        empty: "Tus retiros comienzan aquí",
+        emptyHint: "Crea tu primer programa de retiro de bienestar y compártelo con la red HUMANA.",
+        stats: { duration: "Duración", capacity: "Capacidad", price: "Precio", nextDate: "Próxima fecha" },
+        nights: (n: number) => `${n} noche${n === 1 ? "" : "s"}`,
+        guestsMax: (n: number) => `${n} huéspedes máx`,
+        perPerson: "/persona",
+        editDetails: "Editar detalles",
+        viewProgram: "Ver programa",
+        viewGallery: "Ver galería",
+        delete: "Eliminar",
+        confirmDelete: "¿Eliminar este borrador de retiro? Esta acción no se puede deshacer.",
+        statuses: {
+          draft: "Borrador",
+          pending_review: "En revisión",
+          active: "Activo",
+          upcoming: "Próximo",
+          closed: "Cerrado",
+          cancelled: "Cancelado",
+        },
+        wizard: {
+          eyebrow: "Crear nuevo retiro",
+          editEyebrow: "Editar retiro",
+          title: "Crea un retiro en tu propiedad",
+          subtitle: "Configura los detalles del retiro que se hospedará en tu hotel.",
+          steps: { info: "Info", program: "Programa", pricing: "Precios", gallery: "Galería", review: "Revisión" },
+          stepOf: (n: number, total: number) => `Paso ${n} de ${total}`,
+          back: "Atrás",
+          next: "Siguiente",
+          saving: "Guardando…",
+          saveError: "No pudimos guardar tus cambios. Inténtalo de nuevo.",
+          preview: {
+            title: "Vista previa del retiro",
+            hotel: "Hotel",
+            nameLabel: "Nombre",
+            type: "Tipo",
+            dates: "Fechas",
+            capacity: "Capacidad",
+            program: "Programa",
+            basePrice: "Precio base",
+            gallery: "Galería",
+            pending: "Pendiente",
+            progress: "Progreso",
+            readyToPublish: "Listo para publicar",
+            daysCount: (n: number) => `${n} día${n === 1 ? "" : "s"}`,
+            imagesCount: (n: number) => `${n} imagen${n === 1 ? "" : "es"}`,
+            guests: (n: number) => `${n} huéspedes`,
+          },
+          types: {
+            wellness: "Bienestar",
+            spiritual: "Espiritual",
+            corporate: "Corporativo",
+            adventure: "Aventura",
+            medical: "Médico",
+          },
+          info: {
+            title: "Información básica",
+            subtitle: "Completa los datos generales de tu retiro.",
+            name: "Nombre del retiro",
+            namePlaceholder: "ej. El Arte del Silencio",
+            type: "Tipo de experiencia",
+            nights: "Duración (noches)",
+            startDate: "Fecha de inicio",
+            endDate: "Fecha de fin",
+            endDateAuto: "(auto)",
+            capacity: "Capacidad máxima",
+            language: "Idioma del retiro",
+            description: "Descripción",
+            descriptionPlaceholder:
+              "Describe la experiencia, su propósito y qué la hace única…",
+          },
+          program: {
+            title: "Programa del retiro",
+            subtitle: (n: number) =>
+              `Define las actividades día por día de tu retiro de ${n} noches.`,
+            dayLabel: (n: number) => `Día ${n}`,
+            dayTitlePlaceholder: "ej. Llegada y bienvenida",
+            activitiesCount: (n: number) => `${n} actividad${n === 1 ? "" : "es"}`,
+            addActivity: "Agregar actividad",
+            activityPlaceholder: "Nombre de la actividad",
+            facilitators: "Facilitadores",
+            facilitatorCount: (n: number, max: number) => `${n} de ${max}`,
+            addFacilitator: "Agregar facilitador",
+            facilitatorNamePlaceholder: "Nombre completo",
+            specialtyPlaceholder: "Especialidad (ej. Instructor de yoga y movimiento)",
+            lead: "Principal",
+            assistant: "Asistente",
+            included: "Qué incluye",
+            addItem: "Agregar ítem",
+            itemPlaceholder: "ej. Comidas plant-based",
+          },
+          pricing: {
+            title: "Precios por habitación",
+            subtitle: "Define el precio por persona según el tipo de habitación para tu retiro.",
+            room: "Habitación",
+            roomsCapacity: "Habitaciones / Capacidad",
+            pricePerGuest: "Precio / Huésped",
+            totalPrice: "Precio total",
+            guests: (n: number) => `${n} huésped${n === 1 ? "" : "es"}`,
+            earningsTitle: "Ingresos totales estimados",
+            agencyCommission: (pct: number) => `Comisión de agencia (${pct}%)`,
+            officeCommission: (pct: number) => `Comisión de oficina (${pct}%)`,
+            creatorIncome: (pct: number) => `Ingreso del creador (${pct}%)`,
+            totalEarnings: "Ingresos totales estimados",
+            empty: "Aún no hay tipos de habitación",
+            emptyHint: "Define primero tus tipos de habitación para poder fijar precios por habitación.",
+          },
+          gallery: {
+            title: "Galería de imágenes",
+            subtitle:
+              "Sube fotos de tu propiedad, áreas comunes y amenidades. Mínimo 3, máximo 10.",
+            dropHint: "Arrastra tus imágenes aquí",
+            browse: "o haz clic para seleccionar archivos",
+            formats: "JPG, PNG o WebP · Máx 10 MB cada una",
+            cover: "Portada",
+            reorderHint: "Arrastra para reordenar · La primera es la portada",
+            previewCount: (n: number, max: number) => `Vista previa (${n}/${max})`,
+          },
+          review: {
+            title: "Revisar y publicar",
+            subtitle: "Revisa todos los detalles antes de publicar tu retiro.",
+            edit: "Editar",
+            hotel: "Hotel",
+            basicInfo: "Información básica",
+            nameLabel: "Nombre",
+            typeLabel: "Tipo",
+            durationLabel: "Duración",
+            capacityLabel: "Capacidad",
+            languageLabel: "Idioma",
+            program: "Programa",
+            activitiesCount: (n: number) => `${n} actividad${n === 1 ? "" : "es"}`,
+            facilitators: "Facilitadores",
+            included: "Qué incluye",
+            pricingRooms: "Precios y habitaciones",
+            roomsCount: (n: number) => `${n} habitación${n === 1 ? "" : "es"}`,
+            perGuest: "/huésped",
+            gallery: "Galería",
+            imagesCount: (n: number) => `${n} imagen${n === 1 ? "" : "es"}`,
+            publish: "Publicar retiro",
+            publishing: "Publicando…",
+          },
+          confirmation: {
+            eyebrow: "Retiro publicado",
+            title: (name: string) => `¡${name} publicado!`,
+            subtitle: "Tu retiro ya está disponible en la plataforma HUMANA.",
+            reference: "Referencia",
+            retreat: "Retiro",
+            startDate: "Fecha de inicio",
+            hotel: "Hotel",
+            capacity: "Capacidad",
+            type: "Tipo",
+            priceFrom: "Precio desde",
+            roomsConfigured: "Habitaciones configuradas",
+            typesCount: (n: number) => `${n} tipo${n === 1 ? "" : "s"}`,
+            viewRetreat: "Ver retiro",
+            backToRetreats: "Volver a retiros",
+          },
+        },
       },
     },
     login: {
@@ -2600,7 +3083,7 @@ export const dictionary: Record<Locale, Dictionary> = {
   pt: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { calendar: "Calendário", rooms: "Quartos" },
+      nav: { calendar: "Calendário", rooms: "Quartos", retreats: "Retiros" },
       calendar: {
         title: "Calendário de Disponibilidade",
         subtitle: "Disponibilidade de quartos da sua propriedade, dia a dia.",
@@ -2636,6 +3119,168 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyHint: "Defina os seus tipos de quarto e as suas quantidades para gerar quartos.",
         autoLabel: "Gerado automaticamente",
         confirmDelete: "Remover este quarto? O histórico de reservas é preservado.",
+      },
+      retreats: {
+        title: "Os seus retiros",
+        subtitle: "Crie e gerencie programas de retiro de bem-estar na sua propriedade.",
+        create: "Criar retiro",
+        empty: "Os seus retiros começam aqui",
+        emptyHint: "Crie o seu primeiro programa de retiro de bem-estar e compartilhe com a rede HUMANA.",
+        stats: { duration: "Duração", capacity: "Capacidade", price: "Preço", nextDate: "Próxima data" },
+        nights: (n: number) => `${n} noite${n === 1 ? "" : "s"}`,
+        guestsMax: (n: number) => `${n} hóspedes máx`,
+        perPerson: "/pessoa",
+        editDetails: "Editar detalhes",
+        viewProgram: "Ver programa",
+        viewGallery: "Ver galeria",
+        delete: "Excluir",
+        confirmDelete: "Excluir este rascunho de retiro? Esta ação não pode ser desfeita.",
+        statuses: {
+          draft: "Rascunho",
+          pending_review: "Em revisão",
+          active: "Ativo",
+          upcoming: "Próximo",
+          closed: "Encerrado",
+          cancelled: "Cancelado",
+        },
+        wizard: {
+          eyebrow: "Criar novo retiro",
+          editEyebrow: "Editar retiro",
+          title: "Crie um retiro na sua propriedade",
+          subtitle: "Configure os detalhes do retiro que será hospedado no seu hotel.",
+          steps: { info: "Info", program: "Programa", pricing: "Preços", gallery: "Galeria", review: "Revisão" },
+          stepOf: (n: number, total: number) => `Etapa ${n} de ${total}`,
+          back: "Voltar",
+          next: "Próximo",
+          saving: "Salvando…",
+          saveError: "Não foi possível salvar as alterações. Tente novamente.",
+          preview: {
+            title: "Prévia do retiro",
+            hotel: "Hotel",
+            nameLabel: "Nome",
+            type: "Tipo",
+            dates: "Datas",
+            capacity: "Capacidade",
+            program: "Programa",
+            basePrice: "Preço base",
+            gallery: "Galeria",
+            pending: "Pendente",
+            progress: "Progresso",
+            readyToPublish: "Pronto para publicar",
+            daysCount: (n: number) => `${n} dia${n === 1 ? "" : "s"}`,
+            imagesCount: (n: number) => `${n} imagem${n === 1 ? "" : "ns"}`,
+            guests: (n: number) => `${n} hóspedes`,
+          },
+          types: {
+            wellness: "Bem-estar",
+            spiritual: "Espiritual",
+            corporate: "Corporativo",
+            adventure: "Aventura",
+            medical: "Médico",
+          },
+          info: {
+            title: "Informações básicas",
+            subtitle: "Complete os dados gerais do seu retiro.",
+            name: "Nome do retiro",
+            namePlaceholder: "ex. A Arte do Silêncio",
+            type: "Tipo de experiência",
+            nights: "Duração (noites)",
+            startDate: "Data de início",
+            endDate: "Data de término",
+            endDateAuto: "(auto)",
+            capacity: "Capacidade máxima",
+            language: "Idioma do retiro",
+            description: "Descrição",
+            descriptionPlaceholder:
+              "Descreva a experiência, o seu propósito e o que a torna única…",
+          },
+          program: {
+            title: "Programa do retiro",
+            subtitle: (n: number) =>
+              `Defina as atividades dia a dia do seu retiro de ${n} noites.`,
+            dayLabel: (n: number) => `Dia ${n}`,
+            dayTitlePlaceholder: "ex. Chegada e boas-vindas",
+            activitiesCount: (n: number) => `${n} atividade${n === 1 ? "" : "s"}`,
+            addActivity: "Adicionar atividade",
+            activityPlaceholder: "Nome da atividade",
+            facilitators: "Facilitadores",
+            facilitatorCount: (n: number, max: number) => `${n} de ${max}`,
+            addFacilitator: "Adicionar facilitador",
+            facilitatorNamePlaceholder: "Nome completo",
+            specialtyPlaceholder: "Especialidade (ex. Instrutor de yoga e movimento)",
+            lead: "Principal",
+            assistant: "Assistente",
+            included: "O que está incluído",
+            addItem: "Adicionar item",
+            itemPlaceholder: "ex. Refeições plant-based",
+          },
+          pricing: {
+            title: "Preços por quarto",
+            subtitle: "Defina o preço por pessoa por tipo de quarto para o seu retiro.",
+            room: "Quarto",
+            roomsCapacity: "Quartos / Capacidade",
+            pricePerGuest: "Preço / Hóspede",
+            totalPrice: "Preço total",
+            guests: (n: number) => `${n} hóspede${n === 1 ? "" : "s"}`,
+            earningsTitle: "Receita total estimada",
+            agencyCommission: (pct: number) => `Comissão da agência (${pct}%)`,
+            officeCommission: (pct: number) => `Comissão do escritório (${pct}%)`,
+            creatorIncome: (pct: number) => `Receita do criador (${pct}%)`,
+            totalEarnings: "Receita total estimada",
+            empty: "Ainda não há tipos de quarto",
+            emptyHint: "Defina primeiro os seus tipos de quarto para poder precificar o retiro por quarto.",
+          },
+          gallery: {
+            title: "Galeria de imagens",
+            subtitle:
+              "Envie fotos da sua propriedade, áreas comuns e comodidades. Mínimo 3, máximo 10.",
+            dropHint: "Arraste as suas imagens aqui",
+            browse: "ou clique para selecionar arquivos",
+            formats: "JPG, PNG ou WebP · Máx 10 MB cada",
+            cover: "Capa",
+            reorderHint: "Arraste para reordenar · A primeira é a capa",
+            previewCount: (n: number, max: number) => `Prévia (${n}/${max})`,
+          },
+          review: {
+            title: "Revisar e publicar",
+            subtitle: "Revise todos os detalhes antes de publicar o seu retiro.",
+            edit: "Editar",
+            hotel: "Hotel",
+            basicInfo: "Informações básicas",
+            nameLabel: "Nome",
+            typeLabel: "Tipo",
+            durationLabel: "Duração",
+            capacityLabel: "Capacidade",
+            languageLabel: "Idioma",
+            program: "Programa",
+            activitiesCount: (n: number) => `${n} atividade${n === 1 ? "" : "s"}`,
+            facilitators: "Facilitadores",
+            included: "O que está incluído",
+            pricingRooms: "Preços e quartos",
+            roomsCount: (n: number) => `${n} quarto${n === 1 ? "" : "s"}`,
+            perGuest: "/hóspede",
+            gallery: "Galeria",
+            imagesCount: (n: number) => `${n} imagem${n === 1 ? "" : "ns"}`,
+            publish: "Publicar retiro",
+            publishing: "Publicando…",
+          },
+          confirmation: {
+            eyebrow: "Retiro publicado",
+            title: (name: string) => `${name} publicado!`,
+            subtitle: "O seu retiro já está disponível na plataforma HUMANA.",
+            reference: "Referência",
+            retreat: "Retiro",
+            startDate: "Data de início",
+            hotel: "Hotel",
+            capacity: "Capacidade",
+            type: "Tipo",
+            priceFrom: "Preço a partir de",
+            roomsConfigured: "Quartos configurados",
+            typesCount: (n: number) => `${n} tipo${n === 1 ? "" : "s"}`,
+            viewRetreat: "Ver retiro",
+            backToRetreats: "Voltar aos retiros",
+          },
+        },
       },
     },
     login: {
