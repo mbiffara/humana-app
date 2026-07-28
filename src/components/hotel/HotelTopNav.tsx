@@ -13,6 +13,7 @@ export function HotelTopNav() {
   const pathname = usePathname();
 
   const links = [
+    { label: t.hotelWs.nav.dashboard, href: "/hotel/dashboard" },
     { label: t.hotelWs.nav.calendar, href: "/hotel/calendar" },
     { label: t.hotelWs.nav.rooms, href: "/hotel/rooms" },
     { label: t.hotelWs.nav.retreats, href: "/hotel/retreats" },
@@ -30,7 +31,7 @@ export function HotelTopNav() {
       <div className="mx-auto flex max-w-[1480px] items-center justify-between px-10 py-5">
         {/* Left: Logo + Hotel badge */}
         <Link
-          href="/hotel/calendar"
+          href="/hotel/dashboard"
           className="flex items-center gap-3 transition-opacity hover:opacity-80"
         >
           <Image
