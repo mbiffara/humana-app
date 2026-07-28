@@ -13,11 +13,30 @@ export const hotelApi = {
 
   // Room types
   listRoomTypes: () => api.get<{ room_types: RoomType[] }>("/hotel/room_types"),
+  getRoomType: (id: number) => api.get<{ room_type: RoomTypeDetail }>(`/hotel/room_types/${id}`),
   createRoomType: (data: RoomTypeCreate) =>
     api.post<{ room_type: RoomType }>("/hotel/room_types", { room_type: data }),
   updateRoomType: (id: number, data: Partial<RoomTypeCreate>) =>
     api.patch<{ room_type: RoomType }>(`/hotel/room_types/${id}`, { room_type: data }),
   deleteRoomType: (id: number) => api.delete(`/hotel/room_types/${id}`),
+
+  // Room type gallery (replace-all; first image becomes primary/thumbnail)
+  batchRoomTypeImages: (roomTypeId: number, images: { image_url: string; alt_text?: string }[]) =>
+    api.post<{ images: RoomTypeImage[] }>(`/hotel/room_types/${roomTypeId}/images/batch`, {
+      images,
+    }),
+
+  // Room type volume pricing tiers
+  createRateTier: (roomTypeId: number, data: RateTierCreate) =>
+    api.post<{ rate_tier: RateTier }>(`/hotel/room_types/${roomTypeId}/rate_tiers`, {
+      rate_tier: data,
+    }),
+  updateRateTier: (roomTypeId: number, tierId: number, data: Partial<RateTierCreate>) =>
+    api.patch<{ rate_tier: RateTier }>(`/hotel/room_types/${roomTypeId}/rate_tiers/${tierId}`, {
+      rate_tier: data,
+    }),
+  deleteRateTier: (roomTypeId: number, tierId: number) =>
+    api.delete(`/hotel/room_types/${roomTypeId}/rate_tiers/${tierId}`),
 
   // Amenities
   listAmenities: () => api.get<{ amenities: Amenity[] }>("/hotel/amenities"),
@@ -196,29 +215,69 @@ export interface OrgProfile {
   status: string;
 }
 
+export type RoomTypeStatus = "active" | "draft" | "inactive";
+
 export interface RoomType {
   id: number;
   name: string;
   category: string;
+  status: RoomTypeStatus;
   capacity: number;
   area_sqm: number | null;
   price_per_night_cents: number;
   currency: string;
   description: string | null;
+  image_url: string | null;
   total_rooms: number | null;
   bed_type: string | null;
+  view_type: string | null;
+  amenities_list: string[];
+}
+
+export interface RoomTypeDetail extends RoomType {
+  images: RoomTypeImage[];
+  rate_tiers: RateTier[];
+}
+
+export interface RoomTypeImage {
+  id: number;
+  image_url: string;
+  position: number;
+  alt_text: string | null;
+  is_primary: boolean;
+}
+
+export interface RateTier {
+  id: number;
+  min_rooms: number;
+  starts_on: string | null;
+  ends_on: string | null;
+  price_per_night_cents: number;
+  price_per_night: number;
+  position: number;
+}
+
+export interface RateTierCreate {
+  min_rooms: number;
+  starts_on?: string | null;
+  ends_on?: string | null;
+  price_per_night_cents: number;
+  position?: number;
 }
 
 export interface RoomTypeCreate {
   name: string;
   category?: string;
+  status?: RoomTypeStatus;
   capacity: number;
-  area_sqm?: number;
+  area_sqm?: number | null;
   price_per_night_cents: number;
   currency?: string;
   description?: string;
   total_rooms?: number;
   bed_type?: string;
+  view_type?: string;
+  amenities?: string[];
 }
 
 export type RoomStatus = "available" | "maintenance" | "out_of_service";

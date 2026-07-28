@@ -1,47 +1,52 @@
-/** Hotel workspace — rooms management.
- *  Rooms grouped by room type: rename/number each room, set its status,
- *  add new rooms, or remove them. total_rooms stays in sync server-side. */
+/** Hotel workspace — room type management (HT-03).
+ *  Cards per room type with rate, unit counts, live availability and
+ *  occupancy (from the calendar API), linking into the 5-step editor
+ *  and the individual-units page. */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
-import { hotelApi, type Room, type RoomStatus, type RoomType } from "@/lib/api/hotel";
+import { hotelApi, type CalendarResponse, type RoomType, type RoomTypeStatus } from "@/lib/api/hotel";
 
-const STATUS_ORDER: RoomStatus[] = ["available", "maintenance", "out_of_service"];
-
-const STATUS_STYLES: Record<RoomStatus, string> = {
-  available: "bg-humana-gold-light text-humana-ink",
-  maintenance: "bg-amber-100 text-amber-900",
-  out_of_service: "bg-humana-stone text-humana-subtle",
+const STATUS_STYLES: Record<RoomTypeStatus, { chip: string; dot: string }> = {
+  active: { chip: "border-emerald-500 text-emerald-600", dot: "bg-emerald-500" },
+  draft: { chip: "border-humana-gold text-humana-gold", dot: "bg-humana-gold" },
+  inactive: { chip: "border-humana-line text-humana-subtle", dot: "bg-humana-subtle" },
 };
 
-export default function HotelRoomsPage() {
-  const { t } = useLocale();
-  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const OCCUPANCY_WINDOW = 30;
 
-  // Per-room-type "add room" input value
-  const [newRoomNames, setNewRoomNames] = useState<Record<number, string>>({});
-  // In-progress room renames, keyed by room id. Cleared after save so the
-  // input falls back to the server value — a rejected rename (e.g. duplicate
-  // number) visibly reverts instead of lingering as if it were saved.
-  const [drafts, setDrafts] = useState<Record<number, string>>({});
-  // Room id pending delete confirmation (two-step, no browser dialog)
+type TypeStats = { available: number; occupancy: number };
+
+function isoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+export default function RoomTypesPage() {
+  const { t } = useLocale();
+  const tr = t.hotelWs.roomTypes;
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+  const [stats, setStats] = useState<Record<number, TypeStats>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [typesRes, roomsRes] = await Promise.all([
+      const today = new Date();
+      const to = new Date(today);
+      to.setDate(to.getDate() + OCCUPANCY_WINDOW - 1);
+      const [typesRes, calendarRes] = await Promise.all([
         hotelApi.listRoomTypes(),
-        hotelApi.listRooms(),
+        hotelApi.getCalendar(isoDate(today), isoDate(to)).catch(() => null),
       ]);
       setRoomTypes(typesRes.room_types);
-      setRooms(roomsRes.rooms);
-      setError(null);
+      if (calendarRes) setStats(computeStats(calendarRes));
+      setError(false);
     } catch {
-      setError("API");
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -51,55 +56,31 @@ export default function HotelRoomsPage() {
     fetchData();
   }, [fetchData]);
 
-  async function renameRoom(room: Room, number: string) {
-    const trimmed = number.trim();
-    try {
-      if (trimmed && trimmed !== room.number) {
-        const res = await hotelApi.updateRoom(room.id, { number: trimmed });
-        setRooms((prev) => prev.map((r) => (r.id === room.id ? res.room : r)));
-      }
-    } catch {
-      // rejected (e.g. duplicate number) — dropping the draft below reverts
-      // the input to the server value
-    } finally {
-      setDrafts((prev) => {
-        const next = { ...prev };
-        delete next[room.id];
-        return next;
-      });
+  function computeStats(calendar: CalendarResponse): Record<number, TypeStats> {
+    const result: Record<number, TypeStats> = {};
+    for (const entry of calendar.room_types) {
+      const today = entry.days[0];
+      const operationalNights = entry.rooms_operational * entry.days.length;
+      const bookedNights = entry.days.reduce((sum, day) => sum + day.booked, 0);
+      result[entry.room_type.id] = {
+        available: today ? today.available : entry.rooms_operational,
+        occupancy: operationalNights > 0 ? Math.round((bookedNights / operationalNights) * 100) : 0,
+      };
     }
+    return result;
   }
 
-  async function setStatus(room: Room, status: RoomStatus) {
-    if (status === room.status) return;
+  async function deleteRoomType(id: number) {
     try {
-      const res = await hotelApi.updateRoom(room.id, { status });
-      setRooms((prev) => prev.map((r) => (r.id === room.id ? res.room : r)));
-    } catch {
-      fetchData();
-    }
-  }
-
-  async function addRoom(roomType: RoomType) {
-    const number = (newRoomNames[roomType.id] ?? "").trim();
-    if (!number) return;
-    try {
-      const res = await hotelApi.createRoom({ room_type_id: roomType.id, number });
-      setRooms((prev) => [...prev, res.room]);
-      setNewRoomNames((prev) => ({ ...prev, [roomType.id]: "" }));
-    } catch {
-      // duplicate number or validation error — keep the input for correction
-    }
-  }
-
-  async function deleteRoom(room: Room) {
-    try {
-      await hotelApi.deleteRoom(room.id);
-      setRooms((prev) => prev.filter((r) => r.id !== room.id));
+      await hotelApi.deleteRoomType(id);
+      setRoomTypes((prev) => prev.filter((rt) => rt.id !== id));
     } finally {
       setPendingDelete(null);
     }
   }
+
+  const totalUnits = roomTypes.reduce((sum, rt) => sum + (rt.total_rooms ?? 0), 0);
+  const totalAvailable = roomTypes.reduce((sum, rt) => sum + (stats[rt.id]?.available ?? 0), 0);
 
   if (loading) {
     return (
@@ -110,140 +91,181 @@ export default function HotelRoomsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1100px] px-10 py-10">
+    <div className="mx-auto max-w-[1160px] px-10 py-10">
       {/* Header */}
-      <div className="mb-10">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-          {t.hotelWs.badge}
-        </p>
-        <h1 className="mt-2 text-[32px] font-bold text-humana-ink">{t.hotelWs.rooms.title}</h1>
-        <p className="mt-1 text-[14px] text-humana-muted">{t.hotelWs.rooms.subtitle}</p>
+      <div className="mb-10 flex items-end justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+            {tr.eyebrow}
+          </p>
+          <h1 className="mt-2 text-[32px] font-bold text-humana-ink">{tr.title}</h1>
+          <p className="mt-1 text-[14px] text-humana-muted">
+            {roomTypes.length > 0
+              ? tr.summary(roomTypes.length, totalUnits, totalAvailable)
+              : tr.subtitle}
+          </p>
+        </div>
+        <Link
+          href="/hotel/rooms/edit/step-1"
+          onClick={() => sessionStorage.removeItem("humana.room-editor")}
+          className="bg-humana-ink px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85"
+        >
+          + {tr.addRoomType}
+        </Link>
       </div>
 
       {roomTypes.length === 0 || error ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-humana-line bg-white py-24 text-center">
-          <p className="text-[18px] font-medium text-humana-ink">{t.hotelWs.rooms.empty}</p>
-          <p className="mt-2 max-w-md text-[14px] text-humana-muted">{t.hotelWs.rooms.emptyHint}</p>
+          <p className="text-[18px] font-medium text-humana-ink">{tr.empty}</p>
+          <p className="mt-2 max-w-md text-[14px] text-humana-muted">{tr.emptyHint}</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-8 stagger-children">
+        <div className="flex flex-col gap-5 stagger-children">
           {roomTypes.map((roomType) => {
-            const typeRooms = rooms.filter((r) => r.room_type_id === roomType.id);
+            const typeStats = stats[roomType.id];
             return (
-              <section
+              <article
                 key={roomType.id}
-                className="overflow-hidden rounded-xl border border-humana-line bg-white"
+                className="flex overflow-hidden rounded-xl border border-humana-line bg-white card-hover"
               >
-                {/* Room type header */}
-                <div className="flex items-center justify-between border-b border-humana-line px-7 py-5">
-                  <div>
-                    <h2 className="text-[18px] font-semibold text-humana-ink">{roomType.name}</h2>
-                    <p className="mt-0.5 text-[12px] text-humana-muted">
-                      {typeRooms.length} {t.hotelWs.calendar.roomsLabel} ·{" "}
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: roomType.currency,
-                        minimumFractionDigits: 0,
-                      }).format(roomType.price_per_night_cents / 100)}{" "}
-                      {t.hotelWs.calendar.perNight}
-                    </p>
-                  </div>
-
-                  {/* Add room */}
-                  <div className="flex items-center gap-3">
-                    <input
-                      value={newRoomNames[roomType.id] ?? ""}
-                      onChange={(e) =>
-                        setNewRoomNames((prev) => ({ ...prev, [roomType.id]: e.target.value }))
-                      }
-                      onKeyDown={(e) => e.key === "Enter" && addRoom(roomType)}
-                      placeholder={t.hotelWs.rooms.numberPlaceholder}
-                      className="w-56 rounded-lg border border-humana-line bg-white px-4 py-2.5 text-[13px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle focus:border-humana-gold"
+                {/* Thumbnail */}
+                <div className="relative w-[200px] shrink-0 bg-humana-stone">
+                  {roomType.image_url ? (
+                    <Image
+                      src={roomType.image_url}
+                      alt={roomType.name}
+                      fill
+                      unoptimized
+                      className="object-cover"
                     />
-                    <button
-                      onClick={() => addRoom(roomType)}
-                      className="cursor-pointer rounded-lg bg-humana-ink px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-85"
-                    >
-                      {t.hotelWs.rooms.addRoom}
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c9c4b4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
 
-                {/* Rooms list */}
-                <div className="px-7 py-3">
-                  {typeRooms.map((room) => (
-                    <div
-                      key={room.id}
-                      className="flex items-center gap-4 border-b border-humana-line/60 py-3 last:border-b-0"
-                    >
-                      {/* Editable number */}
-                      <input
-                        value={drafts[room.id] ?? room.number}
-                        onChange={(e) =>
-                          setDrafts((prev) => ({ ...prev, [room.id]: e.target.value }))
-                        }
-                        onBlur={(e) => renameRoom(room, e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-                        className="min-w-[160px] flex-1 rounded-md border border-transparent bg-transparent px-2 py-1.5 text-[14px] text-humana-ink outline-none transition-colors hover:border-humana-line focus:border-humana-gold focus:bg-white"
-                      />
-                      {room.auto_generated && (
-                        <span
-                          className="text-[10px] uppercase tracking-wider text-humana-subtle"
-                          title={t.hotelWs.rooms.autoLabel}
-                        >
-                          {t.hotelWs.rooms.autoLabel}
-                        </span>
-                      )}
-
-                      {/* Status pills */}
-                      <div className="flex items-center gap-1">
-                        {STATUS_ORDER.map((status) => (
-                          <button
-                            key={status}
-                            onClick={() => setStatus(room, status)}
-                            className={`cursor-pointer rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-all ${
-                              room.status === status
-                                ? STATUS_STYLES[status]
-                                : "text-humana-subtle/60 hover:text-humana-muted"
-                            }`}
-                          >
-                            {t.hotelWs.rooms.statuses[status]}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Delete (two-step confirm) */}
-                      {pendingDelete === room.id ? (
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => deleteRoom(room)}
-                            title={t.hotelWs.rooms.confirmDelete}
-                            className="cursor-pointer rounded-md bg-red-600 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white"
-                          >
-                            ✓
-                          </button>
-                          <button
-                            onClick={() => setPendingDelete(null)}
-                            className="cursor-pointer rounded-md border border-humana-line px-2 py-1 text-[10px] text-humana-muted"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setPendingDelete(room.id)}
-                          className="cursor-pointer p-1 text-humana-subtle/60 transition-colors hover:text-red-600"
-                          aria-label="Delete room"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                            <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                          </svg>
-                        </button>
+                {/* Body */}
+                <div className="flex flex-1 flex-col justify-between px-7 py-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h2 className="text-[18px] font-semibold text-humana-ink">{roomType.name}</h2>
+                      {roomType.description && (
+                        <p className="mt-0.5 truncate text-[13px] text-humana-muted">
+                          {roomType.description}
+                        </p>
                       )}
                     </div>
-                  ))}
+                    <span
+                      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${STATUS_STYLES[roomType.status].chip}`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${STATUS_STYLES[roomType.status].dot}`} />
+                      {tr.statuses[roomType.status]}
+                    </span>
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="mt-5 flex items-center gap-10">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                        {tr.rate}
+                      </p>
+                      <p className="mt-1 text-[14px] font-medium text-humana-ink">
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: roomType.currency || "USD",
+                          minimumFractionDigits: 0,
+                        }).format(roomType.price_per_night_cents / 100)}{" "}
+                        {tr.perNight}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                        {tr.units}
+                      </p>
+                      <p className="mt-1 text-[14px] font-medium text-humana-ink">
+                        {roomType.total_rooms ?? 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                        {tr.available}
+                      </p>
+                      <p className="mt-1 text-[14px] font-medium text-humana-gold">
+                        {typeStats?.available ?? "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                        {tr.maxGuests}
+                      </p>
+                      <p className="mt-1 text-[14px] font-medium text-humana-ink">
+                        {roomType.capacity}
+                      </p>
+                    </div>
+                    <div className="min-w-[140px]">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                        {tr.occupancy}
+                      </p>
+                      <div className="mt-2 flex items-center gap-2.5">
+                        <div className="h-1.5 w-[90px] overflow-hidden rounded-full bg-humana-stone">
+                          <div
+                            className="h-full rounded-full bg-humana-gold"
+                            style={{ width: `${typeStats?.occupancy ?? 0}%` }}
+                          />
+                        </div>
+                        <span className="text-[13px] font-medium text-humana-ink">
+                          {typeStats ? `${typeStats.occupancy}%` : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-5 flex items-center gap-6 border-t border-humana-line pt-4">
+                    <Link
+                      href={`/hotel/rooms/edit/step-1?id=${roomType.id}`}
+                      className="text-[13px] font-medium text-humana-gold transition-opacity hover:opacity-75"
+                    >
+                      {tr.editDetails}
+                    </Link>
+                    <Link
+                      href="/hotel/rooms/units"
+                      className="text-[13px] text-humana-muted transition-colors hover:text-humana-ink"
+                    >
+                      {tr.manageUnits}
+                    </Link>
+                    {pendingDelete === roomType.id ? (
+                      <span className="ml-auto flex items-center gap-3 text-[13px]">
+                        <span className="text-humana-muted">{tr.confirmDelete}</span>
+                        <button
+                          onClick={() => deleteRoomType(roomType.id)}
+                          className="cursor-pointer font-medium text-red-600 hover:opacity-75"
+                        >
+                          {tr.delete}
+                        </button>
+                        <button
+                          onClick={() => setPendingDelete(null)}
+                          className="cursor-pointer text-humana-muted hover:text-humana-ink"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setPendingDelete(roomType.id)}
+                        className="ml-auto cursor-pointer text-[13px] text-humana-muted transition-colors hover:text-red-600"
+                      >
+                        {tr.delete}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </section>
+              </article>
             );
           })}
         </div>

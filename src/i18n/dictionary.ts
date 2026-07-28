@@ -59,6 +59,132 @@ type Dictionary = {
       autoLabel: string;
       confirmDelete: string;
     };
+    roomTypes: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      summary: (types: number, units: number, available: number) => string;
+      addRoomType: string;
+      empty: string;
+      emptyHint: string;
+      rate: string;
+      units: string;
+      available: string;
+      maxGuests: string;
+      occupancy: string;
+      perNight: string;
+      editDetails: string;
+      manageUnits: string;
+      delete: string;
+      confirmDelete: string;
+      statuses: { active: string; draft: string; inactive: string };
+    };
+    roomEditor: {
+      createEyebrow: string;
+      editEyebrow: string;
+      stepOf: (n: number, total: number) => string;
+      steps: { details: string; amenities: string; photos: string; availability: string; pricing: string };
+      cancel: string;
+      back: string;
+      next: string;
+      save: string;
+      saving: string;
+      saveError: string;
+      preview: {
+        title: string;
+        capacity: string;
+        units: string;
+        bed: string;
+        rate: string;
+        amenities: string;
+        pending: string;
+        progress: string;
+        guests: (n: number) => string;
+        rooms: (n: number) => string;
+        configured: (n: number) => string;
+      };
+      details: {
+        title: string;
+        subtitle: string;
+        name: string;
+        namePlaceholder: string;
+        description: string;
+        descriptionPlaceholder: string;
+        maxGuests: string;
+        totalUnits: string;
+        unitsHint: string;
+        bedType: string;
+        bedTypes: {
+          single: string;
+          double: string;
+          queen: string;
+          king: string;
+          twin: string;
+          bunk: string;
+          sofa_bed: string;
+        };
+        roomSize: string;
+        status: string;
+      };
+      amenitiesStep: {
+        title: string;
+        subtitle: string;
+        selected: (n: number) => string;
+        groups: { features: string; bathroom: string; technology: string; outdoor: string };
+        items: Record<string, string>;
+      };
+      photos: {
+        title: string;
+        subtitle: string;
+        count: (n: number, max: number) => string;
+        reorderHint: string;
+        cover: string;
+        dropHint: string;
+        browse: string;
+        formats: string;
+        uploadFailed: string;
+        retry: string;
+        uploadFailedHint: string;
+      };
+      availability: {
+        title: string;
+        subtitle: string;
+        totalUnits: (n: number) => string;
+        legendAvailable: string;
+        legendBlocked: string;
+        legendBooked: string;
+        blockDates: string;
+        blockedDates: string;
+        unitsBlocked: (n: number, total: number) => string;
+        noBlocks: string;
+        remove: string;
+        unitsLabel: string;
+        allUnits: string;
+        reasonPlaceholder: string;
+        from: string;
+        to: string;
+        add: string;
+        cancel: string;
+        hint: string;
+      };
+      pricing: {
+        title: string;
+        subtitle: string;
+        baseRate: string;
+        pricePerNight: string;
+        currency: string;
+        volumeTitle: string;
+        volumeHint: string;
+        addTier: string;
+        roomsCol: string;
+        periodCol: string;
+        priceCol: string;
+        vsBase: string;
+        anyPeriod: string;
+        minRooms: string;
+        footnote: string;
+      };
+    };
     retreats: {
       title: string;
       subtitle: string;
@@ -957,6 +1083,167 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyHint: "Define your room types and their quantities to generate rooms.",
         autoLabel: "Auto-generated",
         confirmDelete: "Remove this room? Its booking history is preserved.",
+      },
+      roomTypes: {
+        eyebrow: "Room inventory",
+        title: "Manage your room types",
+        subtitle: "Define the room categories offered at your property.",
+        summary: (types: number, units: number, available: number) =>
+          `${types} room type${types === 1 ? "" : "s"} · ${units} total units · ${available} available`,
+        addRoomType: "Add room type",
+        empty: "Your room inventory starts here",
+        emptyHint: "Create your first room type to start receiving reservations.",
+        rate: "Rate",
+        units: "Units",
+        available: "Available",
+        maxGuests: "Max guests",
+        occupancy: "Occupancy",
+        perNight: "/night",
+        editDetails: "Edit details",
+        manageUnits: "Manage units",
+        delete: "Delete",
+        confirmDelete: "Delete this room type? Its rooms and pricing are removed too.",
+        statuses: { active: "Active", draft: "Draft", inactive: "Inactive" },
+      },
+      roomEditor: {
+        createEyebrow: "New room type",
+        editEyebrow: "Edit room type",
+        stepOf: (n: number, total: number) => `Step ${n} of ${total}`,
+        steps: {
+          details: "Details",
+          amenities: "Amenities",
+          photos: "Photos",
+          availability: "Availability",
+          pricing: "Pricing",
+        },
+        cancel: "Cancel",
+        back: "Back",
+        next: "Next",
+        save: "Save",
+        saving: "Saving…",
+        saveError: "We couldn't save your changes. Please try again.",
+        preview: {
+          title: "Room preview",
+          capacity: "Capacity",
+          units: "Units",
+          bed: "Bed",
+          rate: "Rate",
+          amenities: "Amenities",
+          pending: "Pending",
+          progress: "Progress",
+          guests: (n: number) => `${n} guest${n === 1 ? "" : "s"}`,
+          rooms: (n: number) => `${n} room${n === 1 ? "" : "s"}`,
+          configured: (n: number) => `${n} configured`,
+        },
+        details: {
+          title: "Room details",
+          subtitle: "Define the basic information and configuration for this room type.",
+          name: "Room type name",
+          namePlaceholder: "e.g. Jungle Suite",
+          description: "Description",
+          descriptionPlaceholder: "Describe the room, its views, and what makes it special…",
+          maxGuests: "Max guests",
+          totalUnits: "Total units",
+          unitsHint: "Manage individual units",
+          bedType: "Bed type",
+          bedTypes: {
+            single: "Single",
+            double: "Double",
+            queen: "Queen",
+            king: "King",
+            twin: "Twin",
+            bunk: "Bunk",
+            sofa_bed: "Sofa bed",
+          },
+          roomSize: "Room size (m²)",
+          status: "Status",
+        },
+        amenitiesStep: {
+          title: "Amenities",
+          subtitle: "Select the amenities and features available in this room type.",
+          selected: (n: number) => `${n} amenit${n === 1 ? "y" : "ies"} selected`,
+          groups: {
+            features: "Room features",
+            bathroom: "Bathroom",
+            technology: "Technology",
+            outdoor: "Outdoor & views",
+          },
+          items: {
+            air_conditioning: "Air conditioning",
+            private_terrace: "Private terrace",
+            king_bed: "King bed",
+            minibar: "Minibar",
+            safe_box: "Safe box",
+            desk: "Desk",
+            closet: "Closet",
+            outdoor_shower: "Outdoor shower",
+            rainfall_shower: "Rainfall shower",
+            organic_toiletries: "Organic toiletries",
+            bathtub: "Bathtub",
+            bidet: "Bidet",
+            hair_dryer: "Hair dryer",
+            free_wifi: "Free Wi-Fi",
+            smart_tv: "Smart TV",
+            bluetooth_speaker: "Bluetooth speaker",
+            usb_charging: "USB charging",
+            garden_view: "Garden view",
+            hammock: "Hammock",
+            ocean_view: "Ocean view",
+            pool_access: "Pool access",
+            private_plunge_pool: "Private plunge pool",
+          },
+        },
+        photos: {
+          title: "Room photos",
+          subtitle: "Manage photos for this room type. Minimum 3, maximum 8. First photo is used as cover.",
+          count: (n: number, max: number) => `${n} / ${max} photos`,
+          reorderHint: "Drag to reorder · First one is the cover",
+          cover: "Cover",
+          dropHint: "Drag your images here",
+          browse: "or click to select files",
+          formats: "JPG, PNG or WebP · Max 10 MB each",
+          uploadFailed: "Upload failed",
+          retry: "Retry",
+          uploadFailedHint: "Some images couldn't be uploaded. Retry or remove them to continue.",
+        },
+        availability: {
+          title: "Availability",
+          subtitle: "Set date-based availability and block dates for this room type.",
+          totalUnits: (n: number) => `${n} total unit${n === 1 ? "" : "s"}`,
+          legendAvailable: "Available",
+          legendBlocked: "Blocked",
+          legendBooked: "Booked",
+          blockDates: "Block dates",
+          blockedDates: "Blocked dates",
+          unitsBlocked: (n: number, total: number) => `${n} of ${total} units blocked`,
+          noBlocks: "No blocked periods for this room type.",
+          remove: "Remove",
+          unitsLabel: "Units to block",
+          allUnits: "All units",
+          reasonPlaceholder: "Reason (optional)",
+          from: "From",
+          to: "To",
+          add: "Block dates",
+          cancel: "Cancel",
+          hint: "Blocked units are removed from the bookable inventory for the selected dates.",
+        },
+        pricing: {
+          title: "Pricing",
+          subtitle: "Set rates and volume discounts for group bookings.",
+          baseRate: "Base rate",
+          pricePerNight: "Price per night (U$D)",
+          currency: "Currency",
+          volumeTitle: "Volume pricing",
+          volumeHint: "Define custom rates based on the number of rooms booked. Each tier can have its own date range.",
+          addTier: "Add tier",
+          roomsCol: "Rooms",
+          periodCol: "Period",
+          priceCol: "Price / night",
+          vsBase: "Vs base",
+          anyPeriod: "All year",
+          minRooms: "Min rooms",
+          footnote: "The same volume tier can have different prices for different date ranges.",
+        },
       },
       retreats: {
         title: "Your retreats",
@@ -2039,6 +2326,167 @@ export const dictionary: Record<Locale, Dictionary> = {
         autoLabel: "Autogenerada",
         confirmDelete: "¿Quitar esta habitación? Su historial de reservas se conserva.",
       },
+      roomTypes: {
+        eyebrow: "Inventario de habitaciones",
+        title: "Gestiona tus tipos de habitación",
+        subtitle: "Define las categorías de habitación que ofrece tu propiedad.",
+        summary: (types: number, units: number, available: number) =>
+          `${types} tipo${types === 1 ? "" : "s"} de habitación · ${units} unidades totales · ${available} disponibles`,
+        addRoomType: "Agregar tipo",
+        empty: "Tu inventario de habitaciones comienza aquí",
+        emptyHint: "Crea tu primer tipo de habitación para empezar a recibir reservas.",
+        rate: "Tarifa",
+        units: "Unidades",
+        available: "Disponibles",
+        maxGuests: "Huéspedes máx",
+        occupancy: "Ocupación",
+        perNight: "/noche",
+        editDetails: "Editar detalles",
+        manageUnits: "Gestionar unidades",
+        delete: "Eliminar",
+        confirmDelete: "¿Eliminar este tipo de habitación? Sus habitaciones y precios también se eliminan.",
+        statuses: { active: "Activa", draft: "Borrador", inactive: "Inactiva" },
+      },
+      roomEditor: {
+        createEyebrow: "Nuevo tipo de habitación",
+        editEyebrow: "Editar tipo de habitación",
+        stepOf: (n: number, total: number) => `Paso ${n} de ${total}`,
+        steps: {
+          details: "Detalles",
+          amenities: "Amenidades",
+          photos: "Fotos",
+          availability: "Disponibilidad",
+          pricing: "Precios",
+        },
+        cancel: "Cancelar",
+        back: "Atrás",
+        next: "Siguiente",
+        save: "Guardar",
+        saving: "Guardando…",
+        saveError: "No pudimos guardar tus cambios. Inténtalo de nuevo.",
+        preview: {
+          title: "Vista previa",
+          capacity: "Capacidad",
+          units: "Unidades",
+          bed: "Cama",
+          rate: "Tarifa",
+          amenities: "Amenidades",
+          pending: "Pendiente",
+          progress: "Progreso",
+          guests: (n: number) => `${n} huésped${n === 1 ? "" : "es"}`,
+          rooms: (n: number) => `${n} ${n === 1 ? "habitación" : "habitaciones"}`,
+          configured: (n: number) => `${n} configuradas`,
+        },
+        details: {
+          title: "Detalles de la habitación",
+          subtitle: "Define la información básica y la configuración de este tipo de habitación.",
+          name: "Nombre del tipo",
+          namePlaceholder: "ej. Jungle Suite",
+          description: "Descripción",
+          descriptionPlaceholder: "Describe la habitación, sus vistas y qué la hace especial…",
+          maxGuests: "Huéspedes máx",
+          totalUnits: "Unidades totales",
+          unitsHint: "Gestionar unidades individuales",
+          bedType: "Tipo de cama",
+          bedTypes: {
+            single: "Individual",
+            double: "Doble",
+            queen: "Queen",
+            king: "King",
+            twin: "Twin",
+            bunk: "Litera",
+            sofa_bed: "Sofá cama",
+          },
+          roomSize: "Tamaño (m²)",
+          status: "Estado",
+        },
+        amenitiesStep: {
+          title: "Amenidades",
+          subtitle: "Selecciona las amenidades y características disponibles en este tipo de habitación.",
+          selected: (n: number) => `${n} amenidad${n === 1 ? "" : "es"} seleccionada${n === 1 ? "" : "s"}`,
+          groups: {
+            features: "Características",
+            bathroom: "Baño",
+            technology: "Tecnología",
+            outdoor: "Exterior y vistas",
+          },
+          items: {
+            air_conditioning: "Aire acondicionado",
+            private_terrace: "Terraza privada",
+            king_bed: "Cama king",
+            minibar: "Minibar",
+            safe_box: "Caja fuerte",
+            desk: "Escritorio",
+            closet: "Clóset",
+            outdoor_shower: "Ducha exterior",
+            rainfall_shower: "Ducha de lluvia",
+            organic_toiletries: "Amenities orgánicos",
+            bathtub: "Bañera",
+            bidet: "Bidet",
+            hair_dryer: "Secador de pelo",
+            free_wifi: "Wi-Fi gratis",
+            smart_tv: "Smart TV",
+            bluetooth_speaker: "Parlante Bluetooth",
+            usb_charging: "Carga USB",
+            garden_view: "Vista al jardín",
+            hammock: "Hamaca",
+            ocean_view: "Vista al mar",
+            pool_access: "Acceso a piscina",
+            private_plunge_pool: "Piscina privada",
+          },
+        },
+        photos: {
+          title: "Fotos de la habitación",
+          subtitle: "Gestiona las fotos de este tipo de habitación. Mínimo 3, máximo 8. La primera es la portada.",
+          count: (n: number, max: number) => `${n} / ${max} fotos`,
+          reorderHint: "Arrastra para reordenar · La primera es la portada",
+          cover: "Portada",
+          dropHint: "Arrastra tus imágenes aquí",
+          browse: "o haz clic para seleccionar archivos",
+          formats: "JPG, PNG o WebP · Máx 10 MB cada una",
+          uploadFailed: "Error al subir",
+          retry: "Reintentar",
+          uploadFailedHint: "Algunas imágenes no se pudieron subir. Reintenta o quítalas para continuar.",
+        },
+        availability: {
+          title: "Disponibilidad",
+          subtitle: "Configura la disponibilidad por fechas y bloquea fechas para este tipo de habitación.",
+          totalUnits: (n: number) => `${n} unidad${n === 1 ? "" : "es"} en total`,
+          legendAvailable: "Disponible",
+          legendBlocked: "Bloqueada",
+          legendBooked: "Reservada",
+          blockDates: "Bloquear fechas",
+          blockedDates: "Fechas bloqueadas",
+          unitsBlocked: (n: number, total: number) => `${n} de ${total} unidades bloqueadas`,
+          noBlocks: "Sin períodos bloqueados para este tipo de habitación.",
+          remove: "Quitar",
+          unitsLabel: "Unidades a bloquear",
+          allUnits: "Todas las unidades",
+          reasonPlaceholder: "Motivo (opcional)",
+          from: "Desde",
+          to: "Hasta",
+          add: "Bloquear fechas",
+          cancel: "Cancelar",
+          hint: "Las unidades bloqueadas se quitan del inventario reservable en las fechas seleccionadas.",
+        },
+        pricing: {
+          title: "Precios",
+          subtitle: "Define tarifas y descuentos por volumen para reservas grupales.",
+          baseRate: "Tarifa base",
+          pricePerNight: "Precio por noche (U$D)",
+          currency: "Moneda",
+          volumeTitle: "Precios por volumen",
+          volumeHint: "Define tarifas según la cantidad de habitaciones reservadas. Cada nivel puede tener su propio rango de fechas.",
+          addTier: "Agregar nivel",
+          roomsCol: "Habitaciones",
+          periodCol: "Período",
+          priceCol: "Precio / noche",
+          vsBase: "Vs base",
+          anyPeriod: "Todo el año",
+          minRooms: "Habitaciones mín",
+          footnote: "El mismo nivel de volumen puede tener precios distintos para diferentes rangos de fechas.",
+        },
+      },
       retreats: {
         title: "Tus retiros",
         subtitle: "Crea y gestiona programas de retiro de bienestar en tu propiedad.",
@@ -3119,6 +3567,167 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyHint: "Defina os seus tipos de quarto e as suas quantidades para gerar quartos.",
         autoLabel: "Gerado automaticamente",
         confirmDelete: "Remover este quarto? O histórico de reservas é preservado.",
+      },
+      roomTypes: {
+        eyebrow: "Inventário de quartos",
+        title: "Gerencie os seus tipos de quarto",
+        subtitle: "Defina as categorias de quarto oferecidas na sua propriedade.",
+        summary: (types: number, units: number, available: number) =>
+          `${types} tipo${types === 1 ? "" : "s"} de quarto · ${units} unidades no total · ${available} disponíveis`,
+        addRoomType: "Adicionar tipo",
+        empty: "O seu inventário de quartos começa aqui",
+        emptyHint: "Crie o seu primeiro tipo de quarto para começar a receber reservas.",
+        rate: "Tarifa",
+        units: "Unidades",
+        available: "Disponíveis",
+        maxGuests: "Hóspedes máx",
+        occupancy: "Ocupação",
+        perNight: "/noite",
+        editDetails: "Editar detalhes",
+        manageUnits: "Gerenciar unidades",
+        delete: "Excluir",
+        confirmDelete: "Excluir este tipo de quarto? Os seus quartos e preços também serão removidos.",
+        statuses: { active: "Ativo", draft: "Rascunho", inactive: "Inativo" },
+      },
+      roomEditor: {
+        createEyebrow: "Novo tipo de quarto",
+        editEyebrow: "Editar tipo de quarto",
+        stepOf: (n: number, total: number) => `Etapa ${n} de ${total}`,
+        steps: {
+          details: "Detalhes",
+          amenities: "Comodidades",
+          photos: "Fotos",
+          availability: "Disponibilidade",
+          pricing: "Preços",
+        },
+        cancel: "Cancelar",
+        back: "Voltar",
+        next: "Próximo",
+        save: "Salvar",
+        saving: "Salvando…",
+        saveError: "Não foi possível salvar as alterações. Tente novamente.",
+        preview: {
+          title: "Prévia do quarto",
+          capacity: "Capacidade",
+          units: "Unidades",
+          bed: "Cama",
+          rate: "Tarifa",
+          amenities: "Comodidades",
+          pending: "Pendente",
+          progress: "Progresso",
+          guests: (n: number) => `${n} hóspede${n === 1 ? "" : "s"}`,
+          rooms: (n: number) => `${n} quarto${n === 1 ? "" : "s"}`,
+          configured: (n: number) => `${n} configuradas`,
+        },
+        details: {
+          title: "Detalhes do quarto",
+          subtitle: "Defina as informações básicas e a configuração deste tipo de quarto.",
+          name: "Nome do tipo",
+          namePlaceholder: "ex. Jungle Suite",
+          description: "Descrição",
+          descriptionPlaceholder: "Descreva o quarto, as suas vistas e o que o torna especial…",
+          maxGuests: "Hóspedes máx",
+          totalUnits: "Unidades totais",
+          unitsHint: "Gerenciar unidades individuais",
+          bedType: "Tipo de cama",
+          bedTypes: {
+            single: "Solteiro",
+            double: "Casal",
+            queen: "Queen",
+            king: "King",
+            twin: "Twin",
+            bunk: "Beliche",
+            sofa_bed: "Sofá-cama",
+          },
+          roomSize: "Tamanho (m²)",
+          status: "Status",
+        },
+        amenitiesStep: {
+          title: "Comodidades",
+          subtitle: "Selecione as comodidades e características disponíveis neste tipo de quarto.",
+          selected: (n: number) => `${n} comodidade${n === 1 ? "" : "s"} selecionada${n === 1 ? "" : "s"}`,
+          groups: {
+            features: "Características",
+            bathroom: "Banheiro",
+            technology: "Tecnologia",
+            outdoor: "Exterior e vistas",
+          },
+          items: {
+            air_conditioning: "Ar-condicionado",
+            private_terrace: "Terraço privativo",
+            king_bed: "Cama king",
+            minibar: "Frigobar",
+            safe_box: "Cofre",
+            desk: "Escrivaninha",
+            closet: "Closet",
+            outdoor_shower: "Ducha externa",
+            rainfall_shower: "Chuveiro de chuva",
+            organic_toiletries: "Amenities orgânicos",
+            bathtub: "Banheira",
+            bidet: "Bidê",
+            hair_dryer: "Secador de cabelo",
+            free_wifi: "Wi-Fi grátis",
+            smart_tv: "Smart TV",
+            bluetooth_speaker: "Caixa de som Bluetooth",
+            usb_charging: "Carregamento USB",
+            garden_view: "Vista para o jardim",
+            hammock: "Rede",
+            ocean_view: "Vista para o mar",
+            pool_access: "Acesso à piscina",
+            private_plunge_pool: "Piscina privativa",
+          },
+        },
+        photos: {
+          title: "Fotos do quarto",
+          subtitle: "Gerencie as fotos deste tipo de quarto. Mínimo 3, máximo 8. A primeira é a capa.",
+          count: (n: number, max: number) => `${n} / ${max} fotos`,
+          reorderHint: "Arraste para reordenar · A primeira é a capa",
+          cover: "Capa",
+          dropHint: "Arraste as suas imagens aqui",
+          browse: "ou clique para selecionar arquivos",
+          formats: "JPG, PNG ou WebP · Máx 10 MB cada",
+          uploadFailed: "Falha no envio",
+          retry: "Tentar novamente",
+          uploadFailedHint: "Algumas imagens não puderam ser enviadas. Tente novamente ou remova-as para continuar.",
+        },
+        availability: {
+          title: "Disponibilidade",
+          subtitle: "Configure a disponibilidade por datas e bloqueie datas para este tipo de quarto.",
+          totalUnits: (n: number) => `${n} unidade${n === 1 ? "" : "s"} no total`,
+          legendAvailable: "Disponível",
+          legendBlocked: "Bloqueado",
+          legendBooked: "Reservado",
+          blockDates: "Bloquear datas",
+          blockedDates: "Datas bloqueadas",
+          unitsBlocked: (n: number, total: number) => `${n} de ${total} unidades bloqueadas`,
+          noBlocks: "Sem períodos bloqueados para este tipo de quarto.",
+          remove: "Remover",
+          unitsLabel: "Unidades a bloquear",
+          allUnits: "Todas as unidades",
+          reasonPlaceholder: "Motivo (opcional)",
+          from: "De",
+          to: "Até",
+          add: "Bloquear datas",
+          cancel: "Cancelar",
+          hint: "As unidades bloqueadas são removidas do inventário reservável nas datas selecionadas.",
+        },
+        pricing: {
+          title: "Preços",
+          subtitle: "Defina tarifas e descontos por volume para reservas em grupo.",
+          baseRate: "Tarifa base",
+          pricePerNight: "Preço por noite (U$D)",
+          currency: "Moeda",
+          volumeTitle: "Preços por volume",
+          volumeHint: "Defina tarifas de acordo com a quantidade de quartos reservados. Cada nível pode ter o seu próprio intervalo de datas.",
+          addTier: "Adicionar nível",
+          roomsCol: "Quartos",
+          periodCol: "Período",
+          priceCol: "Preço / noite",
+          vsBase: "Vs base",
+          anyPeriod: "O ano todo",
+          minRooms: "Quartos mín",
+          footnote: "O mesmo nível de volume pode ter preços diferentes para intervalos de datas distintos.",
+        },
       },
       retreats: {
         title: "Os seus retiros",
