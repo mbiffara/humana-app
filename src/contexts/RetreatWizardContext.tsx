@@ -49,6 +49,8 @@ export type RetreatWizardState = {
   inclusions: string[];
   pricing: PricingEntry[];
   photos: string[];
+  /** Blob URLs whose background upload failed — blocked from advancing until retried or removed */
+  failedUploads: string[];
 };
 
 const initial: RetreatWizardState = {
@@ -65,6 +67,7 @@ const initial: RetreatWizardState = {
   inclusions: [],
   pricing: [],
   photos: [],
+  failedUploads: [],
 };
 
 const STORAGE_KEY = "humana.retreat-wizard";
@@ -115,6 +118,7 @@ function stateFromApi(r: ApiRetreatDetail): RetreatWizardState {
       price: p.price_per_guest_cents ? String(p.price_per_guest_cents / 100) : "",
     })),
     photos: r.images.map((img) => img.image_url),
+    failedUploads: [],
   };
 }
 
@@ -125,6 +129,8 @@ type RetreatWizardContextValue = {
   hydrated: boolean;
   /** Swaps a photo URL in place (blob preview → uploaded URL), race-safe. */
   swapPhotoUrl: (oldUrl: string, newUrl: string) => void;
+  markUploadFailed: (url: string) => void;
+  clearUploadFailed: (url: string) => void;
   /** Replaces the wizard state with a retreat loaded from the API. */
   loadRetreat: (id: number) => Promise<void>;
   loadingRetreat: boolean;
@@ -143,7 +149,14 @@ export function RetreatWizardProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
-      if (stored) setState({ ...initial, ...JSON.parse(stored) });
+      if (stored) {
+        const merged = { ...initial, ...JSON.parse(stored) } as RetreatWizardState;
+        // blob: URLs don't survive a reload — drop them so dead previews
+        // can't count toward the gallery or linger as failed uploads
+        merged.photos = (merged.photos ?? []).filter((url) => url.startsWith("http"));
+        merged.failedUploads = [];
+        setState(merged);
+      }
     } catch {
       /* corrupt storage — start fresh */
     }
@@ -169,6 +182,22 @@ export function RetreatWizardProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({
       ...prev,
       photos: prev.photos.map((url) => (url === oldUrl ? newUrl : url)),
+      failedUploads: prev.failedUploads.filter((url) => url !== oldUrl),
+    }));
+  }, []);
+
+  const markUploadFailed = useCallback((url: string) => {
+    setState((prev) =>
+      prev.failedUploads.includes(url)
+        ? prev
+        : { ...prev, failedUploads: [...prev.failedUploads, url] },
+    );
+  }, []);
+
+  const clearUploadFailed = useCallback((url: string) => {
+    setState((prev) => ({
+      ...prev,
+      failedUploads: prev.failedUploads.filter((u) => u !== url),
     }));
   }, []);
 
@@ -190,6 +219,8 @@ export function RetreatWizardProvider({ children }: { children: ReactNode }) {
         reset,
         hydrated,
         swapPhotoUrl,
+        markUploadFailed,
+        clearUploadFailed,
         loadRetreat,
         loadingRetreat,
         isUploading,

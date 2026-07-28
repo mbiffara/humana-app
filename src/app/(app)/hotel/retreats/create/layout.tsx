@@ -95,47 +95,32 @@ function WizardShell({ children }: { children: ReactNode }) {
   const saveProgram = useCallback(async () => {
     const retreatId = state.retreatId;
     if (!retreatId) return;
-    const { retreat } = await hotelApi.getRetreat(retreatId);
-
-    // Replace-all: the wizard state is the source of truth for the program
-    for (const day of retreat.days) {
-      await hotelApi.deleteRetreatDay(retreatId, day.id);
-    }
-    for (const [i, day] of state.days.entries()) {
-      const created = await hotelApi.createRetreatDay(retreatId, {
+    // Single transactional replace — a mid-save failure can never leave the
+    // server with a half-rebuilt program (the API rolls back atomically)
+    await hotelApi.replaceRetreatProgram(retreatId, {
+      days: state.days.map((day, i) => ({
         day_number: i + 1,
         title: day.title.trim() || undefined,
-      });
-      const activities = day.activities.filter((a) => a.name.trim());
-      for (const [j, activity] of activities.entries()) {
-        await hotelApi.createRetreatActivity(retreatId, created.day.id, {
-          name: activity.name.trim(),
-          time: activity.time || undefined,
-          position: j,
-        });
-      }
-    }
-
-    for (const facilitator of retreat.facilitators) {
-      await hotelApi.deleteRetreatFacilitator(retreatId, facilitator.id);
-    }
-    const facilitators = state.facilitators.filter((f) => f.name.trim());
-    for (const [i, facilitator] of facilitators.entries()) {
-      await hotelApi.createRetreatFacilitator(retreatId, {
-        name: facilitator.name.trim(),
-        role: facilitator.role,
-        specialty: facilitator.specialty.trim() || undefined,
-        position: i,
-      });
-    }
-
-    for (const inclusion of retreat.inclusions) {
-      await hotelApi.deleteRetreatInclusion(retreatId, inclusion.id);
-    }
-    const inclusions = state.inclusions.filter((name) => name.trim());
-    for (const [i, name] of inclusions.entries()) {
-      await hotelApi.createRetreatInclusion(retreatId, { name: name.trim(), position: i });
-    }
+        activities: day.activities
+          .filter((a) => a.name.trim())
+          .map((activity, j) => ({
+            name: activity.name.trim(),
+            time: activity.time || undefined,
+            position: j,
+          })),
+      })),
+      facilitators: state.facilitators
+        .filter((f) => f.name.trim())
+        .map((facilitator, i) => ({
+          name: facilitator.name.trim(),
+          role: facilitator.role,
+          specialty: facilitator.specialty.trim() || undefined,
+          position: i,
+        })),
+      inclusions: state.inclusions
+        .filter((name) => name.trim())
+        .map((name, i) => ({ name: name.trim(), position: i })),
+    });
   }, [state]);
 
   const savePricing = useCallback(async () => {
@@ -181,7 +166,13 @@ function WizardShell({ children }: { children: ReactNode }) {
       case 2:
         return state.pricing.some((p) => toCents(p.price) > 0);
       case 3:
-        return state.photos.length >= 3 && !isUploading;
+        // Only persisted uploads count — blob previews are filtered at save,
+        // and failed uploads must be retried or removed before advancing
+        return (
+          state.photos.filter((url) => url.startsWith("http")).length >= 3 &&
+          state.failedUploads.length === 0 &&
+          !isUploading
+        );
       default:
         return true;
     }

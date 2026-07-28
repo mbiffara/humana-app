@@ -70,6 +70,10 @@ export const hotelApi = {
   publishRetreat: (id: number) =>
     api.post<{ retreat: ApiRetreatDetail }>(`/hotel/retreats/${id}/publish`),
 
+  // Retreat program — atomic replace of days/activities/facilitators/inclusions
+  replaceRetreatProgram: (retreatId: number, program: RetreatProgramReplace) =>
+    api.put<{ retreat: ApiRetreatDetail }>(`/hotel/retreats/${retreatId}/program`, program),
+
   // Retreat program (days + activities)
   createRetreatDay: (retreatId: number, data: RetreatDayCreate) =>
     api.post<{ day: ApiRetreatDay }>(`/hotel/retreats/${retreatId}/days`, { retreat_day: data }),
@@ -370,6 +374,17 @@ export interface RetreatCreate {
   country_code?: string;
   currency?: string;
   cover_image_url?: string;
+}
+
+export interface RetreatProgramReplace {
+  days: {
+    day_number: number;
+    title?: string;
+    description?: string;
+    activities: { name: string; time?: string; position?: number }[];
+  }[];
+  facilitators: RetreatFacilitatorCreate[];
+  inclusions: { name: string; position?: number }[];
 }
 
 export interface ApiRetreatDay {
