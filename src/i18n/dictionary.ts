@@ -176,6 +176,9 @@ type Dictionary = {
           cover: string;
           reorderHint: string;
           previewCount: (n: number, max: number) => string;
+          uploadFailed: string;
+          retry: string;
+          uploadFailedHint: string;
         };
         review: {
           title: string;
@@ -1078,6 +1081,10 @@ export const dictionary: Record<Locale, Dictionary> = {
             cover: "Cover",
             reorderHint: "Drag to reorder · First one is the cover",
             previewCount: (n: number, max: number) => `Preview (${n}/${max})`,
+            uploadFailed: "Upload failed",
+            retry: "Retry",
+            uploadFailedHint:
+              "Some images couldn't be uploaded. Retry or remove them to continue.",
           },
           review: {
             title: "Review & publish",
@@ -2159,6 +2166,10 @@ export const dictionary: Record<Locale, Dictionary> = {
             cover: "Portada",
             reorderHint: "Arrastra para reordenar · La primera es la portada",
             previewCount: (n: number, max: number) => `Vista previa (${n}/${max})`,
+            uploadFailed: "Error al subir",
+            retry: "Reintentar",
+            uploadFailedHint:
+              "Algunas imágenes no se pudieron subir. Reintenta o quítalas para continuar.",
           },
           review: {
             title: "Revisar y publicar",
@@ -3240,6 +3251,10 @@ export const dictionary: Record<Locale, Dictionary> = {
             cover: "Capa",
             reorderHint: "Arraste para reordenar · A primeira é a capa",
             previewCount: (n: number, max: number) => `Prévia (${n}/${max})`,
+            uploadFailed: "Falha no envio",
+            retry: "Tentar novamente",
+            uploadFailedHint:
+              "Algumas imagens não puderam ser enviadas. Tente novamente ou remova-as para continuar.",
           },
           review: {
             title: "Revisar e publicar",

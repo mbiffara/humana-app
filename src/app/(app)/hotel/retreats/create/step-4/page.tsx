@@ -9,12 +9,12 @@ import { useRetreatWizard } from "@/contexts/RetreatWizardContext";
 import { createPreviewUrl, uploadImage } from "@/lib/upload";
 
 const MAX_IMAGES = 10;
-const MIN_IMAGES = 3;
 
 export default function RetreatGalleryStep() {
   const { t } = useLocale();
   const tw = t.hotelWs.retreats.wizard;
-  const { state, set, swapPhotoUrl, setIsUploading } = useRetreatWizard();
+  const { state, set, swapPhotoUrl, markUploadFailed, clearUploadFailed, setIsUploading } =
+    useRetreatWizard();
   const [dragOver, setDragOver] = useState(false);
   const [dropTarget, setDropTarget] = useState<number | null>(null);
   const dragIdx = useRef<number | null>(null);
@@ -41,12 +41,33 @@ export default function RetreatGalleryStep() {
     Promise.allSettled(
       previews.map(async ({ file, url }) => {
         const serverUrl = await uploadImage(file);
-        if (serverUrl !== url) swapPhotoUrl(url, serverUrl);
+        // uploadImage falls back to a blob: URL when the backend is
+        // unreachable — that is a failed upload, not a persisted image
+        if (serverUrl.startsWith("blob:")) {
+          markUploadFailed(url);
+        } else {
+          swapPhotoUrl(url, serverUrl);
+        }
       }),
     ).finally(() => setIsUploading(false));
   }
 
+  async function retryUpload(url: string) {
+    setIsUploading(true);
+    try {
+      const blob = await fetch(url).then((res) => res.blob());
+      const file = new File([blob], "retreat-image", { type: blob.type || "image/jpeg" });
+      const serverUrl = await uploadImage(file);
+      if (!serverUrl.startsWith("blob:")) swapPhotoUrl(url, serverUrl);
+    } catch {
+      /* still failed — the tile keeps its retry state */
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   function removePhoto(index: number) {
+    clearUploadFailed(state.photos[index]);
     set({ photos: state.photos.filter((_, i) => i !== index) });
   }
 
@@ -114,49 +135,72 @@ export default function RetreatGalleryStep() {
             </p>
             <p className="text-[12px] text-humana-subtle">{tw.gallery.reorderHint}</p>
           </div>
-          {state.photos.length < MIN_IMAGES && (
-            <p className="mt-1 text-[12px] text-humana-gold">
-              {tw.gallery.subtitle}
+          {state.failedUploads.length > 0 && (
+            <p className="mt-2 text-[12px] font-medium text-red-600">
+              {tw.gallery.uploadFailedHint}
             </p>
           )}
           <div className="mt-4 grid grid-cols-4 gap-3">
-            {state.photos.map((url, i) => (
-              <div
-                key={`${url}-${i}`}
-                draggable
-                onDragStart={() => {
-                  dragIdx.current = i;
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDropTarget(i);
-                }}
-                onDragLeave={() => setDropTarget(null)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  if (dragIdx.current !== null) reorder(dragIdx.current, i);
-                  dragIdx.current = null;
-                  setDropTarget(null);
-                }}
-                className={`group relative aspect-[4/3] cursor-grab overflow-hidden rounded-lg border transition-all ${
-                  dropTarget === i ? "border-humana-gold ring-2 ring-humana-gold/40" : "border-humana-line"
-                }`}
-              >
-                <Image src={url} alt="" fill unoptimized className="object-cover" />
-                {i === 0 && (
-                  <span className="absolute left-2 top-2 bg-humana-gold px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white">
-                    {tw.gallery.cover}
-                  </span>
-                )}
-                <button
-                  onClick={() => removePhoto(i)}
-                  className="absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/60 text-[11px] text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                  aria-label="Remove"
+            {state.photos.map((url, i) => {
+              const failed = state.failedUploads.includes(url);
+              return (
+                <div
+                  key={`${url}-${i}`}
+                  draggable
+                  onDragStart={() => {
+                    dragIdx.current = i;
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDropTarget(i);
+                  }}
+                  onDragLeave={() => setDropTarget(null)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragIdx.current !== null) reorder(dragIdx.current, i);
+                    dragIdx.current = null;
+                    setDropTarget(null);
+                  }}
+                  className={`group relative aspect-[4/3] cursor-grab overflow-hidden rounded-lg border transition-all ${
+                    failed
+                      ? "border-red-400 ring-2 ring-red-200"
+                      : dropTarget === i
+                        ? "border-humana-gold ring-2 ring-humana-gold/40"
+                        : "border-humana-line"
+                  }`}
                 >
-                  ✕
-                </button>
-              </div>
-            ))}
+                  <Image src={url} alt="" fill unoptimized className="object-cover" />
+                  {failed ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/55 text-center">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+                        {tw.gallery.uploadFailed}
+                      </span>
+                      <button
+                        onClick={() => retryUpload(url)}
+                        className="cursor-pointer rounded bg-white px-2.5 py-1 text-[11px] font-semibold text-humana-ink transition-opacity hover:opacity-85"
+                      >
+                        {tw.gallery.retry}
+                      </button>
+                    </div>
+                  ) : (
+                    i === 0 && (
+                      <span className="absolute left-2 top-2 bg-humana-gold px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white">
+                        {tw.gallery.cover}
+                      </span>
+                    )
+                  )}
+                  <button
+                    onClick={() => removePhoto(i)}
+                    className={`absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/60 text-[11px] text-white transition-opacity hover:bg-red-600 ${
+                      failed ? "" : "opacity-0 group-hover:opacity-100"
+                    }`}
+                    aria-label="Remove"
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
