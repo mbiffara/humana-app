@@ -155,7 +155,12 @@ export interface HotelDashboard {
     member_since: string;
   };
   occupancy: { rate: number; previous_rate: number };
-  revenue: { current_cents: number; previous_cents: number; currency: string };
+  revenue: {
+    current_cents: number;
+    previous_cents: number;
+    currency: string;
+    by_currency: { currency: string; current_cents: number; previous_cents: number }[];
+  };
   upcoming: { guests: number; check_ins_today: number };
   next_check_ins: {
     id: number;

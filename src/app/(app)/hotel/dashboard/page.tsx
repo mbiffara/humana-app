@@ -16,10 +16,10 @@ function isoWeek(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-function money(cents: number): string {
-  return new Intl.NumberFormat("en-US", {
+function money(cents: number, currency: string, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "USD",
+    currency,
     minimumFractionDigits: 0,
   }).format(cents / 100);
 }
@@ -70,9 +70,9 @@ export default function HotelDashboardPage() {
     },
     {
       label: td.kpis.revenue,
-      value: money(data.revenue.current_cents),
+      value: money(data.revenue.current_cents, data.revenue.currency, locale),
       hint: td.kpis.revenueDelta(
-        `${revenueDelta >= 0 ? "+" : "-"}${money(Math.abs(revenueDelta))}`,
+        `${revenueDelta >= 0 ? "+" : "-"}${money(Math.abs(revenueDelta), data.revenue.currency, locale)}`,
         prevMonthName,
       ),
     },
