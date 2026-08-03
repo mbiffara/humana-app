@@ -171,7 +171,7 @@ export default function WorldMap({
         style={{ width: "100%", height: "100%", maxHeight: "100%", display: "block" }}
       >
         <Geographies geography={GEO_URL}>
-          {({ geographies }: { geographies: any[] }) =>
+          {({ geographies }: { geographies: { id: string; properties: Record<string, string>; rsmKey: string }[] }) =>
             geographies.map((geo) => {
               const geoId = geo.id || geo.properties?.iso_a3_eh;
               const markerForGeo = isoNumericToMarker[geoId];

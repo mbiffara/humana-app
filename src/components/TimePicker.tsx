@@ -97,6 +97,13 @@ export function TimePicker({
         })
       : PRESET_TIMES;
 
+  function commitInput() {
+    if (!inputText) return;
+    const parsed = parseTimeInput(inputText);
+    if (parsed) onChange(parsed);
+    setInputText("");
+  }
+
   // Close on outside click
   useEffect(() => {
     if (!open) return;
@@ -118,13 +125,6 @@ export function TimePicker({
       if (active) active.scrollIntoView({ block: "center" });
     }
   }, [open]);
-
-  function commitInput() {
-    if (!inputText) return;
-    const parsed = parseTimeInput(inputText);
-    if (parsed) onChange(parsed);
-    setInputText("");
-  }
 
   function handleSelect(val: string) {
     onChange(val);

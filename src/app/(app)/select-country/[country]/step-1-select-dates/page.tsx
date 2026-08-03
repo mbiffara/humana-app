@@ -79,6 +79,11 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   const [firstRoom, setFirstRoom] = useState<PublicRoomType | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [preNights, setPreNights] = useState(state.preNights);
+  const [postNights, setPostNights] = useState(state.postNights);
+  const [viewYear, setViewYear] = useState(2026);
+  const [viewMonth, setViewMonth] = useState(0);
+
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
@@ -90,6 +95,13 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
         const exp = expRes.experiences.find((e) => e.slug === state.retreatSlug) ?? expRes.experiences[0];
         if (!exp || cancelled) return;
         setExperience(exp);
+
+        // Set calendar view to retreat start month
+        if (exp.starts_on) {
+          const d = new Date(exp.starts_on + "T12:00:00");
+          setViewYear(d.getFullYear());
+          setViewMonth(d.getMonth());
+        }
 
         // Fetch hotel details
         if (exp.hotel?.id) {
@@ -113,14 +125,6 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
     return () => { cancelled = true; };
   }, [hydrated, country, state.retreatSlug]);
 
-  if (!hydrated || loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
-      </div>
-    );
-  }
-
   const localeIdx = locale === "es" ? 1 : locale === "pt" ? 2 : 0;
   const months = MONTH_NAMES[localeIdx];
   const weekdays = WEEKDAY_NAMES[localeIdx];
@@ -129,15 +133,6 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   const retreatStart = experience?.starts_on ?? "2026-05-28";
   const retreatEnd = experience?.ends_on ?? "2026-06-01";
   const retreatNights = diffDays(retreatStart, retreatEnd);
-
-  const [preNights, setPreNights] = useState(state.preNights);
-  const [postNights, setPostNights] = useState(state.postNights);
-
-  /* Calendar view starts at retreat month */
-  const retreatStartMonth = new Date(retreatStart + "T12:00:00").getMonth();
-  const retreatStartYear = new Date(retreatStart + "T12:00:00").getFullYear();
-  const [viewYear, setViewYear] = useState(retreatStartYear);
-  const [viewMonth, setViewMonth] = useState(retreatStartMonth);
 
   const pricePerNight = firstRoom ? firstRoom.price_per_night_cents / 100 : 280;
   const retreatCost = retreatNights * pricePerNight;
@@ -149,6 +144,14 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
 
   const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
   const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
+
+  if (!hydrated || loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+      </div>
+    );
+  }
 
   function handlePrevMonth() {
     if (viewMonth === 0) { setViewMonth(11); setViewYear(viewYear - 1); }
