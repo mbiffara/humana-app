@@ -344,7 +344,9 @@ export const agencyApi = {
   getSubscription: () =>
     api.get<{ subscription: import("@/lib/types").Subscription | null }>("/agency/subscription"),
   selectPlan: (planId: number) =>
-    api.post<{ subscription: import("@/lib/types").Subscription }>("/agency/subscription", { plan_id: planId }),
+    api.post<{ subscription?: import("@/lib/types").Subscription; checkout_url?: string }>("/agency/subscription", { plan_id: planId }),
+  cancelSubscription: () =>
+    api.delete<{ subscription: import("@/lib/types").Subscription }>("/agency/subscription"),
 };
 
 export interface AgencyProfileUpdate {

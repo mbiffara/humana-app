@@ -4,6 +4,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
@@ -241,10 +242,12 @@ function DeleteModal({ onConfirm, onClose, ts }: { onConfirm: () => void; onClos
 
 export default function HotelSettingsPage() {
   const { t } = useLocale();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshAuth } = useAuth();
   const ts = t.hotelWs.settings;
+  const searchParams = useSearchParams();
 
-  const [tab, setTab] = useState<SettingsTab>("profile");
+  const initialTab = (searchParams.get("tab") as SettingsTab) || "profile";
+  const [tab, setTab] = useState<SettingsTab>(initialTab);
   const [profile, setProfile] = useState<HotelProfile | null>(null);
   const [orgProfile, setOrgProfile] = useState<OrgProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -272,6 +275,8 @@ export default function HotelSettingsPage() {
   const [currentSub, setCurrentSub] = useState<Subscription | null>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [selectingPlanId, setSelectingPlanId] = useState<number | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   // Payments (bank details)
   const [bankHolder, setBankHolder] = useState("");
@@ -341,6 +346,20 @@ export default function HotelSettingsPage() {
       loadSubscription();
     }
   }, [tab, plans.length, loadSubscription]);
+
+  // Detect return from Stripe Checkout
+  useEffect(() => {
+    const stripeStatus = searchParams.get("stripe");
+    if (stripeStatus === "success") {
+      setTab("subscription");
+      loadSubscription();
+      refreshAuth();
+      // Clean up URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete("stripe");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [searchParams, loadSubscription, refreshAuth]);
 
   function showSaved() {
     setSavedMsg(ts.profile.saved);
@@ -412,11 +431,32 @@ export default function HotelSettingsPage() {
     setSelectingPlanId(planId);
     try {
       const res = await hotelApi.selectPlan(planId);
-      setCurrentSub(res.subscription);
+      if (res.checkout_url) {
+        window.location.href = res.checkout_url;
+        return;
+      }
+      if (res.subscription) {
+        setCurrentSub(res.subscription);
+        refreshAuth();
+      }
     } catch {
       // ignore
     } finally {
       setSelectingPlanId(null);
+    }
+  }
+
+  async function handleCancelSubscription() {
+    setCancelling(true);
+    try {
+      const res = await hotelApi.cancelSubscription();
+      setCurrentSub(res.subscription);
+      setShowCancelModal(false);
+      refreshAuth();
+    } catch {
+      // ignore
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -783,6 +823,57 @@ export default function HotelSettingsPage() {
                   })}
                 </div>
               )}
+
+              {/* Cancel subscription */}
+              {currentSub && currentSub.status === "active" && currentSub.plan.price_cents > 0 && (
+                <div className="mt-8 border-t border-humana-line pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[14px] text-humana-ink font-medium">
+                        Cancel Subscription
+                      </p>
+                      <p className="text-[13px] text-humana-muted mt-0.5">
+                        Your plan will remain active until the end of the current billing period.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowCancelModal(true)}
+                      className="cursor-pointer border border-red-300 bg-white px-5 py-2 text-[13px] font-semibold uppercase tracking-[0.16em] text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Cancel subscription modal */}
+          {showCancelModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-md bg-white p-8 shadow-xl animate-fade-in-scale">
+                <h3 className="text-[18px] font-semibold text-humana-ink">
+                  Cancel Subscription?
+                </h3>
+                <p className="mt-3 text-[14px] text-humana-muted leading-relaxed">
+                  Are you sure you want to cancel your subscription? You&apos;ll continue to have access until the end of your current billing period.
+                </p>
+                <div className="mt-6 flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowCancelModal(false)}
+                    className="cursor-pointer border border-humana-line px-5 py-2 text-[13px] font-semibold uppercase tracking-[0.16em] text-humana-muted transition-colors hover:bg-humana-stone"
+                  >
+                    Keep Plan
+                  </button>
+                  <button
+                    onClick={handleCancelSubscription}
+                    disabled={cancelling}
+                    className="cursor-pointer bg-red-600 px-5 py-2 text-[13px] font-semibold uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+                  >
+                    {cancelling ? "..." : "Yes, Cancel"}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

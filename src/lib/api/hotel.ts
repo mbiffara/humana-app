@@ -193,7 +193,9 @@ export const hotelApi = {
   getSubscription: () =>
     api.get<{ subscription: import("@/lib/types").Subscription | null }>("/hotel/subscription"),
   selectPlan: (planId: number) =>
-    api.post<{ subscription: import("@/lib/types").Subscription }>("/hotel/subscription", { plan_id: planId }),
+    api.post<{ subscription?: import("@/lib/types").Subscription; checkout_url?: string }>("/hotel/subscription", { plan_id: planId }),
+  cancelSubscription: () =>
+    api.delete<{ subscription: import("@/lib/types").Subscription }>("/hotel/subscription"),
 };
 
 // Types

@@ -139,6 +139,7 @@ export interface LoginResponse {
 
 export interface MeResponse {
   user: User;
+  subscription?: Subscription | null;
 }
 
 export interface AdminHotelPreview {
