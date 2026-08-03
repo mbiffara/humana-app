@@ -80,6 +80,26 @@ export const hotelApi = {
   // Dashboard (HT-02)
   getDashboard: () => api.get<{ dashboard: HotelDashboard }>("/hotel/dashboard"),
 
+  // Bookings (hotel view)
+  listBookings: (params?: Record<string, string | number>) => {
+    const qs = new URLSearchParams();
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        if (v !== undefined && v !== "") qs.set(k, String(v));
+      }
+    }
+    const q = qs.toString();
+    return api.get<{ bookings: HotelBooking[]; meta: import("@/lib/types").PaginationMeta; summary: BookingSummary }>(
+      `/hotel/bookings${q ? `?${q}` : ""}`,
+    );
+  },
+  getBooking: (id: number) =>
+    api.get<{ booking: HotelBooking }>(`/hotel/bookings/${id}`),
+  confirmBooking: (id: number) =>
+    api.post<{ booking: HotelBooking }>(`/hotel/bookings/${id}/confirm`),
+  cancelBooking: (id: number) =>
+    api.post<{ booking: HotelBooking }>(`/hotel/bookings/${id}/cancel`),
+
   // Retreats
   listRetreats: (status?: string) =>
     api.get<{ retreats: ApiRetreat[] }>(`/hotel/retreats${status ? `?status=${status}` : ""}`),
@@ -166,6 +186,14 @@ export const hotelApi = {
     api.post<{ images: ApiRetreatImage[] }>(`/hotel/retreats/${retreatId}/images/batch`, {
       images,
     }),
+
+  // Subscription
+  getSubscriptionPlans: () =>
+    api.get<{ plans: import("@/lib/types").SubscriptionPlan[] }>("/hotel/subscription/plans"),
+  getSubscription: () =>
+    api.get<{ subscription: import("@/lib/types").Subscription | null }>("/hotel/subscription"),
+  selectPlan: (planId: number) =>
+    api.post<{ subscription: import("@/lib/types").Subscription }>("/hotel/subscription", { plan_id: planId }),
 };
 
 // Types
@@ -253,6 +281,7 @@ export interface HotelProfileUpdate {
   contact_email: string;
   postal_code: string;
   wellness_standard: string;
+  logo_url: string;
 }
 
 export interface OrgProfile {
@@ -260,6 +289,13 @@ export interface OrgProfile {
   name: string;
   kind: string;
   status: string;
+  // Bank details (returned with include_onboarding)
+  bank_account_holder?: string | null;
+  bank_iban?: string | null;
+  bank_swift?: string | null;
+  bank_currency?: string | null;
+  bank_country?: string | null;
+  bank_status?: string | null;
 }
 
 export type RoomTypeStatus = "active" | "draft" | "inactive";
@@ -593,4 +629,59 @@ export interface ApiRetreatImage {
 export interface RetreatImageCreate {
   image_url: string;
   alt_text?: string;
+}
+
+// Hotel bookings types
+export type BookingStatus = "inquiry" | "confirmed" | "completed" | "cancelled";
+
+export interface HotelBookingAgency {
+  id: number;
+  name: string;
+  city: string | null;
+  country: string | null;
+}
+
+export interface HotelBooking {
+  id: number;
+  reference: string;
+  status: BookingStatus;
+  guests: number;
+  starts_on: string;
+  ends_on: string;
+  amount_cents: number;
+  amount: number;
+  currency: string;
+  commission_cents: number;
+  commission: number;
+  notes: string | null;
+  client: { id: number; name: string; email: string; phone: string | null; notes: string | null } | null;
+  room_type: (RoomType & { price_per_night: number }) | null;
+  room: Room | null;
+  experience?: {
+    id: number;
+    slug: string;
+    kind: string;
+    status: string;
+    title: string;
+    description: string | null;
+    starts_on: string;
+    ends_on: string;
+    price_cents: number;
+    price: number;
+    currency: string;
+    capacity: number;
+    image_url: string | null;
+  } | null;
+  agency?: HotelBookingAgency | null;
+  created_at: string;
+}
+
+export interface BookingSummary {
+  total: number;
+  confirmed: number;
+  inquiry: number;
+  completed: number;
+  cancelled: number;
+  revenue_cents: number;
+  occupancy_rate: number;
 }

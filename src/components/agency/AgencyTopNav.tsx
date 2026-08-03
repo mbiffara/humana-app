@@ -1,4 +1,4 @@
-/** Hotel workspace top navigation. */
+/** Agency workspace top navigation — discover, clients, bookings, settings. */
 "use client";
 
 import Image from "next/image";
@@ -7,16 +7,17 @@ import { usePathname } from "next/navigation";
 import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 
-export function HotelTopNav() {
+export function AgencyTopNav() {
   const { t } = useLocale();
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
   const links = [
-    { label: t.hotelWs.nav.dashboard, href: "/hotel/dashboard" },
-    { label: t.hotelWs.nav.rooms, href: "/hotel/rooms" },
-    { label: t.hotelWs.nav.retreats, href: "/hotel/retreats" },
-    { label: t.hotelWs.nav.bookings, href: "/hotel/bookings" },
+    { label: t.agencyWs.nav.discover, href: "/dashboard", match: ["/dashboard", "/map", "/select-country"] },
+    { label: t.agencyWs.nav.clients, href: "/agency/clients" },
+    { label: t.agencyWs.nav.bookings, href: "/agency/bookings" },
+    { label: t.agencyWs.nav.myRetreats, href: "/agency/my-retreats" },
+    { label: t.agencyWs.nav.settings, href: "/agency/settings" },
   ];
 
   const initials = user?.name
@@ -24,16 +25,14 @@ export function HotelTopNav() {
     .map((w) => w[0])
     .join("")
     .slice(0, 2)
-    .toUpperCase() || "HP";
-
-  const avatarUrl = user?.avatar_url;
+    .toUpperCase() || "AG";
 
   return (
     <nav className="sticky top-0 z-50 border-b border-humana-line bg-white/95 backdrop-blur-sm animate-[fade-in-down_0.4s_ease-out]">
       <div className="mx-auto flex max-w-[1480px] items-center justify-between px-10 py-5">
-        {/* Left: Logo + Hotel badge */}
+        {/* Left: Logo + Agency badge */}
         <Link
-          href="/hotel/dashboard"
+          href="/dashboard"
           className="flex items-center gap-3 transition-opacity hover:opacity-80"
         >
           <Image
@@ -51,18 +50,19 @@ export function HotelTopNav() {
             className="h-[34px] w-auto"
             priority
           />
-          <span className="ml-1 rounded bg-humana-gold px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
-            Hotel
+          <span className="ml-1 rounded bg-amber-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+            {t.agencyWs.badge}
           </span>
         </Link>
 
         {/* Center: Nav links */}
         <div className="flex items-center gap-10">
           {links.map((link) => {
-            const isActive = pathname.startsWith(link.href);
+            const matchPaths = "match" in link ? link.match : [link.href];
+            const isActive = matchPaths!.some((p) => pathname.startsWith(p));
             return (
               <Link
-                key={link.label}
+                key={link.href}
                 href={link.href}
                 className={`relative pb-1 text-[14px] transition-all duration-200 ${
                   isActive
@@ -79,43 +79,25 @@ export function HotelTopNav() {
           })}
         </div>
 
-        {/* Right: Language + User profile */}
+        {/* Right: Language + User */}
         <div className="flex items-center gap-5">
           <LanguageSwitcher />
           <span className="h-3.5 w-px bg-[#D8D4C8]" />
 
           <div className="flex items-center gap-2.5">
-            {/* Avatar + name → links to settings */}
-            <Link
-              href="/hotel/settings"
-              className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 transition-all duration-150 hover:bg-humana-stone/70"
-            >
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt={user?.name ?? ""}
-                  width={32}
-                  height={32}
-                  className="h-8 w-8 rounded-full object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-humana-gold">
-                  <span className="text-[12px] font-semibold text-white">
-                    {initials}
-                  </span>
-                </div>
-              )}
-              <div className="flex flex-col">
-                <span className="text-[13px] font-medium text-humana-ink">
-                  {user?.name}
-                </span>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-                  {user?.organization?.name}
-                </span>
-              </div>
-            </Link>
-
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-600">
+              <span className="text-[12px] font-semibold text-white">
+                {initials}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-medium text-humana-ink">
+                {user?.name}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                {user?.organization?.name}
+              </span>
+            </div>
             <button
               onClick={logout}
               className="ml-3 cursor-pointer text-[12px] text-humana-muted transition-colors hover:text-red-600"

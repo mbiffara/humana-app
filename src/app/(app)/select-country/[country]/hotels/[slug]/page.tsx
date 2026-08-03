@@ -6,20 +6,33 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { hotels } from "@/data/hotels";
-import type { RoomType } from "@/data/types";
 import { countries, countrySlugToId } from "@/data/countries";
+import { agencyApi, type PublicHotelFull, type PublicRoomType } from "@/lib/api/agency";
 
 export default function HotelDetailPage({ params }: { params: Promise<{ country: string; slug: string }> }) {
   const { country, slug } = React.use(params);
   const { t } = useLocale();
-  const hotel = hotels.find((h) => h.slug === slug);
-  const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
+  const [hotel, setHotel] = useState<PublicHotelFull | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedRoom, setSelectedRoom] = useState<PublicRoomType | null>(null);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
   const countryId = countrySlugToId[country] ?? country;
   const countryData = countries.find((c) => c.id === countryId);
   const countryName = countryData?.name ?? country.charAt(0).toUpperCase() + country.slice(1);
+
+  useEffect(() => {
+    const hotelId = parseInt(slug, 10);
+    if (isNaN(hotelId)) {
+      setLoading(false);
+      return;
+    }
+    agencyApi
+      .getHotel(hotelId)
+      .then((res) => setHotel(res.hotel))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   // Lock body scroll when modal or lightbox is open
   useEffect(() => {
@@ -36,7 +49,8 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
       else setSelectedRoom(null);
     }
     if (lightboxIdx !== null && hotel) {
-      const total = hotel.gallery.length;
+      const total = hotel.images.length;
+      if (total === 0) return;
       if (e.key === "ArrowRight") setLightboxIdx((prev) => (prev !== null ? (prev + 1) % total : null));
       if (e.key === "ArrowLeft") setLightboxIdx((prev) => (prev !== null ? (prev - 1 + total) % total : null));
     }
@@ -46,6 +60,14 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+      </div>
+    );
+  }
 
   if (!hotel) {
     return (
@@ -58,22 +80,27 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
     );
   }
 
+  const gallery = hotel.images.map((i) => i.image_url);
+  const location = [hotel.city, hotel.country].filter(Boolean).join(", ");
+
   return (
     <div className="animate-fade-in-up flex flex-col">
       {/* Gallery — click to open lightbox */}
-      <div className="flex gap-2 px-16 pt-8">
-        <button type="button" onClick={() => setLightboxIdx(0)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ flex: "0 0 65%", height: 400 }}>
-          <Image src={hotel.gallery[0]} alt={hotel.name} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
-        </button>
-        <div className="flex flex-col gap-2" style={{ flex: "0 0 35%" }}>
-          <button type="button" onClick={() => setLightboxIdx(1)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ height: 198 }}>
-            <Image src={hotel.gallery[1] ?? hotel.gallery[0]} alt={`${hotel.name} 2`} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
+      {gallery.length > 0 && (
+        <div className="flex gap-2 px-16 pt-8">
+          <button type="button" onClick={() => setLightboxIdx(0)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ flex: "0 0 65%", height: 400 }}>
+            <Image src={gallery[0]} alt={hotel.name} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
           </button>
-          <button type="button" onClick={() => setLightboxIdx(2)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ height: 198 }}>
-            <Image src={hotel.gallery[2] ?? hotel.gallery[0]} alt={`${hotel.name} 3`} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
-          </button>
+          <div className="flex flex-col gap-2" style={{ flex: "0 0 35%" }}>
+            <button type="button" onClick={() => setLightboxIdx(1)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ height: 198 }}>
+              <Image src={gallery[1] ?? gallery[0]} alt={`${hotel.name} 2`} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
+            </button>
+            <button type="button" onClick={() => setLightboxIdx(2)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ height: 198 }}>
+              <Image src={gallery[2] ?? gallery[0]} alt={`${hotel.name} 3`} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Breadcrumb */}
       <div className="px-16 pt-6">
@@ -91,10 +118,12 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
       <div className="flex flex-col gap-8 px-16 pt-8 pb-16">
         <div className="flex flex-col gap-3">
           <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-            {t.hotelDetail.boutiqueHotel.toUpperCase()} &middot; {hotel.location.toUpperCase()}
+            {t.hotelDetail.boutiqueHotel.toUpperCase()} &middot; {location.toUpperCase()}
           </span>
           <h1 className="text-[36px] font-light leading-[1.1] tracking-[-0.02em] text-humana-ink">{hotel.name}</h1>
-          <p className="max-w-[720px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
+          {hotel.description && (
+            <p className="max-w-[720px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
+          )}
         </div>
 
         {/* Tab bar (visual only — rooms tab is always active) */}
@@ -112,19 +141,19 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
 
         {/* Horizontal room cards */}
         <div className="flex flex-col gap-5">
-          {hotel.roomTypes.map((rt) => (
+          {hotel.room_types.map((rt) => (
             <div
               key={rt.id}
               className="flex overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
               <div className="relative w-[320px] shrink-0 bg-humana-stone">
-                <Image src={rt.image} alt={rt.name} fill className="object-cover" />
+                {rt.image_url && <Image src={rt.image_url} alt={rt.name} fill className="object-cover" />}
                 <div className="absolute left-4 top-4 flex items-center gap-1.5 bg-white/90 px-3 py-1.5 backdrop-blur-sm">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
-                  <span className="text-[11px] font-semibold text-humana-ink">{rt.maxGuests}</span>
+                  <span className="text-[11px] font-semibold text-humana-ink">{rt.capacity}</span>
                 </div>
               </div>
               <div className="flex flex-1 flex-col justify-between gap-4 p-8">
@@ -136,7 +165,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                     <span className="text-[24px] font-light tracking-[-0.01em] text-humana-ink">
-                      U$D {rt.pricePerNight}
+                      {rt.currency} {rt.price_per_night}
                       <span className="text-[13px] font-normal text-humana-muted"> / {t.hotelDetail.perNight}</span>
                     </span>
                   </div>
@@ -181,7 +210,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
 
             {/* Image side */}
             <div className="relative w-[520px] shrink-0 bg-humana-stone">
-              <Image src={selectedRoom.image} alt={selectedRoom.name} fill className="object-cover" />
+              {selectedRoom.image_url && <Image src={selectedRoom.image_url} alt={selectedRoom.name} fill className="object-cover" />}
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/30 to-transparent" />
             </div>
 
@@ -220,42 +249,46 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                     <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-humana-ink">
                       {t.hotelDetail.capacity}
                     </span>
-                    <span className="text-[14px] text-humana-muted">{t.hotelDetail.personCount(selectedRoom.maxGuests)}</span>
+                    <span className="text-[14px] text-humana-muted">{t.hotelDetail.personCount(selectedRoom.capacity)}</span>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                    <p className="text-[14px] leading-[22px] text-humana-muted">{selectedRoom.description}</p>
-                  </div>
+                  {selectedRoom.description && (
+                    <div className="flex items-start gap-3">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                      </svg>
+                      <p className="text-[14px] leading-[22px] text-humana-muted">{selectedRoom.description}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="h-px bg-humana-line" />
 
-                <div className="flex flex-col gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">
-                    {t.hotelDetail.amenities}
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {hotel.amenities.slice(0, 4).map((a) => (
-                      <span
-                        key={a}
-                        className="flex items-center gap-2 border border-humana-line px-4 py-1.5 text-[13px] text-humana-ink"
-                        style={{ borderRadius: 9999 }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
-                          <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
-                          <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        {a}
-                      </span>
-                    ))}
+                {hotel.amenities && hotel.amenities.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">
+                      {t.hotelDetail.amenities}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {hotel.amenities.slice(0, 4).map((a) => (
+                        <span
+                          key={a.id}
+                          className="flex items-center gap-2 border border-humana-line px-4 py-1.5 text-[13px] text-humana-ink"
+                          style={{ borderRadius: 9999 }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                            <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
+                            <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          {a.name}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Footer: price + CTA */}
@@ -264,7 +297,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                   <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                   <div className="flex items-baseline gap-1.5">
                     <span className="whitespace-nowrap text-[26px] font-light tracking-[-0.02em] text-humana-gold">
-                      U$D {selectedRoom.pricePerNight.toLocaleString()}
+                      {selectedRoom.currency} {selectedRoom.price_per_night}
                     </span>
                     <span className="whitespace-nowrap text-[13px] text-humana-muted">/ {t.hotelDetail.perNight}</span>
                   </div>
@@ -280,7 +313,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
       )}
 
       {/* Gallery lightbox — portaled to body */}
-      {lightboxIdx !== null && hotel && createPortal(
+      {lightboxIdx !== null && gallery.length > 0 && createPortal(
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center"
           onClick={() => setLightboxIdx(null)}
@@ -301,13 +334,13 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
 
           {/* Counter */}
           <span className="absolute left-6 top-6 z-10 text-[13px] font-medium text-white/70">
-            {lightboxIdx + 1} / {hotel.gallery.length}
+            {lightboxIdx + 1} / {gallery.length}
           </span>
 
           {/* Prev arrow */}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setLightboxIdx((lightboxIdx - 1 + hotel.gallery.length) % hotel.gallery.length); }}
+            onClick={(e) => { e.stopPropagation(); setLightboxIdx((lightboxIdx - 1 + gallery.length) % gallery.length); }}
             className="absolute left-6 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 cursor-pointer items-center justify-center bg-white/10 text-white transition-all hover:bg-white/20"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -318,7 +351,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
           {/* Next arrow */}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setLightboxIdx((lightboxIdx + 1) % hotel.gallery.length); }}
+            onClick={(e) => { e.stopPropagation(); setLightboxIdx((lightboxIdx + 1) % gallery.length); }}
             className="absolute right-6 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 cursor-pointer items-center justify-center bg-white/10 text-white transition-all hover:bg-white/20"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -332,7 +365,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={hotel.gallery[lightboxIdx]}
+              src={gallery[lightboxIdx]}
               alt={`${hotel.name} ${lightboxIdx + 1}`}
               fill
               className="object-contain"
@@ -345,7 +378,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
             className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2"
             onClick={(e) => e.stopPropagation()}
           >
-            {hotel.gallery.map((src, i) => (
+            {gallery.map((src, i) => (
               <button
                 key={i}
                 type="button"

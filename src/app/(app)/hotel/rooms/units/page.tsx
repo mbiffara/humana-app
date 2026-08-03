@@ -111,7 +111,7 @@ export default function HotelRoomsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1100px] px-10 py-10">
+    <div className="mx-auto max-w-[1400px] px-10 py-10">
       {/* Header */}
       <div className="mb-10">
         <Link

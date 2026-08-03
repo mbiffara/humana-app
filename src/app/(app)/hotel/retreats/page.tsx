@@ -93,14 +93,14 @@ export default function HotelRetreatsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1100px] px-10 py-10">
+    <div className="mx-auto max-w-[1400px] px-10 py-10">
       {/* Header */}
       <div className="mb-10 flex items-end justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
             {t.hotelWs.badge}
           </p>
-          <h1 className="mt-2 text-[32px] font-bold text-humana-ink">{tr.title}</h1>
+          <h1 className="mt-2 text-[32px] font-light leading-[40px] tracking-[-0.01em] text-humana-ink">{tr.title}</h1>
           <p className="mt-1 text-[14px] text-humana-muted">{tr.subtitle}</p>
         </div>
         <Link

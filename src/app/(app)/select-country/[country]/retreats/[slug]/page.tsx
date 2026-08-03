@@ -7,23 +7,39 @@ import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
-import { retreats } from "@/data/retreats";
-import { hotels } from "@/data/hotels";
-import type { RoomType } from "@/data/types";
 import { countries, countrySlugToId } from "@/data/countries";
+import { agencyApi, type ApiExperience, type PublicHotelFull, type PublicRoomType } from "@/lib/api/agency";
 
 export default function RetreatDetailPage({ params }: { params: Promise<{ country: string; slug: string }> }) {
   const { country, slug } = React.use(params);
   const { t } = useLocale();
   const { set } = useBooking();
-  const retreat = retreats.find((r) => r.slug === slug);
-  const hotel = retreat ? hotels.find((h) => h.id === retreat.hotelId) : undefined;
-  const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
+  const [experience, setExperience] = useState<ApiExperience | null>(null);
+  const [hotel, setHotel] = useState<PublicHotelFull | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedRoom, setSelectedRoom] = useState<PublicRoomType | null>(null);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
   const countryId = countrySlugToId[country] ?? country;
   const countryData = countries.find((c) => c.id === countryId);
   const countryName = countryData?.name ?? country.charAt(0).toUpperCase() + country.slice(1);
+
+  useEffect(() => {
+    agencyApi
+      .getExperience(slug)
+      .then((res) => {
+        setExperience(res.experience);
+        // Fetch full hotel details if experience has a hotel
+        if (res.experience.hotel?.id) {
+          agencyApi
+            .getHotel(res.experience.hotel.id)
+            .then((hotelRes) => setHotel(hotelRes.hotel))
+            .catch(() => {});
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   // Lock body scroll when room modal is open
   useEffect(() => {
@@ -43,7 +59,15 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
     return () => document.removeEventListener("keydown", handler);
   }, [selectedRoom]);
 
-  if (!retreat) {
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+      </div>
+    );
+  }
+
+  if (!experience) {
     return (
       <div className="px-16 py-20 text-center">
         <h1 className="text-[24px] font-light text-humana-ink">Retreat not found</h1>
@@ -54,29 +78,56 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
     );
   }
 
-  const days = retreat.nights + 1;
-  const commissionAmount = Math.round(retreat.price * retreat.commission / 100);
-  const startFormatted = formatDate(retreat.startDate);
-  const endFormatted = formatDate(retreat.endDate);
-  const occupancy = Math.round(retreat.capacity * 0.4);
-  const occupancyPct = Math.round((occupancy / retreat.capacity) * 100);
+  const nights = Math.max(
+    1,
+    Math.round(
+      (new Date(experience.ends_on).getTime() - new Date(experience.starts_on).getTime()) / 86400000,
+    ),
+  );
+  const days = nights + 1;
+  const commissionRate = experience.commission_rate ?? 0;
+  const commissionPct = Math.round(commissionRate * 100);
+  const commissionAmount = Math.round(experience.price * commissionRate);
+  const startFormatted = formatDate(experience.starts_on);
+  const endFormatted = formatDate(experience.ends_on);
+  const occupancy = Math.round(experience.capacity * 0.4);
+  const occupancyPct = Math.round((occupancy / experience.capacity) * 100);
+
+  // Build gallery from hotel images or fallback to experience image
+  const gallery: string[] = [];
+  if (hotel?.images && hotel.images.length > 0) {
+    gallery.push(...hotel.images.map((i) => i.image_url));
+  }
+  if (gallery.length === 0 && experience.image_url) {
+    gallery.push(experience.image_url);
+  }
+  // Ensure at least 3 images for gallery layout
+  while (gallery.length > 0 && gallery.length < 3) {
+    gallery.push(gallery[0]);
+  }
+
+  const hotelName = experience.hotel?.name ?? hotel?.name ?? "";
+  const location = experience.location ?? "";
+  const kindLabel = experience.kind === "masterclass" ? "MASTERCLASS" : "RETREAT";
 
   return (
     <div className="animate-fade-in-up flex flex-col">
       {/* Gallery section — click to open lightbox */}
-      <div className="flex gap-2 px-16 pt-8">
-        <button type="button" onClick={() => setLightboxIdx(0)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ flex: "0 0 65%", height: 400 }}>
-          <Image src={retreat.gallery[0]} alt={retreat.name} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
-        </button>
-        <div className="flex flex-col gap-2" style={{ flex: "0 0 35%" }}>
-          <button type="button" onClick={() => setLightboxIdx(1)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ height: 198 }}>
-            <Image src={retreat.gallery[1] ?? retreat.gallery[0]} alt={`${retreat.name} 2`} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
+      {gallery.length > 0 && (
+        <div className="flex gap-2 px-16 pt-8">
+          <button type="button" onClick={() => setLightboxIdx(0)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ flex: "0 0 65%", height: 400 }}>
+            <Image src={gallery[0]} alt={experience.title} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
           </button>
-          <button type="button" onClick={() => setLightboxIdx(2)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ height: 198 }}>
-            <Image src={retreat.gallery[2] ?? retreat.gallery[0]} alt={`${retreat.name} 3`} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
-          </button>
+          <div className="flex flex-col gap-2" style={{ flex: "0 0 35%" }}>
+            <button type="button" onClick={() => setLightboxIdx(1)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ height: 198 }}>
+              <Image src={gallery[1] ?? gallery[0]} alt={`${experience.title} 2`} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
+            </button>
+            <button type="button" onClick={() => setLightboxIdx(2)} className="relative cursor-pointer overflow-hidden bg-humana-stone" style={{ height: 198 }}>
+              <Image src={gallery[2] ?? gallery[0]} alt={`${experience.title} 3`} fill className="object-cover transition-transform duration-300 hover:scale-[1.02]" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Breadcrumb */}
       <div className="px-16 pt-6">
@@ -85,7 +136,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
             { label: t.breadcrumb.home, href: "/dashboard" },
             { label: countryName, href: `/select-country/${country}` },
             { label: t.breadcrumb.retreats, href: `/select-country/${country}/retreats` },
-            { label: retreat.name },
+            { label: experience.title },
           ]}
         />
       </div>
@@ -96,89 +147,49 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
         <div className="flex min-w-0 flex-1 flex-col gap-8">
           <div className="flex flex-col gap-3">
             <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-              {retreat.type.toUpperCase()} &middot; {days} {t.retreatDetail.dayLabel.toUpperCase()}{days !== 1 ? "S" : ""} &middot; {retreat.nights} {t.common.nights(retreat.nights).split(" ").slice(1).join(" ").toUpperCase()}
+              {kindLabel} &middot; {days} {t.retreatDetail.dayLabel.toUpperCase()}{days !== 1 ? "S" : ""} &middot; {nights} {t.common.nights(nights).split(" ").slice(1).join(" ").toUpperCase()}
             </span>
             <h1 className="text-[36px] font-light leading-[1.1] tracking-[-0.02em] text-humana-ink">
-              {retreat.name}
+              {experience.title}
             </h1>
             <span className="flex items-center gap-2 text-[15px] text-humana-muted">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              {retreat.hotelName} &middot; {retreat.location}
+              {hotelName}{location ? ` · ${location}` : ""}
             </span>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
-              {t.retreatDetail.aboutRetreat.toUpperCase()}
-            </span>
-            <p className="text-[15px] leading-[24px] text-humana-muted">{retreat.longDescription}</p>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">FACILITADOR</span>
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-humana-stone">
-                <span className="text-[15px] font-medium text-humana-muted">{retreat.name.charAt(0)}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[15px] font-medium text-humana-ink">{retreat.hotelName}</span>
-                <span className="text-[14px] text-humana-muted">{retreat.description}</span>
-              </div>
+          {experience.description && (
+            <div className="flex flex-col gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
+                {t.retreatDetail.aboutRetreat.toUpperCase()}
+              </span>
+              <p className="text-[15px] leading-[24px] text-humana-muted">{experience.description}</p>
             </div>
-          </div>
+          )}
 
-          <div className="flex flex-col gap-4">
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
-              {t.retreatDetail.program.toUpperCase()}
-            </span>
-            <div className="flex flex-col">
-              {retreat.program.map((day, idx) => (
-                <div key={day.day}>
-                  <div className="flex flex-col gap-3 py-4">
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-[14px] font-medium text-humana-gold">{t.retreatDetail.dayLabel} {day.day}</span>
-                      <span className="text-[15px] font-medium text-humana-ink">{day.title}</span>
-                    </div>
-                    <div className="flex flex-col gap-2 pl-0">
-                      {day.activities.map((act, i) => (
-                        <div key={i} className="flex gap-3">
-                          <span className="w-12 shrink-0 text-[14px] text-humana-muted">{act.time}</span>
-                          <div className="flex flex-col">
-                            <span className="text-[14px] font-medium text-humana-ink">{act.name}</span>
-                            <span className="text-[14px] text-humana-muted">{act.description}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {idx < retreat.program.length - 1 && <div className="h-px bg-humana-line" />}
+          {/* Facilitator */}
+          {hotelName && (
+            <div className="flex flex-col gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">FACILITADOR</span>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-humana-stone">
+                  <span className="text-[15px] font-medium text-humana-muted">{experience.title.charAt(0)}</span>
                 </div>
-              ))}
+                <div className="flex flex-col">
+                  <span className="text-[15px] font-medium text-humana-ink">{hotelName}</span>
+                  {experience.description && (
+                    <span className="text-[14px] text-humana-muted line-clamp-1">{experience.description}</span>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
-              {t.retreatDetail.included.toUpperCase()}
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {retreat.included.map((item, i) => (
-                <span key={i} className="flex items-center gap-2 border border-humana-line px-4 py-2 text-[14px] text-humana-ink" style={{ borderRadius: 9999 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0">
-                    <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
-                    <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Room types from the linked hotel */}
-          {hotel && hotel.roomTypes.length > 0 && (
+          {hotel && hotel.room_types && hotel.room_types.length > 0 && (
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-1">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
@@ -188,20 +199,20 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
               </div>
 
               <div className="flex flex-col gap-4">
-                {hotel.roomTypes.map((rt) => (
+                {hotel.room_types.map((rt) => (
                   <div
                     key={rt.id}
                     onClick={() => setSelectedRoom(rt)}
                     className="flex cursor-pointer overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                   >
                     <div className="relative w-[280px] shrink-0 bg-humana-stone">
-                      <Image src={rt.image} alt={rt.name} fill className="object-cover" />
+                      {rt.image_url && <Image src={rt.image_url} alt={rt.name} fill className="object-cover" />}
                       <div className="absolute left-3 top-3 flex items-center gap-1.5 bg-white/90 px-2.5 py-1 backdrop-blur-sm">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                           <circle cx="12" cy="7" r="4" />
                         </svg>
-                        <span className="text-[11px] font-semibold text-humana-ink">{rt.maxGuests}</span>
+                        <span className="text-[11px] font-semibold text-humana-ink">{rt.capacity}</span>
                       </div>
                     </div>
                     <div className="flex flex-1 flex-col justify-between gap-4 p-7">
@@ -213,7 +224,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                         <div className="flex flex-col gap-0.5">
                           <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                           <span className="text-[22px] font-light tracking-[-0.01em] text-humana-ink">
-                            U$D {rt.pricePerNight}
+                            {rt.currency} {rt.price_per_night}
                             <span className="text-[13px] font-normal text-humana-muted"> / {t.hotelDetail.perNight}</span>
                           </span>
                         </div>
@@ -241,7 +252,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                 {t.retreatDetail.startingFrom.toUpperCase()}
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-[40px] font-light tracking-[-0.02em] text-humana-ink">U$D {retreat.price.toLocaleString()}</span>
+                <span className="text-[40px] font-light tracking-[-0.02em] text-humana-ink">{experience.currency} {experience.price.toLocaleString()}</span>
                 <span className="text-[15px] text-humana-muted">/ {t.retreatDetail.perGuest}</span>
               </div>
             </div>
@@ -250,9 +261,9 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
 
             <div className="flex flex-col gap-3">
               <SidebarRow label="Fechas" value={`${startFormatted} — ${endFormatted}`} bold />
-              <SidebarRow label={t.retreatDetail.duration} value={t.common.nights(retreat.nights)} />
-              <SidebarRow label="Check-in" value="15:00" />
-              <SidebarRow label="Check-out" value="11:00" />
+              <SidebarRow label={t.retreatDetail.duration} value={t.common.nights(nights)} />
+              {hotel?.check_in_time && <SidebarRow label="Check-in" value={hotel.check_in_time} />}
+              {hotel?.check_out_time && <SidebarRow label="Check-out" value={hotel.check_out_time} />}
             </div>
 
             <div className="h-px bg-humana-line" />
@@ -260,7 +271,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] text-humana-muted">Plazas disponibles</span>
-                <span className="text-[13px] font-medium text-humana-gold">{occupancy} / {retreat.capacity}</span>
+                <span className="text-[13px] font-medium text-humana-gold">{occupancy} / {experience.capacity}</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-humana-stone">
                 <div className="h-full rounded-full bg-humana-gold" style={{ width: `${occupancyPct}%` }} />
@@ -270,13 +281,13 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
             <div className="h-px bg-humana-line" />
 
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-humana-muted">{t.retreatDetail.commission} ({retreat.commission}%)</span>
-              <span className="text-[15px] font-medium text-humana-gold">U$D {commissionAmount.toLocaleString()}</span>
+              <span className="text-[13px] text-humana-muted">{t.retreatDetail.commission} ({commissionPct}%)</span>
+              <span className="text-[15px] font-medium text-humana-gold">{experience.currency} {commissionAmount.toLocaleString()}</span>
             </div>
 
             <Link
               href={`/select-country/${country}/step-1-select-dates`}
-              onClick={() => set({ retreatSlug: retreat.slug, flowType: "retreats" })}
+              onClick={() => set({ retreatSlug: experience.slug, flowType: "retreats" })}
               className="group/cta flex items-center justify-center gap-3 bg-humana-ink py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
             >
               {t.retreatDetail.bookNow.toUpperCase()}
@@ -315,7 +326,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
             </button>
 
             <div className="relative w-[520px] shrink-0 bg-humana-stone">
-              <Image src={selectedRoom.image} alt={selectedRoom.name} fill className="object-cover" />
+              {selectedRoom.image_url && <Image src={selectedRoom.image_url} alt={selectedRoom.name} fill className="object-cover" />}
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/30 to-transparent" />
             </div>
 
@@ -353,42 +364,46 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                     <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-humana-ink">
                       {t.hotelDetail.capacity}
                     </span>
-                    <span className="text-[14px] text-humana-muted">{t.hotelDetail.personCount(selectedRoom.maxGuests)}</span>
+                    <span className="text-[14px] text-humana-muted">{t.hotelDetail.personCount(selectedRoom.capacity)}</span>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                    <p className="text-[14px] leading-[22px] text-humana-muted">{selectedRoom.description}</p>
-                  </div>
+                  {selectedRoom.description && (
+                    <div className="flex items-start gap-3">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                      </svg>
+                      <p className="text-[14px] leading-[22px] text-humana-muted">{selectedRoom.description}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="h-px bg-humana-line" />
 
-                <div className="flex flex-col gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">
-                    {t.hotelDetail.amenities}
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {hotel.amenities.slice(0, 4).map((a) => (
-                      <span
-                        key={a}
-                        className="flex items-center gap-2 border border-humana-line px-4 py-1.5 text-[13px] text-humana-ink"
-                        style={{ borderRadius: 9999 }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
-                          <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
-                          <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        {a}
-                      </span>
-                    ))}
+                {hotel.amenities && hotel.amenities.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">
+                      {t.hotelDetail.amenities}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {hotel.amenities.slice(0, 4).map((a) => (
+                        <span
+                          key={a.id}
+                          className="flex items-center gap-2 border border-humana-line px-4 py-1.5 text-[13px] text-humana-ink"
+                          style={{ borderRadius: 9999 }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                            <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
+                            <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          {a.name}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between gap-4 pt-8">
@@ -396,14 +411,14 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                   <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
                   <div className="flex items-baseline gap-1.5">
                     <span className="whitespace-nowrap text-[26px] font-light tracking-[-0.02em] text-humana-gold">
-                      U$D {selectedRoom.pricePerNight.toLocaleString()}
+                      {selectedRoom.currency} {selectedRoom.price_per_night}
                     </span>
                     <span className="whitespace-nowrap text-[13px] text-humana-muted">/ {t.hotelDetail.perNight}</span>
                   </div>
                 </div>
                 <Link
                   href={`/select-country/${country}/step-1-select-dates`}
-                  onClick={() => set({ retreatSlug: retreat.slug, flowType: "retreats" })}
+                  onClick={() => set({ retreatSlug: experience.slug, flowType: "retreats" })}
                   className="group/cta flex shrink-0 items-center gap-2.5 bg-humana-ink px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
                 >
                   {t.hotelDetail.bookNow}
@@ -419,9 +434,9 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
       )}
 
       {/* Lightbox carousel */}
-      {lightboxIdx !== null && (
+      {lightboxIdx !== null && gallery.length > 0 && (
         <GalleryLightbox
-          images={retreat.gallery}
+          images={gallery}
           initialIndex={lightboxIdx}
           onClose={() => setLightboxIdx(null)}
         />

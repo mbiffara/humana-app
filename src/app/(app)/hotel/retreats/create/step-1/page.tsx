@@ -48,12 +48,12 @@ export default function RetreatInfoStep() {
     : "";
 
   return (
-    <section className="rounded-xl border border-humana-line bg-white p-8 animate-fade-in-up">
+    <section className="rounded-xl border border-humana-line bg-white p-8 shadow-sm animate-fade-in-up">
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
         {tw.stepOf(1, 5)}
       </p>
-      <h2 className="mt-2 text-[24px] font-bold text-humana-ink">{tw.info.title}</h2>
-      <p className="mt-1 text-[13px] text-humana-muted">{tw.info.subtitle}</p>
+      <h2 className="mt-2 text-[32px] font-light leading-[40px] tracking-[-0.01em] text-humana-ink">{tw.info.title}</h2>
+      <p className="mt-1 text-[15px] leading-[22px] text-humana-muted">{tw.info.subtitle}</p>
 
       <div className="mt-8 flex flex-col gap-6">
         <Field label={tw.info.name} required>

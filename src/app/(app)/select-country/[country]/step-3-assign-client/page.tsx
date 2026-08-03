@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
-import { retreats } from "@/data/retreats";
-import { hotels } from "@/data/hotels";
-import { clients } from "@/data/clients";
+import { agencyApi, type ApiClient } from "@/lib/api/agency";
 
 function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -25,41 +23,72 @@ function addDays(dateStr: string, days: number): string {
   return `${y}-${m}-${dd}`;
 }
 
+function diffDays(start: string, end: string): number {
+  const s = new Date(start + "T12:00:00");
+  const e = new Date(end + "T12:00:00");
+  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function getInitials(name: string): string {
+  return name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+}
+
 export default function AssignClientPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);
   const { t } = useLocale();
   const { state, set } = useBooking();
-  const retreat = retreats.find((r) => r.slug === state.retreatSlug);
-  const hotel = hotels.find((h) => h.id === retreat?.hotelId);
-  const room = hotel?.roomTypes.find((r) => r.id === state.roomTypeId);
 
   /* ── mode: "client" or "inventory" ── */
   const [mode, setMode] = useState<"client" | "inventory">(state.inventoryMode ? "inventory" : "client");
 
+  /* ── client data from API ── */
+  const [clients, setClients] = useState<ApiClient[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
+
   /* ── client selection ── */
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(state.clientId);
+  const [selectedId, setSelectedId] = useState<number | null>(state.clientApiId);
   const [showNewForm, setShowNewForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newPassport, setNewPassport] = useState("");
   const [newClientCreated, setNewClientCreated] = useState(false);
+  const [creatingClient, setCreatingClient] = useState(false);
   const [inventoryConfirmed, setInventoryConfirmed] = useState(false);
 
-  const filtered = clients.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.email.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchClients() {
+      try {
+        const res = await agencyApi.listClients({ per_page: 100 });
+        if (!cancelled) setClients(res.clients);
+      } catch {
+        // keep empty
+      } finally {
+        if (!cancelled) setLoadingClients(false);
+      }
+    }
+    fetchClients();
+    return () => { cancelled = true; };
+  }, []);
+
+  const filtered = clients.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.email.toLowerCase().includes(search.toLowerCase())
+  );
   const selectedClient = clients.find((c) => c.id === selectedId);
 
   /* ── pricing ── */
-  const retreatNights = retreat?.nights ?? 7;
+  const retreatStart = state.dates?.start ?? "2026-05-28";
+  const retreatEnd = state.dates?.end ?? "2026-06-01";
+  const retreatNights = diffDays(retreatStart, retreatEnd);
   const preNights = state.preNights;
   const postNights = state.postNights;
   const totalNights = retreatNights + preNights + postNights;
-  const pricePerNight = room?.pricePerNight ?? 185;
+  const pricePerNight = state.display ? state.display.pricePerNightCents / 100 : 185;
   const total = totalNights * pricePerNight;
 
-  const retreatStart = state.dates?.start ?? retreat?.startDate ?? "2026-05-28";
-  const retreatEnd = state.dates?.end ?? retreat?.endDate ?? "2026-06-01";
   const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
   const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
   const nightsBreakdown = [preNights > 0 ? `${preNights} pre` : null, `${retreatNights} retiro`, postNights > 0 ? `${postNights} post` : null].filter(Boolean).join(" + ");
@@ -68,9 +97,27 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
   const canContinueClient = !!(selectedId || (newClientCreated && newName.trim()));
   const canContinue = (mode === "inventory" && inventoryConfirmed) || canContinueClient;
 
-  function handleCreateClient() {
-    setNewClientCreated(true);
-    setSelectedId(null);
+  const displayHotelName = state.display?.hotelName ?? "Hotel";
+  const displayRoomName = state.display?.roomTypeName ?? "Suite";
+  const displayHotelLocation = state.display?.hotelLocation ?? "";
+
+  async function handleCreateClient() {
+    if (creatingClient) return;
+    setCreatingClient(true);
+    try {
+      const res = await agencyApi.createClient({
+        name: newName.trim(),
+        email: newEmail.trim(),
+        phone: newPhone.trim() || undefined,
+      });
+      setClients((prev) => [...prev, res.client]);
+      setSelectedId(res.client.id);
+      setNewClientCreated(true);
+    } catch {
+      // Handle error silently
+    } finally {
+      setCreatingClient(false);
+    }
   }
 
   return (
@@ -78,7 +125,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
-          { label: hotel?.name ?? "Hotel", href: retreat ? `/select-country/${country}/retreats/${retreat.slug}` : `/select-country/${country}` },
+          { label: displayHotelName, href: `/select-country/${country}` },
           { label: "Alojamiento", href: `/select-country/${country}/step-2-select-accommodation` },
           { label: "Asignar cliente" },
         ]}
@@ -116,37 +163,40 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
               {/* ── Search ── */}
               <div className="flex items-center gap-4 border border-humana-line px-5 py-3.5">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8578" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
-                <input type="text" placeholder="Buscar por nombre, email o pasaporte..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 bg-transparent text-[15px] text-humana-ink outline-none placeholder:text-humana-subtle" />
+                <input type="text" placeholder="Buscar por nombre o email..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 bg-transparent text-[15px] text-humana-ink outline-none placeholder:text-humana-subtle" />
               </div>
 
               {/* ── Client list ── */}
-              <div className="flex flex-col gap-4">
-                {filtered.map((client) => {
-                  const isSelected = selectedId === client.id && !newClientCreated;
-                  return (
-                    <button key={client.id} type="button" onClick={() => { setSelectedId(client.id); setNewClientCreated(false); }}
-                      className={`flex cursor-pointer items-start gap-5 border bg-white p-6 text-left transition-all duration-200 ${isSelected ? "border-humana-gold" : "border-humana-line hover:border-humana-ink"}`}>
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-humana-stone"><span className="text-[14px] font-semibold text-humana-ink">{client.initials}</span></div>
-                      <div className="flex flex-1 flex-col gap-2">
-                        <div className="flex items-center gap-3">
+              {loadingClients ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {filtered.map((client) => {
+                    const isSelected = selectedId === client.id && !newClientCreated;
+                    return (
+                      <button key={client.id} type="button" onClick={() => { setSelectedId(client.id); setNewClientCreated(false); }}
+                        className={`flex cursor-pointer items-start gap-5 border bg-white p-6 text-left transition-all duration-200 ${isSelected ? "border-humana-gold" : "border-humana-line hover:border-humana-ink"}`}>
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-humana-stone"><span className="text-[14px] font-semibold text-humana-ink">{getInitials(client.name)}</span></div>
+                        <div className="flex flex-1 flex-col gap-2">
                           <span className="text-[16px] font-medium text-humana-ink">{client.name}</span>
-                          {client.id === "c1" && <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-humana-gold">CLIENTE VIP</span>}
+                          <div className="flex items-center gap-4 text-[13px] text-humana-muted">
+                            <span>{client.email}</span>
+                            {client.phone && <span>{client.phone}</span>}
+                          </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-4 text-[13px] text-humana-muted"><span>{client.email}</span><span>{client.phone}</span></div>
-                          <div className="flex items-center gap-4 text-[13px] text-humana-muted"><span>Pasaporte: {client.nationality.slice(0, 3).toUpperCase()}****</span><span>3 reservas anteriores</span></div>
-                        </div>
-                      </div>
-                      {isSelected && (
-                        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-humana-gold">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#d4af37" strokeWidth="2" /><path d="M8 12l3 3 5-5" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                          SELECCIONADO
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                        {isSelected && (
+                          <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-humana-gold">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#d4af37" strokeWidth="2" /><path d="M8 12l3 3 5-5" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            SELECCIONADO
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* ── New client section ── */}
               {!showNewForm ? (
@@ -175,11 +225,15 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
                     <div className="flex flex-col gap-2"><label className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-muted">PASAPORTE</label><input type="text" value={newPassport} onChange={(e) => { setNewPassport(e.target.value); setNewClientCreated(false); }} placeholder="ABC1234567" className="border-b border-humana-line bg-transparent py-3 text-[15px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle focus:border-humana-gold" /></div>
                   </div>
                   {!newClientCreated && (
-                    <button type="button" onClick={handleCreateClient} disabled={!newName.trim() || !newEmail.trim()}
+                    <button type="button" onClick={handleCreateClient} disabled={!newName.trim() || !newEmail.trim() || creatingClient}
                       className="flex items-center justify-center gap-2 self-start bg-humana-ink px-8 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98] disabled:opacity-40 disabled:hover:bg-humana-ink">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" />
-                      </svg>
+                      {creatingClient ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" />
+                        </svg>
+                      )}
                       Crear y asignar
                     </button>
                   )}
@@ -234,11 +288,11 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] text-humana-muted">Retiro</span>
-                    <span className="text-[14px] font-medium text-humana-ink">{retreat?.name ?? "Retiro"}</span>
+                    <span className="text-[14px] font-medium text-humana-ink">{state.display?.retreatName ?? "Retiro"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] text-humana-muted">Habitacion</span>
-                    <span className="text-[14px] font-medium text-humana-ink">{room?.name ?? "Suite"}</span>
+                    <span className="text-[14px] font-medium text-humana-ink">{displayRoomName}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] text-humana-muted">Fechas</span>
@@ -246,7 +300,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] text-humana-muted">Plazas</span>
-                    <span className="text-[14px] font-medium text-humana-ink">{room?.maxGuests ?? 2} huespedes</span>
+                    <span className="text-[14px] font-medium text-humana-ink">{state.guests} huespedes</span>
                   </div>
                 </div>
               </div>
@@ -258,7 +312,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
         <div className="w-[380px] shrink-0">
           <div className="sticky top-24 flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">RESUMEN DE RESERVA</span>
-            <div className="flex flex-col gap-1"><span className="text-[15px] font-medium text-humana-ink">{hotel?.name ?? "Hotel Itzamna"} · {room?.name ?? "Suite Cenote"}</span><span className="text-[13px] text-humana-muted">{hotel?.location ?? "Tulum, Mexico"}</span></div>
+            <div className="flex flex-col gap-1"><span className="text-[15px] font-medium text-humana-ink">{displayHotelName} · {displayRoomName}</span><span className="text-[13px] text-humana-muted">{displayHotelLocation}</span></div>
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Check-in</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckIn)} · 15:00</span></div>
               <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Check-out</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckOut)} · 11:00</span></div>
@@ -287,7 +341,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
               <div className="flex flex-col gap-2">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-gold">CLIENTE NUEVO</span>
                 <span className="text-[15px] font-medium text-humana-ink">{newName}</span>
-                <span className="text-[13px] text-humana-muted">{newEmail || "—"}</span>
+                <span className="text-[13px] text-humana-muted">{newEmail || "\u2014"}</span>
               </div>
             ) : (
               <div className="flex flex-col gap-2">
@@ -303,11 +357,11 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
               href={`/select-country/${country}/step-4-checkout`}
               onClick={() => {
                 if (mode === "inventory") {
-                  set({ clientId: null, inventoryMode: true });
-                } else if (selectedId && !newClientCreated) {
-                  set({ clientId: selectedId, inventoryMode: false });
+                  set({ clientId: null, clientApiId: null, inventoryMode: true });
+                } else if (selectedId) {
+                  set({ clientId: String(selectedId), clientApiId: selectedId, inventoryMode: false });
                 } else {
-                  set({ clientId: null, inventoryMode: false });
+                  set({ clientId: null, clientApiId: null, inventoryMode: false });
                 }
               }}
               className={`group/cta flex items-center justify-center gap-3 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] transition-all duration-150 active:scale-[0.98] ${canContinue ? "bg-humana-ink text-white hover:bg-black" : "pointer-events-none bg-humana-line text-humana-subtle"}`}>

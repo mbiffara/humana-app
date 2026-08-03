@@ -22,7 +22,7 @@ export type Retreat = {
 type Dictionary = {
   hotelWs: {
     badge: string;
-    nav: { dashboard: string; calendar: string; rooms: string; retreats: string };
+    nav: { dashboard: string; calendar: string; rooms: string; retreats: string; bookings: string; settings: string };
     dashboard: {
       eyebrowWeek: (week: number) => string;
       welcome: (name: string) => string;
@@ -88,6 +88,7 @@ type Dictionary = {
       legendAvailable: string;
       legendLow: string;
       legendFull: string;
+      today: string;
     };
     rooms: {
       title: string;
@@ -388,6 +389,109 @@ type Dictionary = {
         };
       };
     };
+    bookings: {
+      eyebrow: string;
+      title: string;
+      calendarTitle: string;
+      subtitle: string;
+      searchPlaceholder: string;
+      exportBtn: string;
+      tabReservations: string;
+      tabCalendar: string;
+      kpis: { total: string; pending: string; revenue: string; occupancy: string };
+      filters: { all: string; confirmed: string; pending: string; checkedIn: string; cancelled: string };
+      empty: string;
+      emptyHint: string;
+      columns: { reference: string };
+      statusLabels: Record<string, string>;
+      confirmAction: string;
+      cancelAction: string;
+    };
+    settings: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      tabs: Record<string, string>;
+      profile: {
+        eyebrow: string;
+        hotelName: string;
+        location: string;
+        contactEmail: string;
+        phone: string;
+        save: string;
+        saving: string;
+        saved: string;
+      };
+      account: {
+        eyebrow: string;
+        changePasswordTitle: string;
+        changePasswordHint: string;
+        currentEmail: string;
+        sendOtp: string;
+        deactivateTitle: string;
+        deactivateHint: string;
+        deactivateAction: string;
+        deleteAction: string;
+        // Password reset modal
+        passwordModalTitle: string;
+        passwordModalHint: string;
+        passwordModalSend: string;
+        passwordModalSending: string;
+        passwordModalSent: string;
+        passwordModalSentHint: string;
+        // Deactivate modal
+        deactivateModalTitle: string;
+        deactivateModalWarning: string;
+        deactivateModalConfirm: string;
+        deactivateModalCancel: string;
+        deactivateModalProcessing: string;
+        // Delete modal
+        deleteModalTitle: string;
+        deleteModalWarningStep1: string;
+        deleteModalContinue: string;
+        deleteModalStep2Hint: string;
+        deleteModalConfirmPhrase: string;
+        deleteModalDeleteForever: string;
+        deleteModalDeleting: string;
+        deleteModalCancel: string;
+      };
+      subscription: {
+        eyebrow: string;
+        title: string;
+        subtitle: string;
+        perMonth: string;
+        commission: string;
+        currentPlan: string;
+        selectPlan: string;
+        selecting: string;
+        features: Record<string, string>;
+      };
+      payments: {
+        eyebrow: string;
+        title: string;
+        accountHolder: string;
+        iban: string;
+        swift: string;
+        currency: string;
+        country: string;
+        save: string;
+        saving: string;
+        statusConfigured: string;
+        statusPending: string;
+        paymentsReceived: string;
+        noPayments: string;
+      };
+    };
+  };
+  agencyWs: {
+    badge: string;
+    nav: {
+      discover: string;
+      clients: string;
+      bookings: string;
+      myRetreats: string;
+      settings: string;
+    };
   };
   login: {
     langSupport: string;
@@ -411,6 +515,22 @@ type Dictionary = {
     errorNetwork: string;
     joinPrompt: string;
     joinLink: string;
+  };
+  resetPassword: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    newPassword: string;
+    confirmPassword: string;
+    placeholder: string;
+    submit: string;
+    submitting: string;
+    success: string;
+    successHint: string;
+    errorInvalid: string;
+    errorExpired: string;
+    errorMismatch: string;
+    errorMinLength: string;
   };
   nav: {
     discover: string;
@@ -991,6 +1111,8 @@ type Dictionary = {
       availabilityTitle: string;
       availabilitySub: string;
       legendAvailable: string;
+      legendLow: string;
+      legendFullyBlocked: string;
       legendSelected: string;
       legendBlocked: string;
       availableUnits: string;
@@ -1091,7 +1213,7 @@ export const dictionary: Record<Locale, Dictionary> = {
   en: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { dashboard: "Dashboard", calendar: "Calendar", rooms: "Rooms", retreats: "Retreats" },
+      nav: { dashboard: "Dashboard", calendar: "Calendar", rooms: "Rooms", retreats: "Retreats", bookings: "Bookings", settings: "Settings" },
       dashboard: {
         eyebrowWeek: (week: number) => `Week ${week}`,
         welcome: (name: string) => `Welcome back, ${name}`,
@@ -1158,6 +1280,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         legendAvailable: "Available",
         legendLow: "Limited",
         legendFull: "Fully booked",
+        today: "Today",
       },
       rooms: {
         title: "Rooms",
@@ -1497,6 +1620,120 @@ export const dictionary: Record<Locale, Dictionary> = {
           },
         },
       },
+      bookings: {
+        eyebrow: "BOOKING MANAGEMENT",
+        title: "Reservations",
+        calendarTitle: "Availability Calendar",
+        subtitle: "Manage bookings and reservations for your property.",
+        searchPlaceholder: "Search by reference or guest…",
+        exportBtn: "Export",
+        tabReservations: "Reservations",
+        tabCalendar: "Calendar",
+        kpis: { total: "Total bookings", pending: "Pending", revenue: "Revenue", occupancy: "Occupancy" },
+        filters: { all: "All", confirmed: "Confirmed", pending: "Pending", checkedIn: "Completed", cancelled: "Cancelled" },
+        empty: "No bookings yet",
+        emptyHint: "When agencies book your property, reservations will appear here.",
+        columns: { reference: "Reference" },
+        statusLabels: { inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
+        confirmAction: "Confirm",
+        cancelAction: "Cancel",
+      },
+      settings: {
+        eyebrow: "SETTINGS",
+        title: "Settings",
+        subtitle: "Manage your hotel profile, account, subscription, and payments.",
+        tabs: { profile: "Profile", account: "Account", subscription: "Subscription", payments: "Payments" },
+        profile: {
+          eyebrow: "HOTEL IDENTITY",
+          hotelName: "Hotel name",
+          location: "Location",
+          contactEmail: "Email",
+          phone: "Phone",
+          save: "Save Changes",
+          saving: "Saving…",
+          saved: "Changes saved",
+        },
+        account: {
+          eyebrow: "ACCOUNT & SECURITY",
+          changePasswordTitle: "Change password",
+          changePasswordHint: "Reset your password via a secure link sent to your email.",
+          currentEmail: "Current email",
+          sendOtp: "Send OTP",
+          deactivateTitle: "Deactivate or delete account",
+          deactivateHint: "Deactivating hides your property from the HUMANA network. Deleting removes all data permanently.",
+          deactivateAction: "Deactivate Account",
+          deleteAction: "Delete Account",
+          passwordModalTitle: "Change Password",
+          passwordModalHint: "We'll send a secure reset link to your registered email address.",
+          passwordModalSend: "Send Reset Link",
+          passwordModalSending: "Sending…",
+          passwordModalSent: "Email Sent!",
+          passwordModalSentHint: "Check your inbox for the reset link. It will expire in 1 hour.",
+          deactivateModalTitle: "Deactivate Account",
+          deactivateModalWarning: "Your property will be hidden from the HUMANA network. Active bookings will remain but no new bookings can be made. You can reactivate by contacting support.",
+          deactivateModalConfirm: "Deactivate Account",
+          deactivateModalCancel: "Cancel",
+          deactivateModalProcessing: "Processing…",
+          deleteModalTitle: "Delete Account",
+          deleteModalWarningStep1: "This action is permanent and cannot be undone. All your data including hotel profile, room types, bookings, and retreat information will be permanently deleted.",
+          deleteModalContinue: "Continue",
+          deleteModalStep2Hint: "To confirm, type the phrase below:",
+          deleteModalConfirmPhrase: "quiero eliminar mi cuenta de humana",
+          deleteModalDeleteForever: "Delete Forever",
+          deleteModalDeleting: "Deleting…",
+          deleteModalCancel: "Cancel",
+        },
+        subscription: {
+          eyebrow: "SUBSCRIPTION",
+          title: "Choose Your Plan",
+          subtitle: "Select the plan that best fits your hotel's needs.",
+          perMonth: "/month",
+          commission: "commission",
+          currentPlan: "Current Plan",
+          selectPlan: "Select Plan",
+          selecting: "Selecting…",
+          features: {
+            basic_listing: "Basic listing",
+            email_support: "Email support",
+            max_room_types: "Up to 5 room types",
+            featured_listing: "Featured listing",
+            priority_support: "Priority support",
+            unlimited_room_types: "Unlimited room types",
+            retreat_creation: "Retreat creation",
+            analytics: "Analytics dashboard",
+            premium_listing: "Premium listing",
+            dedicated_support: "Dedicated support",
+            unlimited_everything: "Unlimited everything",
+            api_access: "API access",
+            white_label: "White label",
+          },
+        },
+        payments: {
+          eyebrow: "PAYMENT RECEIVING",
+          title: "Bank Account",
+          accountHolder: "Account Holder Name",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Currency",
+          country: "Country",
+          save: "Save Bank Details",
+          saving: "Saving…",
+          statusConfigured: "Configured",
+          statusPending: "Pending",
+          paymentsReceived: "Payments Received",
+          noPayments: "No payments received yet.",
+        },
+      },
+    },
+    agencyWs: {
+      badge: "Agency Partner",
+      nav: {
+        discover: "Discover",
+        clients: "Clients",
+        bookings: "Bookings",
+        myRetreats: "My Retreats",
+        settings: "Settings",
+      },
     },
     login: {
       langSupport: "Institutional support",
@@ -1521,6 +1758,22 @@ export const dictionary: Record<Locale, Dictionary> = {
       errorNetwork: "We can't reach the network right now. Please try again.",
       joinPrompt: "Does your organization want to join?",
       joinLink: "Request membership",
+    },
+    resetPassword: {
+      eyebrow: "PASSWORD RESET",
+      title: "Set your new password",
+      subtitle: "Choose a secure password for your HUMANA account.",
+      newPassword: "New password",
+      confirmPassword: "Confirm password",
+      placeholder: "Minimum 8 characters",
+      submit: "Reset Password",
+      submitting: "Resetting…",
+      success: "Password Reset!",
+      successHint: "Your password has been updated. Redirecting to your dashboard…",
+      errorInvalid: "This reset link is invalid or has already been used.",
+      errorExpired: "This reset link has expired. Please request a new one.",
+      errorMismatch: "Passwords do not match.",
+      errorMinLength: "Password must be at least 8 characters.",
     },
     nav: {
       discover: "Discover",
@@ -2287,6 +2540,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         availabilityTitle: "Set availability.",
         availabilitySub: "All dates are open for booking by default. Select a range to block dates when rooms are unavailable (seasonal closures, renovations).",
         legendAvailable: "Available",
+        legendLow: "Low availability",
+        legendFullyBlocked: "Fully blocked",
         legendSelected: "Selected",
         legendBlocked: "Blocked",
         availableUnits: "Units to block",
@@ -2379,7 +2634,7 @@ export const dictionary: Record<Locale, Dictionary> = {
   es: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { dashboard: "Dashboard", calendar: "Calendario", rooms: "Habitaciones", retreats: "Retiros" },
+      nav: { dashboard: "Dashboard", calendar: "Calendario", rooms: "Habitaciones", retreats: "Retiros", bookings: "Reservas", settings: "Configuración" },
       dashboard: {
         eyebrowWeek: (week: number) => `Semana ${week}`,
         welcome: (name: string) => `Bienvenido de nuevo, ${name}`,
@@ -2446,6 +2701,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         legendAvailable: "Disponible",
         legendLow: "Limitada",
         legendFull: "Completo",
+        today: "Hoy",
       },
       rooms: {
         title: "Habitaciones",
@@ -2785,6 +3041,120 @@ export const dictionary: Record<Locale, Dictionary> = {
           },
         },
       },
+      bookings: {
+        eyebrow: "GESTIÓN DE RESERVAS",
+        title: "Reservas",
+        calendarTitle: "Calendario de disponibilidad",
+        subtitle: "Gestiona las reservas de tu propiedad.",
+        searchPlaceholder: "Buscar por referencia o huésped…",
+        exportBtn: "Exportar",
+        tabReservations: "Reservas",
+        tabCalendar: "Calendario",
+        kpis: { total: "Total reservas", pending: "Pendientes", revenue: "Ingresos", occupancy: "Ocupación" },
+        filters: { all: "Todas", confirmed: "Confirmadas", pending: "Pendientes", checkedIn: "Completadas", cancelled: "Canceladas" },
+        empty: "Aún no hay reservas",
+        emptyHint: "Cuando las agencias reserven tu propiedad, las reservas aparecerán aquí.",
+        columns: { reference: "Referencia" },
+        statusLabels: { inquiry: "Pendiente", confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada" },
+        confirmAction: "Confirmar",
+        cancelAction: "Cancelar",
+      },
+      settings: {
+        eyebrow: "CONFIGURACIÓN",
+        title: "Configuración",
+        subtitle: "Administra el perfil de tu hotel, cuenta, suscripción y pagos.",
+        tabs: { profile: "Perfil", account: "Cuenta", subscription: "Suscripción", payments: "Pagos" },
+        profile: {
+          eyebrow: "IDENTIDAD DEL HOTEL",
+          hotelName: "Nombre del hotel",
+          location: "Ubicación",
+          contactEmail: "Email",
+          phone: "Teléfono",
+          save: "Guardar Cambios",
+          saving: "Guardando…",
+          saved: "Cambios guardados",
+        },
+        account: {
+          eyebrow: "CUENTA Y SEGURIDAD",
+          changePasswordTitle: "Cambiar contraseña",
+          changePasswordHint: "Restablece tu contraseña con un enlace seguro enviado a tu email.",
+          currentEmail: "Email actual",
+          sendOtp: "Enviar OTP",
+          deactivateTitle: "Desactivar o eliminar cuenta",
+          deactivateHint: "Desactivar oculta tu propiedad de la red HUMANA. Eliminar borra todos los datos permanentemente.",
+          deactivateAction: "Desactivar Cuenta",
+          deleteAction: "Eliminar Cuenta",
+          passwordModalTitle: "Cambiar Contraseña",
+          passwordModalHint: "Enviaremos un enlace seguro de restablecimiento a tu email registrado.",
+          passwordModalSend: "Enviar Enlace",
+          passwordModalSending: "Enviando…",
+          passwordModalSent: "¡Email Enviado!",
+          passwordModalSentHint: "Revisa tu bandeja de entrada. El enlace expirará en 1 hora.",
+          deactivateModalTitle: "Desactivar Cuenta",
+          deactivateModalWarning: "Tu propiedad será ocultada de la red HUMANA. Las reservas activas permanecerán pero no se podrán hacer nuevas reservas. Puedes reactivar contactando a soporte.",
+          deactivateModalConfirm: "Desactivar Cuenta",
+          deactivateModalCancel: "Cancelar",
+          deactivateModalProcessing: "Procesando…",
+          deleteModalTitle: "Eliminar Cuenta",
+          deleteModalWarningStep1: "Esta acción es permanente y no se puede deshacer. Todos tus datos incluyendo perfil del hotel, tipos de habitación, reservas e información de retiros serán eliminados permanentemente.",
+          deleteModalContinue: "Continuar",
+          deleteModalStep2Hint: "Para confirmar, escribe la frase a continuación:",
+          deleteModalConfirmPhrase: "quiero eliminar mi cuenta de humana",
+          deleteModalDeleteForever: "Eliminar Para Siempre",
+          deleteModalDeleting: "Eliminando…",
+          deleteModalCancel: "Cancelar",
+        },
+        subscription: {
+          eyebrow: "SUSCRIPCIÓN",
+          title: "Elige Tu Plan",
+          subtitle: "Selecciona el plan que mejor se adapte a las necesidades de tu hotel.",
+          perMonth: "/mes",
+          commission: "comisión",
+          currentPlan: "Plan Actual",
+          selectPlan: "Seleccionar Plan",
+          selecting: "Seleccionando…",
+          features: {
+            basic_listing: "Listado básico",
+            email_support: "Soporte por email",
+            max_room_types: "Hasta 5 tipos de habitación",
+            featured_listing: "Listado destacado",
+            priority_support: "Soporte prioritario",
+            unlimited_room_types: "Tipos de habitación ilimitados",
+            retreat_creation: "Creación de retiros",
+            analytics: "Panel de analíticas",
+            premium_listing: "Listado premium",
+            dedicated_support: "Soporte dedicado",
+            unlimited_everything: "Todo ilimitado",
+            api_access: "Acceso a API",
+            white_label: "Marca blanca",
+          },
+        },
+        payments: {
+          eyebrow: "RECEPCIÓN DE PAGOS",
+          title: "Cuenta Bancaria",
+          accountHolder: "Nombre del Titular",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Moneda",
+          country: "País",
+          save: "Guardar Datos Bancarios",
+          saving: "Guardando…",
+          statusConfigured: "Configurado",
+          statusPending: "Pendiente",
+          paymentsReceived: "Pagos Recibidos",
+          noPayments: "No se han recibido pagos aún.",
+        },
+      },
+    },
+    agencyWs: {
+      badge: "Socio Agencia",
+      nav: {
+        discover: "Descubrir",
+        clients: "Clientes",
+        bookings: "Reservas",
+        myRetreats: "Mis Retiros",
+        settings: "Configuración",
+      },
     },
     login: {
       langSupport: "Soporte institucional",
@@ -2809,6 +3179,22 @@ export const dictionary: Record<Locale, Dictionary> = {
       errorNetwork: "No podemos conectar con la red en este momento. Inténtalo de nuevo.",
       joinPrompt: "¿Tu organización desea integrarse?",
       joinLink: "Solicitar incorporación",
+    },
+    resetPassword: {
+      eyebrow: "RESTABLECER CONTRASEÑA",
+      title: "Establece tu nueva contraseña",
+      subtitle: "Elige una contraseña segura para tu cuenta HUMANA.",
+      newPassword: "Nueva contraseña",
+      confirmPassword: "Confirmar contraseña",
+      placeholder: "Mínimo 8 caracteres",
+      submit: "Restablecer Contraseña",
+      submitting: "Restableciendo…",
+      success: "¡Contraseña Restablecida!",
+      successHint: "Tu contraseña ha sido actualizada. Redirigiendo a tu panel…",
+      errorInvalid: "Este enlace de restablecimiento es inválido o ya fue utilizado.",
+      errorExpired: "Este enlace ha expirado. Solicita uno nuevo.",
+      errorMismatch: "Las contraseñas no coinciden.",
+      errorMinLength: "La contraseña debe tener al menos 8 caracteres.",
     },
     nav: {
       discover: "Descubrir",
@@ -3575,6 +3961,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         availabilityTitle: "Configura la disponibilidad.",
         availabilitySub: "Todas las fechas est\u00E1n abiertas para reservas por defecto. Selecciona un rango para bloquear fechas cuando las habitaciones no est\u00E9n disponibles (cierres de temporada, renovaciones).",
         legendAvailable: "Disponible",
+        legendLow: "Baja disponibilidad",
+        legendFullyBlocked: "Totalmente bloqueado",
         legendSelected: "Seleccionado",
         legendBlocked: "Bloqueado",
         availableUnits: "Unidades a bloquear",
@@ -3667,7 +4055,7 @@ export const dictionary: Record<Locale, Dictionary> = {
   pt: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { dashboard: "Dashboard", calendar: "Calendário", rooms: "Quartos", retreats: "Retiros" },
+      nav: { dashboard: "Dashboard", calendar: "Calendário", rooms: "Quartos", retreats: "Retiros", bookings: "Reservas", settings: "Configurações" },
       dashboard: {
         eyebrowWeek: (week: number) => `Semana ${week}`,
         welcome: (name: string) => `Bem-vindo de volta, ${name}`,
@@ -3734,6 +4122,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         legendAvailable: "Disponível",
         legendLow: "Limitada",
         legendFull: "Esgotado",
+        today: "Hoje",
       },
       rooms: {
         title: "Quartos",
@@ -4073,6 +4462,120 @@ export const dictionary: Record<Locale, Dictionary> = {
           },
         },
       },
+      bookings: {
+        eyebrow: "GESTÃO DE RESERVAS",
+        title: "Reservas",
+        calendarTitle: "Calendário de disponibilidade",
+        subtitle: "Gerencie as reservas da sua propriedade.",
+        searchPlaceholder: "Buscar por referência ou hóspede…",
+        exportBtn: "Exportar",
+        tabReservations: "Reservas",
+        tabCalendar: "Calendário",
+        kpis: { total: "Total reservas", pending: "Pendentes", revenue: "Receita", occupancy: "Ocupação" },
+        filters: { all: "Todas", confirmed: "Confirmadas", pending: "Pendentes", checkedIn: "Concluídas", cancelled: "Canceladas" },
+        empty: "Nenhuma reserva ainda",
+        emptyHint: "Quando as agências reservarem sua propriedade, as reservas aparecerão aqui.",
+        columns: { reference: "Referência" },
+        statusLabels: { inquiry: "Pendente", confirmed: "Confirmada", completed: "Concluída", cancelled: "Cancelada" },
+        confirmAction: "Confirmar",
+        cancelAction: "Cancelar",
+      },
+      settings: {
+        eyebrow: "CONFIGURAÇÕES",
+        title: "Configurações",
+        subtitle: "Gerencie o perfil do hotel, conta, assinatura e pagamentos.",
+        tabs: { profile: "Perfil", account: "Conta", subscription: "Assinatura", payments: "Pagamentos" },
+        profile: {
+          eyebrow: "IDENTIDADE DO HOTEL",
+          hotelName: "Nome do hotel",
+          location: "Localização",
+          contactEmail: "Email",
+          phone: "Telefone",
+          save: "Salvar Alterações",
+          saving: "Salvando…",
+          saved: "Alterações salvas",
+        },
+        account: {
+          eyebrow: "CONTA E SEGURANÇA",
+          changePasswordTitle: "Alterar senha",
+          changePasswordHint: "Redefina sua senha com um link seguro enviado para seu email.",
+          currentEmail: "Email atual",
+          sendOtp: "Enviar OTP",
+          deactivateTitle: "Desativar ou excluir conta",
+          deactivateHint: "Desativar oculta sua propriedade da rede HUMANA. Excluir remove todos os dados permanentemente.",
+          deactivateAction: "Desativar Conta",
+          deleteAction: "Excluir Conta",
+          passwordModalTitle: "Alterar Senha",
+          passwordModalHint: "Enviaremos um link seguro de redefinição para seu email registrado.",
+          passwordModalSend: "Enviar Link",
+          passwordModalSending: "Enviando…",
+          passwordModalSent: "Email Enviado!",
+          passwordModalSentHint: "Verifique sua caixa de entrada. O link expirará em 1 hora.",
+          deactivateModalTitle: "Desativar Conta",
+          deactivateModalWarning: "Sua propriedade será ocultada da rede HUMANA. Reservas ativas permanecerão mas novas reservas não poderão ser feitas. Você pode reativar entrando em contato com o suporte.",
+          deactivateModalConfirm: "Desativar Conta",
+          deactivateModalCancel: "Cancelar",
+          deactivateModalProcessing: "Processando…",
+          deleteModalTitle: "Excluir Conta",
+          deleteModalWarningStep1: "Esta ação é permanente e não pode ser desfeita. Todos os seus dados incluindo perfil do hotel, tipos de quarto, reservas e informações de retiros serão permanentemente excluídos.",
+          deleteModalContinue: "Continuar",
+          deleteModalStep2Hint: "Para confirmar, digite a frase abaixo:",
+          deleteModalConfirmPhrase: "quiero eliminar mi cuenta de humana",
+          deleteModalDeleteForever: "Excluir Para Sempre",
+          deleteModalDeleting: "Excluindo…",
+          deleteModalCancel: "Cancelar",
+        },
+        subscription: {
+          eyebrow: "ASSINATURA",
+          title: "Escolha Seu Plano",
+          subtitle: "Selecione o plano que melhor atende às necessidades do seu hotel.",
+          perMonth: "/mês",
+          commission: "comissão",
+          currentPlan: "Plano Atual",
+          selectPlan: "Selecionar Plano",
+          selecting: "Selecionando…",
+          features: {
+            basic_listing: "Listagem básica",
+            email_support: "Suporte por email",
+            max_room_types: "Até 5 tipos de quarto",
+            featured_listing: "Listagem em destaque",
+            priority_support: "Suporte prioritário",
+            unlimited_room_types: "Tipos de quarto ilimitados",
+            retreat_creation: "Criação de retiros",
+            analytics: "Painel de análises",
+            premium_listing: "Listagem premium",
+            dedicated_support: "Suporte dedicado",
+            unlimited_everything: "Tudo ilimitado",
+            api_access: "Acesso à API",
+            white_label: "Marca branca",
+          },
+        },
+        payments: {
+          eyebrow: "RECEBIMENTO DE PAGAMENTOS",
+          title: "Conta Bancária",
+          accountHolder: "Nome do Titular",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Moeda",
+          country: "País",
+          save: "Salvar Dados Bancários",
+          saving: "Salvando…",
+          statusConfigured: "Configurado",
+          statusPending: "Pendente",
+          paymentsReceived: "Pagamentos Recebidos",
+          noPayments: "Nenhum pagamento recebido ainda.",
+        },
+      },
+    },
+    agencyWs: {
+      badge: "Parceiro Agência",
+      nav: {
+        discover: "Descobrir",
+        clients: "Clientes",
+        bookings: "Reservas",
+        myRetreats: "Meus Retiros",
+        settings: "Configurações",
+      },
     },
     login: {
       langSupport: "Suporte institucional",
@@ -4098,6 +4601,22 @@ export const dictionary: Record<Locale, Dictionary> = {
       errorNetwork: "Não conseguimos conectar à rede no momento. Tente novamente.",
       joinPrompt: "Sua organização deseja integrar-se?",
       joinLink: "Solicitar incorporação",
+    },
+    resetPassword: {
+      eyebrow: "REDEFINIR SENHA",
+      title: "Defina sua nova senha",
+      subtitle: "Escolha uma senha segura para sua conta HUMANA.",
+      newPassword: "Nova senha",
+      confirmPassword: "Confirmar senha",
+      placeholder: "Mínimo 8 caracteres",
+      submit: "Redefinir Senha",
+      submitting: "Redefinindo…",
+      success: "Senha Redefinida!",
+      successHint: "Sua senha foi atualizada. Redirecionando para seu painel…",
+      errorInvalid: "Este link de redefinição é inválido ou já foi utilizado.",
+      errorExpired: "Este link expirou. Solicite um novo.",
+      errorMismatch: "As senhas não coincidem.",
+      errorMinLength: "A senha deve ter pelo menos 8 caracteres.",
     },
     nav: {
       discover: "Descobrir",
@@ -4864,6 +5383,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         availabilityTitle: "Configure a disponibilidade.",
         availabilitySub: "Todas as datas est\u00E3o abertas para reservas por padr\u00E3o. Selecione um intervalo para bloquear datas quando os quartos n\u00E3o estiverem dispon\u00EDveis (fechamentos sazonais, renova\u00E7\u00F5es).",
         legendAvailable: "Dispon\u00EDvel",
+        legendLow: "Baixa disponibilidade",
+        legendFullyBlocked: "Totalmente bloqueado",
         legendSelected: "Selecionado",
         legendBlocked: "Bloqueado",
         availableUnits: "Unidades a bloquear",

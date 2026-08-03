@@ -1,11 +1,14 @@
 /** Hotel workspace dashboard (HT-02): KPI row, next check-ins, active
  *  retreat programs, and quick actions. Data comes from a single
- *  /hotel/dashboard aggregate endpoint. */
+ *  /hotel/dashboard aggregate endpoint.
+ *  When org is pending, a banner reminds the hotel their listing is not
+ *  visible yet — but they can still navigate and configure everything. */
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
+import { useAuth } from "@/contexts/AuthContext";
 import { hotelApi, type HotelDashboard } from "@/lib/api/hotel";
 
 function isoWeek(date: Date): number {
@@ -26,9 +29,12 @@ function money(cents: number, currency: string, locale: string): string {
 
 export default function HotelDashboardPage() {
   const { t, locale } = useLocale();
+  const { user } = useAuth();
   const td = t.hotelWs.dashboard;
   const [data, setData] = useState<HotelDashboard | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const isPending = user?.organization?.status === "pending";
 
   useEffect(() => {
     hotelApi
@@ -89,13 +95,33 @@ export default function HotelDashboardPage() {
   ];
 
   const quickActions = [
-    { label: td.quickActions.blockDates, href: "/hotel/calendar" },
+    { label: td.quickActions.blockDates, href: "/hotel/rooms?tab=calendar" },
     { label: td.quickActions.createRetreat, href: "/hotel/retreats/create/step-1", clearWizard: true },
     { label: td.quickActions.updatePricing, href: "/hotel/rooms" },
   ];
 
   return (
-    <div className="mx-auto max-w-[1200px] px-10 py-10">
+    <div className="mx-auto max-w-[1400px] px-10 py-10">
+      {/* Pending review banner */}
+      {isPending && (
+        <div className="mb-6 flex items-center gap-4 rounded-xl border border-humana-gold/30 bg-humana-gold-light/30 px-6 py-4 animate-fade-in-up">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-humana-gold animate-pulse-gold">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-medium text-humana-ink">
+              {t.onboarding.hotel.reviewTitle}
+            </p>
+            <p className="mt-0.5 text-[12px] text-humana-muted">
+              {t.onboarding.hotel.reviewSubtitle(user?.organization?.name ?? "")}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8 flex items-start justify-between animate-fade-in-up">
         <div>
@@ -144,7 +170,7 @@ export default function HotelDashboardPage() {
               <h2 className="mt-1 text-[20px] font-bold text-humana-ink">{td.checkIns.title}</h2>
             </div>
             <Link
-              href="/hotel/calendar"
+              href="/hotel/rooms?tab=calendar"
               className="text-[13px] font-medium text-humana-gold transition-opacity hover:opacity-75"
             >
               {td.checkIns.viewAll}

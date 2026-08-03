@@ -69,12 +69,12 @@ export default function RetreatProgramStep() {
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up">
-      <section className="rounded-xl border border-humana-line bg-white p-8">
+      <section className="rounded-xl border border-humana-line bg-white p-8 shadow-sm">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
           {tw.stepOf(2, 5)}
         </p>
-        <h2 className="mt-2 text-[24px] font-bold text-humana-ink">{tw.program.title}</h2>
-        <p className="mt-1 text-[13px] text-humana-muted">{tw.program.subtitle(state.nights)}</p>
+        <h2 className="mt-2 text-[32px] font-light leading-[40px] tracking-[-0.01em] text-humana-ink">{tw.program.title}</h2>
+        <p className="mt-1 text-[15px] leading-[22px] text-humana-muted">{tw.program.subtitle(state.nights)}</p>
 
         {/* Day accordions */}
         <div className="mt-8 flex flex-col gap-3">
@@ -181,7 +181,7 @@ export default function RetreatProgramStep() {
       </section>
 
       {/* Facilitators */}
-      <section className="rounded-xl border border-humana-line bg-white p-8">
+      <section className="rounded-xl border border-humana-line bg-white p-8 shadow-sm">
         <div className="flex items-center justify-between">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
             {tw.program.facilitators}
@@ -269,7 +269,7 @@ export default function RetreatProgramStep() {
       </section>
 
       {/* What's included */}
-      <section className="rounded-xl border border-humana-line bg-white p-8">
+      <section className="rounded-xl border border-humana-line bg-white p-8 shadow-sm">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
           {tw.program.included}
         </p>
