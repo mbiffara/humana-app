@@ -492,6 +492,104 @@ type Dictionary = {
       myRetreats: string;
       settings: string;
     };
+    clients: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      addClient: string;
+      searchPlaceholder: string;
+      empty: string;
+      emptyHint: string;
+      columns: { name: string; email: string; phone: string; notes: string; bookings: string; created: string; actions: string };
+      modal: { addTitle: string; editTitle: string; namePlaceholder: string; emailPlaceholder: string; phonePlaceholder: string; notesPlaceholder: string; save: string; saving: string; cancel: string };
+      deleteTitle: string;
+      deleteMessage: string;
+      deleteConfirm: string;
+      deleteCancel: string;
+    };
+    bookings: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      searchPlaceholder: string;
+      exportBtn: string;
+      empty: string;
+      emptyHint: string;
+      kpis: { total: string; confirmed: string; commission: string; volume: string };
+      filters: { all: string; inquiry: string; confirmed: string; completed: string; cancelled: string };
+      statusLabels: { inquiry: string; confirmed: string; completed: string; cancelled: string };
+      columns: { reference: string; client: string; experience: string; dates: string; amount: string; commission: string; status: string };
+    };
+    settings: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      tabs: { profile: string; account: string; subscription: string; payments: string };
+      profile: {
+        eyebrow: string;
+        agencyName: string;
+        legalName: string;
+        contactEmail: string;
+        phone: string;
+        location: string;
+        website: string;
+        taxId: string;
+        save: string;
+        saving: string;
+        saved: string;
+      };
+      account: {
+        eyebrow: string;
+        changePasswordTitle: string;
+        changePasswordHint: string;
+        currentEmail: string;
+        deactivateTitle: string;
+        deactivateHint: string;
+        deactivateAction: string;
+        deleteAction: string;
+        passwordModalTitle: string;
+        passwordModalHint: string;
+        passwordModalSend: string;
+        passwordModalSending: string;
+        passwordModalSent: string;
+        passwordModalSentHint: string;
+        deactivateModalTitle: string;
+        deactivateModalWarning: string;
+        deactivateModalCancel: string;
+        deactivateModalConfirm: string;
+        deactivateModalProcessing: string;
+        deleteModalTitle: string;
+        deleteModalWarningStep1: string;
+        deleteModalCancel: string;
+        deleteModalContinue: string;
+        deleteModalStep2Hint: string;
+        deleteModalConfirmPhrase: string;
+        deleteModalDeleteForever: string;
+        deleteModalDeleting: string;
+      };
+      subscription: { eyebrow: string; title: string; subtitle: string; comingSoon: string };
+      payments: { eyebrow: string; title: string; subtitle: string; comingSoon: string };
+    };
+    myRetreats: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      createRetreat: string;
+      empty: string;
+      emptyHint: string;
+      filters: { all: string; draft: string; pending_review: string; active: string; closed: string };
+      statusLabels: { draft: string; pending_review: string; active: string; upcoming: string; closed: string; cancelled: string };
+      kpis: { total: string; active: string; draft: string; pending: string };
+      columns: { name: string; hotel: string; dates: string; capacity: string; price: string; status: string; actions: string };
+      deleteTitle: string;
+      deleteMessage: string;
+      deleteConfirm: string;
+      deleteCancel: string;
+      submitTitle: string;
+      submitMessage: string;
+      submitConfirm: string;
+      submitCancel: string;
+    };
   };
   login: {
     langSupport: string;
@@ -728,6 +826,7 @@ type Dictionary = {
     roomCount: (n: number) => string;
     activeRetreats: (n: number) => string;
     hotelSubtitle: string;
+    bookLodging: string;
   };
   createRetreat: {
     title: string;
@@ -1734,6 +1833,104 @@ export const dictionary: Record<Locale, Dictionary> = {
         myRetreats: "My Retreats",
         settings: "Settings",
       },
+      clients: {
+        eyebrow: "CLIENT MANAGEMENT",
+        title: "Your Clients",
+        subtitle: "Manage your client portfolio and booking history.",
+        addClient: "Add Client",
+        searchPlaceholder: "Search by name or email…",
+        empty: "No clients yet",
+        emptyHint: "Add your first client to start managing bookings.",
+        columns: { name: "Name", email: "Email", phone: "Phone", notes: "Notes", bookings: "Bookings", created: "Created", actions: "Actions" },
+        modal: { addTitle: "Add New Client", editTitle: "Edit Client", namePlaceholder: "Full name", emailPlaceholder: "email@example.com", phonePlaceholder: "+1 555 000 0000", notesPlaceholder: "Internal notes…", save: "Save", saving: "Saving…", cancel: "Cancel" },
+        deleteTitle: "Delete Client",
+        deleteMessage: "Are you sure you want to delete this client? This action cannot be undone.",
+        deleteConfirm: "Delete",
+        deleteCancel: "Cancel",
+      },
+      bookings: {
+        eyebrow: "BOOKING HISTORY",
+        title: "Your Bookings",
+        subtitle: "Track all reservations and commissions earned.",
+        searchPlaceholder: "Search bookings…",
+        exportBtn: "Export",
+        empty: "No bookings yet",
+        emptyHint: "Your booking history will appear here once you make your first reservation.",
+        kpis: { total: "Total Bookings", confirmed: "Confirmed", commission: "Commission Earned", volume: "Total Volume" },
+        filters: { all: "All", inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
+        statusLabels: { inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
+        columns: { reference: "Reference", client: "Client", experience: "Experience", dates: "Dates", amount: "Amount", commission: "Commission", status: "Status" },
+      },
+      settings: {
+        eyebrow: "SETTINGS",
+        title: "Agency Settings",
+        subtitle: "Manage your agency profile and account preferences.",
+        tabs: { profile: "Profile", account: "Account", subscription: "Subscription", payments: "Payments" },
+        profile: {
+          eyebrow: "AGENCY PROFILE",
+          agencyName: "Agency Name",
+          legalName: "Legal Name",
+          contactEmail: "Contact Email",
+          phone: "Phone",
+          location: "Location",
+          website: "Website",
+          taxId: "Tax ID / NIF",
+          save: "Save Changes",
+          saving: "Saving…",
+          saved: "Changes saved successfully",
+        },
+        account: {
+          eyebrow: "ACCOUNT & SECURITY",
+          changePasswordTitle: "Change Password",
+          changePasswordHint: "We'll send a password reset link to your registered email.",
+          currentEmail: "Current Email",
+          deactivateTitle: "Account Status",
+          deactivateHint: "Temporarily deactivate or permanently delete your account.",
+          deactivateAction: "Deactivate",
+          deleteAction: "Delete Account",
+          passwordModalTitle: "Reset Password",
+          passwordModalHint: "We'll send a secure reset link to your email address.",
+          passwordModalSend: "Send Reset Link",
+          passwordModalSending: "Sending…",
+          passwordModalSent: "Email Sent",
+          passwordModalSentHint: "Check your inbox for the reset link.",
+          deactivateModalTitle: "Deactivate Account",
+          deactivateModalWarning: "Your account will be suspended. You can reactivate it by contacting support.",
+          deactivateModalCancel: "Cancel",
+          deactivateModalConfirm: "Deactivate",
+          deactivateModalProcessing: "Processing…",
+          deleteModalTitle: "Delete Account",
+          deleteModalWarningStep1: "This will permanently delete your agency account, all client data, and booking history. This cannot be undone.",
+          deleteModalCancel: "Cancel",
+          deleteModalContinue: "Continue",
+          deleteModalStep2Hint: "Type the phrase below to confirm deletion:",
+          deleteModalConfirmPhrase: "DELETE MY ACCOUNT",
+          deleteModalDeleteForever: "Delete Forever",
+          deleteModalDeleting: "Deleting…",
+        },
+        subscription: { eyebrow: "SUBSCRIPTION", title: "Your Plan", subtitle: "Manage your subscription and commission rates.", comingSoon: "Subscription management coming soon." },
+        payments: { eyebrow: "PAYMENTS", title: "Payment Settings", subtitle: "Configure how you receive commission payments.", comingSoon: "Payment settings coming soon." },
+      },
+      myRetreats: {
+        eyebrow: "MY RETREATS",
+        title: "Your Retreats",
+        subtitle: "Create and manage retreats at partner hotels.",
+        createRetreat: "Create Retreat",
+        empty: "No retreats yet",
+        emptyHint: "Create your first retreat to start offering curated wellness experiences.",
+        filters: { all: "All", draft: "Draft", pending_review: "Under Review", active: "Active", closed: "Closed" },
+        statusLabels: { draft: "Draft", pending_review: "Under Review", active: "Active", upcoming: "Upcoming", closed: "Closed", cancelled: "Cancelled" },
+        kpis: { total: "Total Retreats", active: "Active", draft: "Drafts", pending: "Under Review" },
+        columns: { name: "Retreat", hotel: "Hotel", dates: "Dates", capacity: "Capacity", price: "From", status: "Status", actions: "Actions" },
+        deleteTitle: "Delete Retreat",
+        deleteMessage: "Are you sure you want to delete this draft retreat? This action cannot be undone.",
+        deleteConfirm: "Delete",
+        deleteCancel: "Cancel",
+        submitTitle: "Submit for Review",
+        submitMessage: "Once submitted, the retreat will be reviewed by the HUMANA team before going live.",
+        submitConfirm: "Submit",
+        submitCancel: "Cancel",
+      },
     },
     login: {
       langSupport: "Institutional support",
@@ -2101,6 +2298,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       roomCount: (n) => n === 1 ? "1 room" : `${n} rooms`,
       activeRetreats: (n) => n === 1 ? "1 active retreat" : `${n} active retreats`,
       hotelSubtitle: "Holistic hotels assigned to your agency in this country.",
+      bookLodging: "Book Lodging",
     },
     createRetreat: {
       title: "Create a new retreat",
@@ -3155,6 +3353,104 @@ export const dictionary: Record<Locale, Dictionary> = {
         myRetreats: "Mis Retiros",
         settings: "Configuración",
       },
+      clients: {
+        eyebrow: "GESTIÓN DE CLIENTES",
+        title: "Tus Clientes",
+        subtitle: "Administra tu cartera de clientes y su historial de reservas.",
+        addClient: "Agregar Cliente",
+        searchPlaceholder: "Buscar por nombre o email…",
+        empty: "Aún no hay clientes",
+        emptyHint: "Agrega tu primer cliente para comenzar a gestionar reservas.",
+        columns: { name: "Nombre", email: "Email", phone: "Teléfono", notes: "Notas", bookings: "Reservas", created: "Creado", actions: "Acciones" },
+        modal: { addTitle: "Agregar Nuevo Cliente", editTitle: "Editar Cliente", namePlaceholder: "Nombre completo", emailPlaceholder: "email@ejemplo.com", phonePlaceholder: "+1 555 000 0000", notesPlaceholder: "Notas internas…", save: "Guardar", saving: "Guardando…", cancel: "Cancelar" },
+        deleteTitle: "Eliminar Cliente",
+        deleteMessage: "¿Estás seguro de que quieres eliminar este cliente? Esta acción no se puede deshacer.",
+        deleteConfirm: "Eliminar",
+        deleteCancel: "Cancelar",
+      },
+      bookings: {
+        eyebrow: "HISTORIAL DE RESERVAS",
+        title: "Tus Reservas",
+        subtitle: "Rastrea todas las reservaciones y comisiones ganadas.",
+        searchPlaceholder: "Buscar reservas…",
+        exportBtn: "Exportar",
+        empty: "Aún no hay reservas",
+        emptyHint: "Tu historial de reservas aparecerá aquí una vez que realices tu primera reservación.",
+        kpis: { total: "Total de Reservas", confirmed: "Confirmadas", commission: "Comisión Ganada", volume: "Volumen Total" },
+        filters: { all: "Todas", inquiry: "Pendientes", confirmed: "Confirmadas", completed: "Completadas", cancelled: "Canceladas" },
+        statusLabels: { inquiry: "Pendiente", confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada" },
+        columns: { reference: "Referencia", client: "Cliente", experience: "Experiencia", dates: "Fechas", amount: "Monto", commission: "Comisión", status: "Estado" },
+      },
+      settings: {
+        eyebrow: "CONFIGURACIÓN",
+        title: "Configuración de Agencia",
+        subtitle: "Gestiona el perfil de tu agencia y preferencias de cuenta.",
+        tabs: { profile: "Perfil", account: "Cuenta", subscription: "Suscripción", payments: "Pagos" },
+        profile: {
+          eyebrow: "PERFIL DE AGENCIA",
+          agencyName: "Nombre de Agencia",
+          legalName: "Razón Social",
+          contactEmail: "Email de Contacto",
+          phone: "Teléfono",
+          location: "Ubicación",
+          website: "Sitio Web",
+          taxId: "NIF / ID Fiscal",
+          save: "Guardar Cambios",
+          saving: "Guardando…",
+          saved: "Cambios guardados exitosamente",
+        },
+        account: {
+          eyebrow: "CUENTA Y SEGURIDAD",
+          changePasswordTitle: "Cambiar Contraseña",
+          changePasswordHint: "Enviaremos un enlace de restablecimiento a tu email registrado.",
+          currentEmail: "Email Actual",
+          deactivateTitle: "Estado de Cuenta",
+          deactivateHint: "Desactiva temporalmente o elimina permanentemente tu cuenta.",
+          deactivateAction: "Desactivar",
+          deleteAction: "Eliminar Cuenta",
+          passwordModalTitle: "Restablecer Contraseña",
+          passwordModalHint: "Enviaremos un enlace seguro de restablecimiento a tu email.",
+          passwordModalSend: "Enviar Enlace",
+          passwordModalSending: "Enviando…",
+          passwordModalSent: "Email Enviado",
+          passwordModalSentHint: "Revisa tu bandeja de entrada para el enlace de restablecimiento.",
+          deactivateModalTitle: "Desactivar Cuenta",
+          deactivateModalWarning: "Tu cuenta será suspendida. Puedes reactivarla contactando a soporte.",
+          deactivateModalCancel: "Cancelar",
+          deactivateModalConfirm: "Desactivar",
+          deactivateModalProcessing: "Procesando…",
+          deleteModalTitle: "Eliminar Cuenta",
+          deleteModalWarningStep1: "Esto eliminará permanentemente tu cuenta de agencia, todos los datos de clientes e historial de reservas. No se puede deshacer.",
+          deleteModalCancel: "Cancelar",
+          deleteModalContinue: "Continuar",
+          deleteModalStep2Hint: "Escribe la frase a continuación para confirmar la eliminación:",
+          deleteModalConfirmPhrase: "ELIMINAR MI CUENTA",
+          deleteModalDeleteForever: "Eliminar para Siempre",
+          deleteModalDeleting: "Eliminando…",
+        },
+        subscription: { eyebrow: "SUSCRIPCIÓN", title: "Tu Plan", subtitle: "Gestiona tu suscripción y tasas de comisión.", comingSoon: "Gestión de suscripciones próximamente." },
+        payments: { eyebrow: "PAGOS", title: "Configuración de Pagos", subtitle: "Configura cómo recibes los pagos de comisiones.", comingSoon: "Configuración de pagos próximamente." },
+      },
+      myRetreats: {
+        eyebrow: "MIS RETIROS",
+        title: "Tus Retiros",
+        subtitle: "Crea y gestiona retiros en hoteles asociados.",
+        createRetreat: "Crear Retiro",
+        empty: "Aún no hay retiros",
+        emptyHint: "Crea tu primer retiro para comenzar a ofrecer experiencias de bienestar curadas.",
+        filters: { all: "Todos", draft: "Borrador", pending_review: "En Revisión", active: "Activos", closed: "Cerrados" },
+        statusLabels: { draft: "Borrador", pending_review: "En Revisión", active: "Activo", upcoming: "Próximo", closed: "Cerrado", cancelled: "Cancelado" },
+        kpis: { total: "Total Retiros", active: "Activos", draft: "Borradores", pending: "En Revisión" },
+        columns: { name: "Retiro", hotel: "Hotel", dates: "Fechas", capacity: "Capacidad", price: "Desde", status: "Estado", actions: "Acciones" },
+        deleteTitle: "Eliminar Retiro",
+        deleteMessage: "¿Estás seguro de que quieres eliminar este retiro en borrador? Esta acción no se puede deshacer.",
+        deleteConfirm: "Eliminar",
+        deleteCancel: "Cancelar",
+        submitTitle: "Enviar a Revisión",
+        submitMessage: "Una vez enviado, el retiro será revisado por el equipo de HUMANA antes de publicarse.",
+        submitConfirm: "Enviar",
+        submitCancel: "Cancelar",
+      },
     },
     login: {
       langSupport: "Soporte institucional",
@@ -3522,6 +3818,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       roomCount: (n) => n === 1 ? "1 hospedaje" : `${n} hospedajes`,
       activeRetreats: (n) => n === 1 ? "1 retiro activo" : `${n} retiros activos`,
       hotelSubtitle: "Hoteles holísticos asignados a tu agencia en este país.",
+      bookLodging: "Reservar Alojamiento",
     },
     createRetreat: {
       title: "Crear un nuevo retiro",
@@ -4576,6 +4873,104 @@ export const dictionary: Record<Locale, Dictionary> = {
         myRetreats: "Meus Retiros",
         settings: "Configurações",
       },
+      clients: {
+        eyebrow: "GESTÃO DE CLIENTES",
+        title: "Seus Clientes",
+        subtitle: "Gerencie sua carteira de clientes e histórico de reservas.",
+        addClient: "Adicionar Cliente",
+        searchPlaceholder: "Buscar por nome ou email…",
+        empty: "Nenhum cliente ainda",
+        emptyHint: "Adicione seu primeiro cliente para começar a gerenciar reservas.",
+        columns: { name: "Nome", email: "Email", phone: "Telefone", notes: "Notas", bookings: "Reservas", created: "Criado", actions: "Ações" },
+        modal: { addTitle: "Adicionar Novo Cliente", editTitle: "Editar Cliente", namePlaceholder: "Nome completo", emailPlaceholder: "email@exemplo.com", phonePlaceholder: "+1 555 000 0000", notesPlaceholder: "Notas internas…", save: "Salvar", saving: "Salvando…", cancel: "Cancelar" },
+        deleteTitle: "Excluir Cliente",
+        deleteMessage: "Tem certeza de que deseja excluir este cliente? Esta ação não pode ser desfeita.",
+        deleteConfirm: "Excluir",
+        deleteCancel: "Cancelar",
+      },
+      bookings: {
+        eyebrow: "HISTÓRICO DE RESERVAS",
+        title: "Suas Reservas",
+        subtitle: "Acompanhe todas as reservas e comissões recebidas.",
+        searchPlaceholder: "Buscar reservas…",
+        exportBtn: "Exportar",
+        empty: "Nenhuma reserva ainda",
+        emptyHint: "Seu histórico de reservas aparecerá aqui assim que você fizer sua primeira reserva.",
+        kpis: { total: "Total de Reservas", confirmed: "Confirmadas", commission: "Comissão Recebida", volume: "Volume Total" },
+        filters: { all: "Todas", inquiry: "Pendentes", confirmed: "Confirmadas", completed: "Concluídas", cancelled: "Canceladas" },
+        statusLabels: { inquiry: "Pendente", confirmed: "Confirmada", completed: "Concluída", cancelled: "Cancelada" },
+        columns: { reference: "Referência", client: "Cliente", experience: "Experiência", dates: "Datas", amount: "Valor", commission: "Comissão", status: "Status" },
+      },
+      settings: {
+        eyebrow: "CONFIGURAÇÕES",
+        title: "Configurações da Agência",
+        subtitle: "Gerencie o perfil da sua agência e preferências da conta.",
+        tabs: { profile: "Perfil", account: "Conta", subscription: "Assinatura", payments: "Pagamentos" },
+        profile: {
+          eyebrow: "PERFIL DA AGÊNCIA",
+          agencyName: "Nome da Agência",
+          legalName: "Razão Social",
+          contactEmail: "Email de Contato",
+          phone: "Telefone",
+          location: "Localização",
+          website: "Site",
+          taxId: "CNPJ / ID Fiscal",
+          save: "Salvar Alterações",
+          saving: "Salvando…",
+          saved: "Alterações salvas com sucesso",
+        },
+        account: {
+          eyebrow: "CONTA E SEGURANÇA",
+          changePasswordTitle: "Alterar Senha",
+          changePasswordHint: "Enviaremos um link de redefinição para seu email cadastrado.",
+          currentEmail: "Email Atual",
+          deactivateTitle: "Status da Conta",
+          deactivateHint: "Desative temporariamente ou exclua permanentemente sua conta.",
+          deactivateAction: "Desativar",
+          deleteAction: "Excluir Conta",
+          passwordModalTitle: "Redefinir Senha",
+          passwordModalHint: "Enviaremos um link seguro de redefinição para seu email.",
+          passwordModalSend: "Enviar Link",
+          passwordModalSending: "Enviando…",
+          passwordModalSent: "Email Enviado",
+          passwordModalSentHint: "Verifique sua caixa de entrada para o link de redefinição.",
+          deactivateModalTitle: "Desativar Conta",
+          deactivateModalWarning: "Sua conta será suspensa. Você pode reativá-la entrando em contato com o suporte.",
+          deactivateModalCancel: "Cancelar",
+          deactivateModalConfirm: "Desativar",
+          deactivateModalProcessing: "Processando…",
+          deleteModalTitle: "Excluir Conta",
+          deleteModalWarningStep1: "Isso excluirá permanentemente sua conta de agência, todos os dados de clientes e histórico de reservas. Não pode ser desfeito.",
+          deleteModalCancel: "Cancelar",
+          deleteModalContinue: "Continuar",
+          deleteModalStep2Hint: "Digite a frase abaixo para confirmar a exclusão:",
+          deleteModalConfirmPhrase: "EXCLUIR MINHA CONTA",
+          deleteModalDeleteForever: "Excluir para Sempre",
+          deleteModalDeleting: "Excluindo…",
+        },
+        subscription: { eyebrow: "ASSINATURA", title: "Seu Plano", subtitle: "Gerencie sua assinatura e taxas de comissão.", comingSoon: "Gerenciamento de assinaturas em breve." },
+        payments: { eyebrow: "PAGAMENTOS", title: "Configurações de Pagamento", subtitle: "Configure como você recebe os pagamentos de comissão.", comingSoon: "Configurações de pagamento em breve." },
+      },
+      myRetreats: {
+        eyebrow: "MEUS RETIROS",
+        title: "Seus Retiros",
+        subtitle: "Crie e gerencie retiros em hotéis parceiros.",
+        createRetreat: "Criar Retiro",
+        empty: "Nenhum retiro ainda",
+        emptyHint: "Crie seu primeiro retiro para começar a oferecer experiências de bem-estar curadas.",
+        filters: { all: "Todos", draft: "Rascunho", pending_review: "Em Revisão", active: "Ativos", closed: "Encerrados" },
+        statusLabels: { draft: "Rascunho", pending_review: "Em Revisão", active: "Ativo", upcoming: "Próximo", closed: "Encerrado", cancelled: "Cancelado" },
+        kpis: { total: "Total de Retiros", active: "Ativos", draft: "Rascunhos", pending: "Em Revisão" },
+        columns: { name: "Retiro", hotel: "Hotel", dates: "Datas", capacity: "Capacidade", price: "Desde", status: "Status", actions: "Ações" },
+        deleteTitle: "Excluir Retiro",
+        deleteMessage: "Tem certeza de que deseja excluir este retiro em rascunho? Esta ação não pode ser desfeita.",
+        deleteConfirm: "Excluir",
+        deleteCancel: "Cancelar",
+        submitTitle: "Enviar para Revisão",
+        submitMessage: "Uma vez enviado, o retiro será revisado pela equipe HUMANA antes de ser publicado.",
+        submitConfirm: "Enviar",
+        submitCancel: "Cancelar",
+      },
     },
     login: {
       langSupport: "Suporte institucional",
@@ -4944,6 +5339,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       roomCount: (n) => n === 1 ? "1 hospedagem" : `${n} hospedagens`,
       activeRetreats: (n) => n === 1 ? "1 retiro ativo" : `${n} retiros ativos`,
       hotelSubtitle: "Hotéis holísticos atribuídos à sua agência neste país.",
+      bookLodging: "Reservar Hospedagem",
     },
     createRetreat: {
       title: "Criar um novo retiro",

@@ -70,13 +70,14 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
   function formatExpiry(value: string) { const digits = value.replace(/\D/g, "").slice(0, 4); if (digits.length >= 3) return digits.slice(0, 2) + " / " + digits.slice(2); return digits; }
 
   async function handleSubmit() {
-    if (processing || !state.experienceId) return;
+    if (processing || (!state.experienceId && !state.hotelApiId)) return;
     setProcessing(true);
     setError(null);
 
     try {
       const result = await agencyApi.createBooking({
-        experience_id: state.experienceId,
+        experience_id: state.experienceId ?? undefined,
+        hotel_id: !state.experienceId ? (state.hotelApiId ?? undefined) : undefined,
         client_id: state.clientApiId ?? undefined,
         room_type_id: state.roomTypeApiId ?? undefined,
         guests: state.guests,

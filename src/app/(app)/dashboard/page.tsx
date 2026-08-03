@@ -5,13 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
+import { useLocale } from "@/i18n/LocaleProvider";
 import { countries, countryIdToSlug } from "@/data/countries";
 import { CounterControl } from "@/components/CounterControl";
 import { FilterChip } from "@/components/FilterChip";
 import { useAuth } from "@/contexts/AuthContext";
-import { ComingSoon } from "@/components/ComingSoon";
-import { agencyApi, type ApiExperience } from "@/lib/api/agency";
+import { agencyApi, type ApiExperience, type AgencyDashboard } from "@/lib/api/agency";
 
 const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ssr: false,
@@ -30,14 +29,10 @@ export default function DashboardPage() {
     }
   }, [isAdmin, router]);
 
-  // Non-admin users see Coming Soon
-  if (!isAdmin && user) {
-    return <ComingSoon />;
-  }
-
   return (
     <div className="flex flex-col">
       <BannerSection />
+      <DashboardKpis />
       <Hero />
       <MapCoverage />
       <RetreatsSection />
@@ -50,6 +45,43 @@ function BannerSection() {
   return (
     <section className="px-16 pt-12">
       <CreateRetreatBanner />
+    </section>
+  );
+}
+
+function DashboardKpis() {
+  const { t, locale } = useLocale();
+  const [dashboard, setDashboard] = useState<AgencyDashboard | null>(null);
+
+  useEffect(() => {
+    agencyApi.getDashboard()
+      .then((res) => setDashboard(res.dashboard))
+      .catch(() => {});
+  }, []);
+
+  if (!dashboard) return null;
+
+  const tag = locale === "es" ? "es-ES" : locale === "pt" ? "pt-PT" : "en-US";
+  const fmt = (cents: number) =>
+    new Intl.NumberFormat(tag, { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(cents / 100);
+
+  const kpis = [
+    { label: t.agencyWs.bookings.kpis.total, value: String(dashboard.total_bookings) },
+    { label: t.agencyWs.bookings.kpis.confirmed, value: String(dashboard.confirmed_count), gold: true },
+    { label: t.agencyWs.bookings.kpis.commission, value: fmt(dashboard.commission_earned_cents) },
+    { label: t.agencyWs.clients.title, value: String(dashboard.active_clients) },
+  ];
+
+  return (
+    <section className="px-16 pt-8">
+      <div className="grid grid-cols-4 gap-5 stagger-children">
+        {kpis.map((kpi) => (
+          <div key={kpi.label} className="border border-humana-line bg-white p-5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">{kpi.label}</p>
+            <p className={`mt-1.5 text-[26px] font-bold ${kpi.gold ? "text-humana-gold" : "text-humana-ink"}`}>{kpi.value}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -98,6 +130,7 @@ type DropdownId = "destination" | "dates" | "guests" | "experience";
 
 function SearchBar() {
   const { locale, t } = useLocale();
+  const router = useRouter();
   const barRef = useRef<HTMLDivElement>(null);
 
   const [openDropdown, setOpenDropdown] = useState<DropdownId | null>(null);
@@ -344,6 +377,12 @@ function SearchBar() {
 
       <button
         type="button"
+        onClick={() => {
+          if (selectedDestination) {
+            const slug = countryIdToSlug[selectedDestination] ?? selectedDestination;
+            router.push(`/select-country/${slug}`);
+          }
+        }}
         className="group flex shrink-0 cursor-pointer items-center justify-center gap-3 bg-humana-ink px-10 text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
       >
         <span className="text-[13px] font-semibold uppercase tracking-[0.22em]">

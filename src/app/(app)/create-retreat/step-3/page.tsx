@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useWizard } from "@/contexts/WizardContext";
 import { WizardVistaPrevia } from "@/components/WizardVistaPrevia";
-import { hotels } from "@/data/hotels";
 import { StepIndicator } from "@/components/StepIndicator";
-import type { ProgramDay } from "@/data/types";
-import type { Facilitator } from "@/data/types";
+import type { ProgramDay, Facilitator } from "@/data/types";
 
 const TIME_OPTIONS = [
   "", "6:00 am", "6:30 am", "7:00 am", "7:30 am", "8:00 am", "8:30 am",
@@ -31,7 +29,7 @@ export default function WizardStep3() {
     }));
   });
   const [expandedDay, setExpandedDay] = useState<number>(1);
-  const hotel = hotels.find((h) => h.id === state.hotelId);
+  const hotelData = state.hotelData;
 
   /* Sync program days with state.nights */
   useEffect(() => {
@@ -55,17 +53,17 @@ export default function WizardStep3() {
   const [facilitators, setFacilitators] = useState<Facilitator[]>(
     state.facilitators.length > 0
       ? state.facilitators
-      : hotel
-        ? [{ name: hotel.name, role: "principal", bio: hotel.shortDescription ?? "" }]
+      : hotelData
+        ? [{ name: hotelData.name, role: "principal", bio: hotelData.description ?? "" }]
         : []
   );
 
   /* Update default facilitator when hotel loads from sessionStorage */
   useEffect(() => {
-    if (facilitators.length === 0 && hotel) {
-      setFacilitators([{ name: hotel.name, role: "principal", bio: hotel.shortDescription ?? "" }]);
+    if (facilitators.length === 0 && hotelData) {
+      setFacilitators([{ name: hotelData.name, role: "principal", bio: hotelData.description ?? "" }]);
     }
-  }, [hotel]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hotelData]); // eslint-disable-line react-hooks/exhaustive-deps
   const [newIncluded, setNewIncluded] = useState("");
   const [included, setIncluded] = useState<string[]>(
     state.included.length > 0

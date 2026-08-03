@@ -6,12 +6,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { useRouter } from "next/navigation";
 import { countries, countrySlugToId } from "@/data/countries";
+import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type PublicHotelFull, type PublicRoomType } from "@/lib/api/agency";
 
 export default function HotelDetailPage({ params }: { params: Promise<{ country: string; slug: string }> }) {
   const { country, slug } = React.use(params);
   const { t } = useLocale();
+  const router = useRouter();
+  const { set } = useBooking();
   const [hotel, setHotel] = useState<PublicHotelFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<PublicRoomType | null>(null);
@@ -124,6 +128,32 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
           {hotel.description && (
             <p className="max-w-[720px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
           )}
+          <button
+            type="button"
+            onClick={() => {
+              set({
+                flowType: "hotels",
+                country,
+                hotelApiId: hotel.id,
+                hotelSlug: slug,
+                experienceId: null,
+                display: {
+                  hotelName: hotel.name,
+                  hotelImage: hotel.images[0]?.image_url ?? "",
+                  hotelLocation: location,
+                  roomTypeName: "",
+                  retreatName: "",
+                  pricePerNightCents: hotel.room_types[0]?.price_per_night_cents ?? 0,
+                  currency: hotel.room_types[0]?.currency ?? "USD",
+                  commissionRate: 0.16,
+                },
+              });
+              router.push(`/select-country/${country}/step-1-select-dates`);
+            }}
+            className="mt-2 w-fit cursor-pointer bg-humana-gold px-8 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-200 hover:bg-humana-ink active:scale-[0.98]"
+          >
+            {t.hotelDetail.bookLodging} →
+          </button>
         </div>
 
         {/* Tab bar (visual only — rooms tab is always active) */}

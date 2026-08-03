@@ -5,35 +5,23 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { StepIndicator } from "@/components/StepIndicator";
 import { WizardVistaPrevia } from "@/components/WizardVistaPrevia";
 import { useWizard } from "@/contexts/WizardContext";
-import { hotels } from "@/data/hotels";
-import { inventoryBlocks } from "@/data/inventory";
 
 
 export default function WizardStep2() {
   const { t } = useLocale();
   const { state, set } = useWizard();
 
-  /* Auto-fill from selected hotel inventory */
+  /* Auto-fill capacity from hotel room types */
   useEffect(() => {
-    if (!state.hotelId) return;
-    const blocks = inventoryBlocks.filter(
-      (b) => b.hotelId === state.hotelId && b.availableRooms > 0 && b.status !== "sold_out"
+    if (!state.hotelData?.roomTypes) return;
+    const totalPlazas = state.hotelData.roomTypes.reduce(
+      (sum, rt) => sum + (rt.total_rooms ?? 0) * rt.capacity,
+      0,
     );
-    if (blocks.length === 0) return;
-
-    const hotel = hotels.find((h) => h.id === state.hotelId);
-    const totalPlazas = blocks.reduce((sum, b) => {
-      const rt = hotel?.roomTypes.find((r) => r.id === b.roomTypeId);
-      return sum + b.availableRooms * (rt?.maxGuests ?? 2);
-    }, 0);
-
-    const earliest = blocks.reduce((min, b) => (b.dateStart < min ? b.dateStart : min), blocks[0].dateStart);
-
-    const patch: Partial<typeof state> = {};
-    if (!state.capacity || state.capacity === 12) patch.capacity = totalPlazas;
-    if (!state.startDate) patch.startDate = earliest;
-    if (Object.keys(patch).length > 0) set(patch);
-  }, [state.hotelId]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (totalPlazas > 0 && !state.capacity) {
+      set({ capacity: totalPlazas });
+    }
+  }, [state.hotelData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Auto-calculate end date from start date + nights */
   useEffect(() => {
