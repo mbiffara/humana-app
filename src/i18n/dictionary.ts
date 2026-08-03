@@ -567,7 +567,17 @@ type Dictionary = {
         deleteModalDeleteForever: string;
         deleteModalDeleting: string;
       };
-      subscription: { eyebrow: string; title: string; subtitle: string; comingSoon: string };
+      subscription: {
+        eyebrow: string;
+        title: string;
+        subtitle: string;
+        perMonth: string;
+        commission: string;
+        currentPlan: string;
+        selectPlan: string;
+        selecting: string;
+        features: Record<string, string>;
+      };
       payments: { eyebrow: string; title: string; subtitle: string; comingSoon: string };
     };
     myRetreats: {
@@ -1908,7 +1918,32 @@ export const dictionary: Record<Locale, Dictionary> = {
           deleteModalDeleteForever: "Delete Forever",
           deleteModalDeleting: "Deleting…",
         },
-        subscription: { eyebrow: "SUBSCRIPTION", title: "Your Plan", subtitle: "Manage your subscription and commission rates.", comingSoon: "Subscription management coming soon." },
+        subscription: {
+          eyebrow: "SUBSCRIPTION",
+          title: "Choose Your Plan",
+          subtitle: "Select the plan that best fits your agency's needs.",
+          perMonth: "/month",
+          commission: "commission",
+          currentPlan: "Current Plan",
+          selectPlan: "Select Plan",
+          selecting: "Selecting…",
+          features: {
+            max_bookings: "Up to 10 bookings/month",
+            max_bookings_unlimited: "Unlimited bookings",
+            max_clients: "Up to 50 clients",
+            max_clients_unlimited: "Unlimited clients",
+            support_email: "Email support",
+            support_priority: "Priority support",
+            support_dedicated: "Dedicated support",
+            analytics_basic: "Basic analytics",
+            analytics_advanced: "Advanced analytics",
+            analytics_full: "Full analytics suite",
+            custom_branding: "Custom branding",
+            api_access: "API access",
+            white_label: "White label",
+            sla: "99.9% SLA",
+          },
+        },
         payments: { eyebrow: "PAYMENTS", title: "Payment Settings", subtitle: "Configure how you receive commission payments.", comingSoon: "Payment settings coming soon." },
       },
       myRetreats: {
@@ -3428,7 +3463,32 @@ export const dictionary: Record<Locale, Dictionary> = {
           deleteModalDeleteForever: "Eliminar para Siempre",
           deleteModalDeleting: "Eliminando…",
         },
-        subscription: { eyebrow: "SUSCRIPCIÓN", title: "Tu Plan", subtitle: "Gestiona tu suscripción y tasas de comisión.", comingSoon: "Gestión de suscripciones próximamente." },
+        subscription: {
+          eyebrow: "SUSCRIPCIÓN",
+          title: "Elige Tu Plan",
+          subtitle: "Selecciona el plan que mejor se adapte a las necesidades de tu agencia.",
+          perMonth: "/mes",
+          commission: "comisión",
+          currentPlan: "Plan Actual",
+          selectPlan: "Seleccionar Plan",
+          selecting: "Seleccionando…",
+          features: {
+            max_bookings: "Hasta 10 reservas/mes",
+            max_bookings_unlimited: "Reservas ilimitadas",
+            max_clients: "Hasta 50 clientes",
+            max_clients_unlimited: "Clientes ilimitados",
+            support_email: "Soporte por email",
+            support_priority: "Soporte prioritario",
+            support_dedicated: "Soporte dedicado",
+            analytics_basic: "Analítica básica",
+            analytics_advanced: "Analítica avanzada",
+            analytics_full: "Suite completa de analítica",
+            custom_branding: "Marca personalizada",
+            api_access: "Acceso API",
+            white_label: "Marca blanca",
+            sla: "SLA 99.9%",
+          },
+        },
         payments: { eyebrow: "PAGOS", title: "Configuración de Pagos", subtitle: "Configura cómo recibes los pagos de comisiones.", comingSoon: "Configuración de pagos próximamente." },
       },
       myRetreats: {
@@ -4948,7 +5008,32 @@ export const dictionary: Record<Locale, Dictionary> = {
           deleteModalDeleteForever: "Excluir para Sempre",
           deleteModalDeleting: "Excluindo…",
         },
-        subscription: { eyebrow: "ASSINATURA", title: "Seu Plano", subtitle: "Gerencie sua assinatura e taxas de comissão.", comingSoon: "Gerenciamento de assinaturas em breve." },
+        subscription: {
+          eyebrow: "ASSINATURA",
+          title: "Escolha Seu Plano",
+          subtitle: "Selecione o plano que melhor atende às necessidades da sua agência.",
+          perMonth: "/mês",
+          commission: "comissão",
+          currentPlan: "Plano Atual",
+          selectPlan: "Selecionar Plano",
+          selecting: "Selecionando…",
+          features: {
+            max_bookings: "Até 10 reservas/mês",
+            max_bookings_unlimited: "Reservas ilimitadas",
+            max_clients: "Até 50 clientes",
+            max_clients_unlimited: "Clientes ilimitados",
+            support_email: "Suporte por email",
+            support_priority: "Suporte prioritário",
+            support_dedicated: "Suporte dedicado",
+            analytics_basic: "Análise básica",
+            analytics_advanced: "Análise avançada",
+            analytics_full: "Suite completa de análise",
+            custom_branding: "Marca personalizada",
+            api_access: "Acesso API",
+            white_label: "Marca branca",
+            sla: "SLA 99.9%",
+          },
+        },
         payments: { eyebrow: "PAGAMENTOS", title: "Configurações de Pagamento", subtitle: "Configure como você recebe os pagamentos de comissão.", comingSoon: "Configurações de pagamento em breve." },
       },
       myRetreats: {

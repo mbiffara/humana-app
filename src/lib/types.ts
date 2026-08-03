@@ -80,7 +80,7 @@ export interface SubscriptionPlan {
   price: string;
   currency: string;
   billing_interval: string;
-  features: Record<string, boolean>;
+  features: Record<string, boolean | number | string>;
   commission_rate: number;
   commission_percent: string;
   stripe_price_id: string | null;

@@ -337,6 +337,14 @@ export const agencyApi = {
     api.post<{ retreat: ApiRetreat }>(`/agency/retreats/${id}/submit_for_review`),
   replaceRetreatProgram: (id: number, data: Record<string, unknown>) =>
     api.put<{ retreat: ApiRetreat }>(`/agency/retreats/${id}/program`, data),
+
+  // Subscription
+  getSubscriptionPlans: () =>
+    api.get<{ plans: import("@/lib/types").SubscriptionPlan[] }>("/agency/subscription/plans"),
+  getSubscription: () =>
+    api.get<{ subscription: import("@/lib/types").Subscription | null }>("/agency/subscription"),
+  selectPlan: (planId: number) =>
+    api.post<{ subscription: import("@/lib/types").Subscription }>("/agency/subscription", { plan_id: planId }),
 };
 
 export interface AgencyProfileUpdate {

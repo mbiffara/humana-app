@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { agencyApi } from "@/lib/api/agency";
 import { uploadImage } from "@/lib/upload";
 import PlacesAutocomplete, { type PlaceResult } from "@/components/PlacesAutocomplete";
+import type { SubscriptionPlan, Subscription } from "@/lib/types";
 
 type SettingsTab = "profile" | "account" | "subscription" | "payments";
 
@@ -271,6 +272,12 @@ export default function AgencySettingsPage() {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // Subscription
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [currentSub, setCurrentSub] = useState<Subscription | null>(null);
+  const [subLoading, setSubLoading] = useState(false);
+  const [selectingPlanId, setSelectingPlanId] = useState<number | null>(null);
+
   const loadProfile = useCallback(async () => {
     setLoading(true);
     try {
@@ -301,6 +308,40 @@ export default function AgencySettingsPage() {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  const loadSubscription = useCallback(async () => {
+    setSubLoading(true);
+    try {
+      const [plansRes, subRes] = await Promise.all([
+        agencyApi.getSubscriptionPlans(),
+        agencyApi.getSubscription(),
+      ]);
+      setPlans(plansRes.plans);
+      setCurrentSub(subRes.subscription);
+    } catch {
+      // ignore
+    } finally {
+      setSubLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "subscription" && plans.length === 0) {
+      loadSubscription();
+    }
+  }, [tab, plans.length, loadSubscription]);
+
+  async function handleSelectPlan(planId: number) {
+    setSelectingPlanId(planId);
+    try {
+      const res = await agencyApi.selectPlan(planId);
+      setCurrentSub(res.subscription);
+    } catch {
+      // ignore
+    } finally {
+      setSelectingPlanId(null);
+    }
+  }
 
   function showSaved() {
     setSavedMsg(ts.profile.saved);
@@ -653,15 +694,98 @@ export default function AgencySettingsPage() {
               </h2>
               <p className="mt-1 text-[14px] text-humana-muted">{ts.subscription.subtitle}</p>
 
-              <div className="mt-8 flex flex-col items-center py-8 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-humana-gold-light">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                    <line x1="1" y1="10" x2="23" y2="10" />
-                  </svg>
+              {subLoading ? (
+                <div className="mt-8 flex justify-center py-10">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
                 </div>
-                <p className="mt-3 text-[13px] text-humana-muted">{ts.subscription.comingSoon}</p>
-              </div>
+              ) : (
+                <div className="mt-8 grid grid-cols-3 gap-5">
+                  {plans.map((plan) => {
+                    const isCurrent = currentSub?.plan?.id === plan.id;
+                    const isSelecting = selectingPlanId === plan.id;
+
+                    // Build feature display keys from mixed-type features
+                    const featureEntries = Object.entries(plan.features).filter(([, v]) => v);
+                    const featureLabels = featureEntries.map(([key, value]) => {
+                      // For numeric values: -1 means unlimited
+                      if (typeof value === "number") {
+                        const lookupKey = value === -1 ? `${key}_unlimited` : key;
+                        return ts.subscription.features[lookupKey] ?? key.replace(/_/g, " ");
+                      }
+                      // For string values: combine key + value as lookup
+                      if (typeof value === "string") {
+                        const lookupKey = `${key}_${value}`;
+                        return ts.subscription.features[lookupKey] ?? ts.subscription.features[key] ?? value;
+                      }
+                      // Boolean true
+                      return ts.subscription.features[key] ?? key.replace(/_/g, " ");
+                    });
+
+                    return (
+                      <div
+                        key={plan.id}
+                        className={`flex flex-col border p-6 transition-all ${
+                          isCurrent
+                            ? "border-humana-gold bg-humana-gold-light/30 shadow-sm"
+                            : "border-humana-line bg-humana-stone/30 hover:shadow-md hover:-translate-y-0.5"
+                        }`}
+                      >
+                        {/* Plan name + badge */}
+                        <div className="flex items-start justify-between">
+                          <h3 className="text-[16px] font-semibold text-humana-ink">{plan.name}</h3>
+                          {isCurrent && (
+                            <span className="rounded-full bg-humana-gold px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                              {ts.subscription.currentPlan}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Price */}
+                        <div className="mt-3 flex items-baseline gap-1">
+                          <span className="text-[28px] font-light text-humana-ink">
+                            ${(plan.price_cents / 100).toFixed(0)}
+                          </span>
+                          <span className="text-[13px] text-humana-muted">{ts.subscription.perMonth}</span>
+                        </div>
+
+                        {/* Commission */}
+                        <p className="mt-1 text-[12px] text-humana-subtle">
+                          {(plan.commission_rate * 100).toFixed(0)}% {ts.subscription.commission}
+                        </p>
+
+                        {/* Features */}
+                        <ul className="mt-5 flex flex-1 flex-col gap-2.5">
+                          {featureLabels.map((label, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              <span className="text-[13px] text-humana-ink">{label}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* Action button */}
+                        <div className="mt-6">
+                          {isCurrent ? (
+                            <div className="flex items-center justify-center py-2.5 text-[13px] font-semibold uppercase tracking-[0.16em] text-humana-gold">
+                              {ts.subscription.currentPlan}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleSelectPlan(plan.id)}
+                              disabled={isSelecting}
+                              className="w-full cursor-pointer bg-humana-gold px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+                            >
+                              {isSelecting ? ts.subscription.selecting : ts.subscription.selectPlan}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
