@@ -774,7 +774,7 @@ function RoomPhotos({
 
         {/* Counter */}
         <div className="mt-4 text-[13px] text-humana-muted">
-          {h.photosCounter(room.photos.length, 4)}
+          {h.photosCounter(room.photos.length, MAX_ROOM_PHOTOS)}
         </div>
       </div>
 
