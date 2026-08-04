@@ -13,6 +13,8 @@ export interface Organization {
   contact_email: string | null;
   website: string | null;
   onboarding_completed: boolean;
+  /** Sponsored orgs get full platform access without an active subscription. */
+  sponsored?: boolean;
   hotel_id?: number | null;
   user_count?: number;
   created_at?: string;

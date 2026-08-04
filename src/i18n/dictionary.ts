@@ -464,6 +464,8 @@ type Dictionary = {
         currentPlan: string;
         selectPlan: string;
         selecting: string;
+        sponsoredTitle: string;
+        sponsoredBody: string;
         features: Record<string, string>;
       };
       payments: {
@@ -1796,6 +1798,8 @@ export const dictionary: Record<Locale, Dictionary> = {
           eyebrow: "SUBSCRIPTION",
           title: "Choose Your Plan",
           subtitle: "Select the plan that best fits your hotel's needs.",
+          sponsoredTitle: "Sponsored Access",
+          sponsoredBody: "Your hotel has full access to the platform, sponsored by HUMANA. An active subscription plan is optional.",
           perMonth: "/month",
           commission: "commission",
           currentPlan: "Current Plan",
@@ -3341,6 +3345,8 @@ export const dictionary: Record<Locale, Dictionary> = {
           eyebrow: "SUSCRIPCIÓN",
           title: "Elige Tu Plan",
           subtitle: "Selecciona el plan que mejor se adapte a las necesidades de tu hotel.",
+          sponsoredTitle: "Acceso Patrocinado",
+          sponsoredBody: "Tu hotel cuenta con acceso completo a la plataforma, patrocinado por HUMANA. Un plan de suscripción activo es opcional.",
           perMonth: "/mes",
           commission: "comisión",
           currentPlan: "Plan Actual",
@@ -4886,6 +4892,8 @@ export const dictionary: Record<Locale, Dictionary> = {
           eyebrow: "ASSINATURA",
           title: "Escolha Seu Plano",
           subtitle: "Selecione o plano que melhor atende às necessidades do seu hotel.",
+          sponsoredTitle: "Acesso Patrocinado",
+          sponsoredBody: "Seu hotel conta com acesso completo à plataforma, patrocinado pela HUMANA. Um plano de assinatura ativo é opcional.",
           perMonth: "/mês",
           commission: "comissão",
           currentPlan: "Plano Atual",
