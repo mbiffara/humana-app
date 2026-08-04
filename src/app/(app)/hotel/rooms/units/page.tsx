@@ -23,8 +23,8 @@ export default function HotelRoomsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Per-room-type "add room" input value
-  const [newRoomNames, setNewRoomNames] = useState<Record<number, string>>({});
+  // Room type id whose ⋮ actions menu is open
+  const [openMenu, setOpenMenu] = useState<number | null>(null);
   // In-progress room renames, keyed by room id. Cleared after save so the
   // input falls back to the server value — a rejected rename (e.g. duplicate
   // number) visibly reverts instead of lingering as if it were saved.
@@ -81,15 +81,27 @@ export default function HotelRoomsPage() {
     }
   }
 
+  // Same "{Type name} {seq}" pattern the server uses for placeholder rooms;
+  // numbers are unique hotel-wide, and the full room list is already loaded.
+  function nextRoomNumber(roomType: RoomType): string {
+    const taken = new Set(rooms.map((r) => r.number.toLowerCase()));
+    let seq = 1;
+    while (taken.has(`${roomType.name} ${seq}`.toLowerCase())) seq += 1;
+    return `${roomType.name} ${seq}`;
+  }
+
   async function addRoom(roomType: RoomType) {
-    const number = (newRoomNames[roomType.id] ?? "").trim();
-    if (!number) return;
     try {
-      const res = await hotelApi.createRoom({ room_type_id: roomType.id, number });
+      const res = await hotelApi.createRoom({
+        room_type_id: roomType.id,
+        number: nextRoomNumber(roomType),
+      });
       setRooms((prev) => [...prev, res.room]);
-      setNewRoomNames((prev) => ({ ...prev, [roomType.id]: "" }));
     } catch {
-      // duplicate number or validation error — keep the input for correction
+      // duplicate number race or validation error — refetch to resync
+      fetchData();
+    } finally {
+      setOpenMenu(null);
     }
   }
 
@@ -153,23 +165,35 @@ export default function HotelRoomsPage() {
                     </p>
                   </div>
 
-                  {/* Add room */}
-                  <div className="flex items-center gap-3">
-                    <input
-                      value={newRoomNames[roomType.id] ?? ""}
-                      onChange={(e) =>
-                        setNewRoomNames((prev) => ({ ...prev, [roomType.id]: e.target.value }))
-                      }
-                      onKeyDown={(e) => e.key === "Enter" && addRoom(roomType)}
-                      placeholder={t.hotelWs.rooms.numberPlaceholder}
-                      className="w-56 rounded-lg border border-humana-line bg-white px-4 py-2.5 text-[13px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle focus:border-humana-gold"
-                    />
+                  {/* Actions menu */}
+                  <div className="relative">
                     <button
-                      onClick={() => addRoom(roomType)}
-                      className="cursor-pointer rounded-lg bg-humana-ink px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-85"
+                      onClick={() => setOpenMenu((prev) => (prev === roomType.id ? null : roomType.id))}
+                      aria-label={t.hotelWs.rooms.addRoom}
+                      className="cursor-pointer rounded-lg p-2 text-humana-muted transition-colors hover:bg-humana-stone hover:text-humana-ink"
                     >
-                      {t.hotelWs.rooms.addRoom}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5" r="1.8" />
+                        <circle cx="12" cy="12" r="1.8" />
+                        <circle cx="12" cy="19" r="1.8" />
+                      </svg>
                     </button>
+                    {openMenu === roomType.id && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
+                        <div className="absolute right-0 top-full z-20 mt-1 min-w-[220px] rounded-lg border border-humana-line bg-white py-1.5 shadow-lg animate-fade-in-scale">
+                          <button
+                            onClick={() => addRoom(roomType)}
+                            className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2.5 text-left text-[13px] text-humana-ink transition-colors hover:bg-humana-stone"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                              <path d="M12 5v14M5 12h14" />
+                            </svg>
+                            {t.hotelWs.rooms.addRoom}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -190,15 +214,6 @@ export default function HotelRoomsPage() {
                         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
                         className="min-w-[160px] flex-1 rounded-md border border-transparent bg-transparent px-2 py-1.5 text-[14px] text-humana-ink outline-none transition-colors hover:border-humana-line focus:border-humana-gold focus:bg-white"
                       />
-                      {room.auto_generated && (
-                        <span
-                          className="text-[10px] uppercase tracking-wider text-humana-subtle"
-                          title={t.hotelWs.rooms.autoLabel}
-                        >
-                          {t.hotelWs.rooms.autoLabel}
-                        </span>
-                      )}
-
                       {/* Status pills */}
                       <div className="flex items-center gap-1">
                         {STATUS_ORDER.map((status) => (
