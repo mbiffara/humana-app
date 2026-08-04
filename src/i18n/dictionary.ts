@@ -175,6 +175,9 @@ type Dictionary = {
         selected: (n: number) => string;
         groups: { features: string; bathroom: string; technology: string; outdoor: string };
         items: Record<string, string>;
+        customGroup: string;
+        customPlaceholder: string;
+        addCustom: string;
       };
       photos: {
         title: string;
@@ -209,6 +212,8 @@ type Dictionary = {
         add: string;
         cancel: string;
         hint: string;
+        selectHint: string;
+        selectedLabel: string;
       };
       pricing: {
         title: string;
@@ -1516,6 +1521,9 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Amenities",
           subtitle: "Select the amenities and features available in this room type.",
           selected: (n: number) => `${n} amenit${n === 1 ? "y" : "ies"} selected`,
+          customGroup: "Custom amenities",
+          customPlaceholder: "e.g. Fireplace, Tea ceremony set…",
+          addCustom: "Add",
           groups: {
             features: "Room features",
             bathroom: "Bathroom",
@@ -1580,6 +1588,8 @@ export const dictionary: Record<Locale, Dictionary> = {
           add: "Block dates",
           cancel: "Cancel",
           hint: "Blocked units are removed from the bookable inventory for the selected dates.",
+          selectHint: "Click a start date and an end date on the calendar to block them.",
+          selectedLabel: "Selected",
         },
         pricing: {
           title: "Pricing",
@@ -3095,6 +3105,9 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Amenidades",
           subtitle: "Selecciona las amenidades y características disponibles en este tipo de habitación.",
           selected: (n: number) => `${n} amenidad${n === 1 ? "" : "es"} seleccionada${n === 1 ? "" : "s"}`,
+          customGroup: "Amenidades personalizadas",
+          customPlaceholder: "ej. Chimenea, Set de ceremonia de té…",
+          addCustom: "Agregar",
           groups: {
             features: "Características",
             bathroom: "Baño",
@@ -3159,6 +3172,8 @@ export const dictionary: Record<Locale, Dictionary> = {
           add: "Bloquear fechas",
           cancel: "Cancelar",
           hint: "Las unidades bloqueadas se quitan del inventario reservable en las fechas seleccionadas.",
+          selectHint: "Haz clic en una fecha de inicio y una de fin en el calendario para bloquearlas.",
+          selectedLabel: "Seleccionado",
         },
         pricing: {
           title: "Precios",
@@ -4674,6 +4689,9 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Comodidades",
           subtitle: "Selecione as comodidades e características disponíveis neste tipo de quarto.",
           selected: (n: number) => `${n} comodidade${n === 1 ? "" : "s"} selecionada${n === 1 ? "" : "s"}`,
+          customGroup: "Comodidades personalizadas",
+          customPlaceholder: "ex. Lareira, Kit de cerimônia do chá…",
+          addCustom: "Adicionar",
           groups: {
             features: "Características",
             bathroom: "Banheiro",
@@ -4738,6 +4756,8 @@ export const dictionary: Record<Locale, Dictionary> = {
           add: "Bloquear datas",
           cancel: "Cancelar",
           hint: "As unidades bloqueadas são removidas do inventário reservável nas datas selecionadas.",
+          selectHint: "Clique em uma data de início e uma de fim no calendário para bloqueá-las.",
+          selectedLabel: "Selecionado",
         },
         pricing: {
           title: "Preços",
