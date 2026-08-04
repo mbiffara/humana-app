@@ -37,6 +37,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       } else if (kind === "office") {
         router.replace("/onboarding/office");
       }
+      return;
+    }
+    // Hotels awaiting admin approval land on the review step, where they can
+    // see their status and keep editing their submission.
+    if (
+      !loading &&
+      user &&
+      user.organization?.kind === "hotel" &&
+      user.organization?.onboarding_completed &&
+      user.organization?.status === "pending" &&
+      !isOnboarding
+    ) {
+      router.replace("/onboarding/hotel/step-5");
     }
   }, [loading, user, router, isOnboarding]);
 

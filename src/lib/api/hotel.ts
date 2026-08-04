@@ -260,7 +260,7 @@ export interface HotelProfile {
   logo_url: string | null;
   website: string | null;
   contact_email: string | null;
-  room_types: RoomType[];
+  room_types: RoomTypeDetail[];
   amenities: Amenity[];
   images: HotelImage[];
 }
