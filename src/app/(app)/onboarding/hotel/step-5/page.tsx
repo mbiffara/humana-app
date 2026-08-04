@@ -80,7 +80,8 @@ export default function HotelWizardStep5() {
   }[status];
 
   return (
-    <div className="animate-fade-in-up pb-28">
+    <div className="flex justify-center px-16 py-16 pb-28 animate-fade-in-up">
+      <div className="w-full max-w-[700px]">
       <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
         {h.step5Eyebrow}
       </span>
@@ -191,6 +192,7 @@ export default function HotelWizardStep5() {
             <p className="text-[14px] text-humana-muted">{h.reviewNoPhotos}</p>
           )}
         </SectionCard>
+      </div>
       </div>
     </div>
   );
