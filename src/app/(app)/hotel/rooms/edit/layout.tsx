@@ -238,18 +238,21 @@ function WizardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-humana-line bg-white p-6">
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] text-humana-muted">{te.preview.progress}</span>
-              <span className="text-[13px] font-semibold text-humana-gold">{progressPct}%</span>
+          {/* Progress only makes sense while creating — editing is not linear */}
+          {!state.roomTypeId && (
+            <div className="mt-4 rounded-xl border border-humana-line bg-white p-6">
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] text-humana-muted">{te.preview.progress}</span>
+                <span className="text-[13px] font-semibold text-humana-gold">{progressPct}%</span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-humana-stone">
+                <div
+                  className="h-full rounded-full bg-humana-gold transition-all duration-300"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
             </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-humana-stone">
-              <div
-                className="h-full rounded-full bg-humana-gold transition-all duration-300"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-          </div>
+          )}
 
           {saveError && (
             <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">

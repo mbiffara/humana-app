@@ -5,6 +5,9 @@
 import { useLocale } from "@/i18n/LocaleProvider";
 import { generateId, useRoomTypeEditor, type TierEntry } from "@/contexts/RoomTypeEditorContext";
 
+// Volume pricing is built but hidden for now — set to true to bring it back.
+const SHOW_VOLUME_PRICING = false;
+
 const inputClass =
   "border border-humana-line bg-white px-3 py-2 text-[13px] text-humana-ink outline-none transition-colors focus:border-humana-gold";
 
@@ -82,7 +85,8 @@ export default function RoomPricingStep() {
         </div>
       </section>
 
-      {/* Volume pricing */}
+      {/* Volume pricing — temporarily hidden; flip the flag when tiers launch */}
+      {SHOW_VOLUME_PRICING && (
       <section className="rounded-xl border border-humana-line bg-white p-8">
         <div className="flex items-start justify-between">
           <div>
@@ -195,6 +199,7 @@ export default function RoomPricingStep() {
 
         <p className="mt-5 text-[12px] text-humana-subtle">{te.pricing.footnote}</p>
       </section>
+      )}
     </div>
   );
 }
