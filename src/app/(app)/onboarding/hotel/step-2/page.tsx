@@ -460,7 +460,6 @@ function AvailabilityCalendar({
               else if (isLowAvailability) bg = "bg-humana-gold-light text-humana-ink";
               if (isInSelection || isSelStart || isSelEnd) bg = "bg-humana-gold-light text-humana-gold ring-1 ring-humana-gold/30";
 
-              const label = hasBlocks && !(isInSelection || isSelStart || isSelEnd) ? String(available) : String(day);
               const tooltip = hasBlocks ? `${available}/${room.totalUnits} available` : undefined;
 
               return (
@@ -469,9 +468,12 @@ function AvailabilityCalendar({
                   type="button"
                   onClick={() => handleDayClick(dateStr)}
                   title={tooltip}
-                  className={`cursor-pointer flex h-9 items-center justify-center rounded text-[13px] font-medium transition-all duration-150 ${bg}`}
+                  className={`cursor-pointer flex h-10 flex-col items-center justify-center rounded text-[13px] font-medium leading-none transition-all duration-150 ${bg}`}
                 >
-                  {label}
+                  <span>{day}</span>
+                  {hasBlocks && (
+                    <span className="mt-0.5 text-[9px] font-normal opacity-70">{available}</span>
+                  )}
                 </button>
               );
             })}

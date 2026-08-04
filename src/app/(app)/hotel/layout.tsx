@@ -5,10 +5,12 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/i18n/LocaleProvider";
 import { HotelTopNav } from "@/components/hotel/HotelTopNav";
 
 export default function HotelLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, subscription } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const isHotelUser = user?.organization?.kind === "hotel";
@@ -48,19 +50,19 @@ export default function HotelLayout({ children }: { children: React.ReactNode })
                 </svg>
               </div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-                SUBSCRIPTION REQUIRED
+                {t.hotelWs.paywall.eyebrow}
               </p>
               <h2 className="mt-3 text-[22px] font-light tracking-[-0.01em] text-humana-ink">
-                Choose a plan to continue
+                {t.hotelWs.paywall.title}
               </h2>
               <p className="mt-2 text-[14px] text-humana-muted leading-relaxed">
-                Select a subscription plan to unlock your hotel workspace and start managing your property, bookings, and retreats.
+                {t.hotelWs.paywall.body}
               </p>
               <button
                 onClick={() => router.push("/hotel/settings?tab=subscription")}
                 className="mt-6 w-full cursor-pointer bg-humana-gold px-8 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85"
               >
-                SELECT A PLAN
+                {t.hotelWs.paywall.cta}
               </button>
             </div>
           </div>
