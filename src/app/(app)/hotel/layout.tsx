@@ -28,7 +28,10 @@ export default function HotelLayout({ children }: { children: React.ReactNode })
     subscription != null &&
     (subscription.status === "active" || subscription.status === "trialing");
 
-  const showPaywall = !isExempt && !hasActiveSubscription;
+  // Sponsored organizations get full access without a subscription
+  const isSponsored = user.organization?.sponsored === true;
+
+  const showPaywall = !isExempt && !hasActiveSubscription && !isSponsored;
 
   return (
     <>

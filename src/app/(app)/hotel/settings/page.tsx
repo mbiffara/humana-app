@@ -745,6 +745,22 @@ export default function HotelSettingsPage() {
               </h2>
               <p className="mt-1 text-[14px] text-humana-muted">{ts.subscription.subtitle}</p>
 
+              {user?.organization?.sponsored && (
+                <div className="mt-6 flex items-start gap-3 border border-humana-gold bg-humana-gold-light p-5">
+                  <svg className="mt-0.5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  <div>
+                    <p className="text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                      {ts.subscription.sponsoredTitle}
+                    </p>
+                    <p className="mt-1 text-[14px] text-humana-ink leading-relaxed">
+                      {ts.subscription.sponsoredBody}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {subLoading ? (
                 <div className="mt-8 flex justify-center py-10">
                   <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
