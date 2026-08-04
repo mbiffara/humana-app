@@ -80,6 +80,7 @@ export default function RetreatReviewStep() {
       : "—";
 
   const pricedRooms = state.pricing
+    .filter((entry) => entry.included !== false)
     .map((entry) => ({
       roomType: roomTypes.find((rt) => rt.id === entry.roomTypeId),
       cents: toCents(entry.price),

@@ -332,6 +332,10 @@ type Dictionary = {
           roomsCapacity: string;
           pricePerGuest: string;
           totalPrice: string;
+          include: string;
+          includeHint: string;
+          availabilityLabel: (n: number, total: number) => string;
+          noAvailabilityLabel: string;
           guests: (n: number) => string;
           earningsTitle: string;
           agencyCommission: (pct: number) => string;
@@ -1709,6 +1713,10 @@ export const dictionary: Record<Locale, Dictionary> = {
             room: "Room",
             roomsCapacity: "Rooms / Capacity",
             pricePerGuest: "Price / Guest",
+            include: "Include",
+            includeHint: "Only the rooms you select will be bookable for this retreat.",
+            availabilityLabel: (n: number, total: number) => `${n} of ${total} units free on your dates`,
+            noAvailabilityLabel: "No availability on the retreat dates",
             totalPrice: "Total price",
             guests: (n: number) => `${n} guest${n === 1 ? "" : "s"}`,
             earningsTitle: "Total estimated earnings",
@@ -3293,6 +3301,10 @@ export const dictionary: Record<Locale, Dictionary> = {
             room: "Habitación",
             roomsCapacity: "Habitaciones / Capacidad",
             pricePerGuest: "Precio / Huésped",
+            include: "Incluir",
+            includeHint: "Solo las habitaciones que selecciones estarán disponibles para reservar en este retiro.",
+            availabilityLabel: (n: number, total: number) => `${n} de ${total} unidades libres en tus fechas`,
+            noAvailabilityLabel: "Sin disponibilidad en las fechas del retiro",
             totalPrice: "Precio total",
             guests: (n: number) => `${n} huésped${n === 1 ? "" : "es"}`,
             earningsTitle: "Ingresos totales estimados",
@@ -4877,6 +4889,10 @@ export const dictionary: Record<Locale, Dictionary> = {
             room: "Quarto",
             roomsCapacity: "Quartos / Capacidade",
             pricePerGuest: "Preço / Hóspede",
+            include: "Incluir",
+            includeHint: "Somente os quartos que você selecionar estarão disponíveis para reserva neste retiro.",
+            availabilityLabel: (n: number, total: number) => `${n} de ${total} unidades livres nas suas datas`,
+            noAvailabilityLabel: "Sem disponibilidade nas datas do retiro",
             totalPrice: "Preço total",
             guests: (n: number) => `${n} hóspede${n === 1 ? "" : "s"}`,
             earningsTitle: "Receita total estimada",

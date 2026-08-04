@@ -25,12 +25,21 @@ function toCents(price: string): number {
   return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : 0;
 }
 
+function addDays(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 export default function RetreatPricingStep() {
   const { t } = useLocale();
   const tw = t.hotelWs.retreats.wizard;
   const { state, set } = useRetreatWizard();
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [loading, setLoading] = useState(true);
+  // Minimum free units per room type across the retreat dates (blocked dates
+  // and existing bookings both reduce this), keyed by room type id.
+  const [availability, setAvailability] = useState<Map<number, number> | null>(null);
 
   useEffect(() => {
     hotelApi
@@ -40,25 +49,70 @@ export default function RetreatPricingStep() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Ensure the wizard holds one pricing entry per room type
+  useEffect(() => {
+    if (!state.startDate || state.nights <= 0) return;
+    const to = addDays(state.startDate, state.nights - 1);
+    hotelApi
+      .getCalendar(state.startDate, to)
+      .then((res) => {
+        const map = new Map<number, number>();
+        for (const entry of res.room_types) {
+          const min = entry.days.length
+            ? Math.min(...entry.days.map((d) => d.available))
+            : entry.rooms_operational;
+          map.set(entry.room_type.id, min);
+        }
+        setAvailability(map);
+      })
+      .catch(() => setAvailability(null));
+  }, [state.startDate, state.nights]);
+
+  // Rooms with no free units on the retreat dates can't be offered
+  useEffect(() => {
+    if (!availability) return;
+    const needsFix = state.pricing.some(
+      (p) => availability.get(p.roomTypeId) === 0 && p.included !== false,
+    );
+    if (needsFix) {
+      set({
+        pricing: state.pricing.map((p) =>
+          availability.get(p.roomTypeId) === 0 ? { ...p, included: false } : p,
+        ),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availability, state.pricing]);
+
+  // Ensure the wizard holds one pricing entry per room type. On a fresh
+  // retreat every room starts included; when revisiting an existing one,
+  // rooms that had no pricing row were deliberately left out.
   useEffect(() => {
     if (!roomTypes.length) return;
     const known = new Set(state.pricing.map((p) => p.roomTypeId));
     const missing = roomTypes.filter((rt) => !known.has(rt.id));
     if (missing.length) {
+      const isFresh = state.pricing.length === 0;
       set({
         pricing: [
           ...state.pricing.filter((p) => roomTypes.some((rt) => rt.id === p.roomTypeId)),
-          ...missing.map((rt) => ({ roomTypeId: rt.id, price: "" })),
+          ...missing.map((rt) => ({ roomTypeId: rt.id, price: "", included: isFresh })),
         ],
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomTypes]);
 
+  function toggleIncluded(roomTypeId: number) {
+    set({
+      pricing: state.pricing.map((p) =>
+        p.roomTypeId === roomTypeId ? { ...p, included: p.included === false } : p,
+      ),
+    });
+  }
+
   const totalCents = roomTypes.reduce((sum, rt) => {
     const entry = state.pricing.find((p) => p.roomTypeId === rt.id);
-    return sum + (entry ? toCents(entry.price) * rt.capacity : 0);
+    return sum + (entry && entry.included !== false ? toCents(entry.price) * rt.capacity : 0);
   }, 0);
 
   if (loading) {
@@ -77,6 +131,7 @@ export default function RetreatPricingStep() {
         </p>
         <h2 className="mt-2 text-[32px] font-light leading-[40px] tracking-[-0.01em] text-humana-ink">{tw.pricing.title}</h2>
         <p className="mt-1 text-[15px] leading-[22px] text-humana-muted">{tw.pricing.subtitle}</p>
+        <p className="mt-1 text-[13px] text-humana-subtle">{tw.pricing.includeHint}</p>
 
         {roomTypes.length === 0 ? (
           <div className="mt-8 flex flex-col items-center rounded-lg border border-dashed border-humana-line py-14 text-center">
@@ -92,8 +147,8 @@ export default function RetreatPricingStep() {
         ) : (
           <div className="mt-8">
             {/* Table header */}
-            <div className="grid grid-cols-[1.8fr_1fr_1fr_1fr] gap-4 border-b border-humana-line pb-3">
-              {[tw.pricing.room, tw.pricing.roomsCapacity, tw.pricing.pricePerGuest, tw.pricing.totalPrice].map(
+            <div className="grid grid-cols-[70px_1.8fr_1fr_1fr_1fr] gap-4 border-b border-humana-line pb-3">
+              {[tw.pricing.include, tw.pricing.room, tw.pricing.roomsCapacity, tw.pricing.pricePerGuest, tw.pricing.totalPrice].map(
                 (header) => (
                   <span
                     key={header}
@@ -106,12 +161,26 @@ export default function RetreatPricingStep() {
             </div>
             {roomTypes.map((roomType) => {
               const entry = state.pricing.find((p) => p.roomTypeId === roomType.id);
-              const cents = entry ? toCents(entry.price) : 0;
+              const minFree = availability?.get(roomType.id);
+              const unavailable = minFree === 0;
+              const included = !unavailable && (entry ? entry.included !== false : true);
+              const cents = entry && included ? toCents(entry.price) : 0;
               return (
                 <div
                   key={roomType.id}
-                  className="grid grid-cols-[1.8fr_1fr_1fr_1fr] items-center gap-4 border-b border-humana-line py-4"
+                  className={`grid grid-cols-[70px_1.8fr_1fr_1fr_1fr] items-center gap-4 border-b border-humana-line py-4 transition-opacity ${
+                    included ? "" : "opacity-45"
+                  }`}
                 >
+                  <label className={`flex items-center justify-center ${unavailable ? "cursor-not-allowed" : "cursor-pointer"}`}>
+                    <input
+                      type="checkbox"
+                      checked={included}
+                      disabled={unavailable}
+                      onChange={() => toggleIncluded(roomType.id)}
+                      className="h-4 w-4 cursor-pointer accent-humana-gold disabled:cursor-not-allowed"
+                    />
+                  </label>
                   <div>
                     <p className="text-[14px] font-medium text-humana-ink">{roomType.name}</p>
                     <p className="mt-0.5 text-[12px] text-humana-muted">
@@ -119,15 +188,25 @@ export default function RetreatPricingStep() {
                       {roomType.description ? ` · ${roomType.description}` : ""}
                     </p>
                   </div>
-                  <span className="text-[13px] text-humana-ink">
-                    {tw.pricing.guests(roomType.capacity)}
-                  </span>
+                  <div>
+                    <span className="text-[13px] text-humana-ink">
+                      {tw.pricing.guests(roomType.capacity)}
+                    </span>
+                    {minFree != null && (
+                      <p className={`mt-0.5 text-[11px] ${unavailable ? "font-medium text-red-600" : minFree <= (roomType.total_rooms ?? 1) / 3 ? "text-amber-600" : "text-humana-subtle"}`}>
+                        {unavailable
+                          ? tw.pricing.noAvailabilityLabel
+                          : tw.pricing.availabilityLabel(minFree, roomType.total_rooms ?? minFree)}
+                      </p>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[13px] text-humana-subtle">$</span>
                     <input
                       type="text"
                       inputMode="decimal"
                       value={entry?.price ?? ""}
+                      disabled={!included}
                       onChange={(e) => {
                         const raw = e.target.value.replace(/[^0-9.]/g, "");
                         set({
@@ -137,7 +216,7 @@ export default function RetreatPricingStep() {
                         });
                       }}
                       placeholder="0"
-                      className="w-[110px] border border-humana-line bg-white px-3 py-2 text-[14px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
+                      className="w-[110px] border border-humana-line bg-white px-3 py-2 text-[14px] text-humana-ink outline-none transition-colors focus:border-humana-gold disabled:cursor-not-allowed disabled:bg-humana-stone"
                     />
                   </div>
                   <span className="text-[14px] font-medium text-humana-ink">
