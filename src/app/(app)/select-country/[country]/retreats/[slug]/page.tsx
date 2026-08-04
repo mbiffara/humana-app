@@ -9,6 +9,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
 import { countries, countrySlugToId } from "@/data/countries";
 import { agencyApi, type ApiExperience, type PublicHotelFull, type PublicRoomType } from "@/lib/api/agency";
+import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
 
 export default function RetreatDetailPage({ params }: { params: Promise<{ country: string; slug: string }> }) {
   const { country, slug } = React.use(params);
@@ -25,19 +26,18 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
   const countryName = countryData?.name ?? country.charAt(0).toUpperCase() + country.slice(1);
 
   useEffect(() => {
-    agencyApi
-      .getExperience(slug)
-      .then((res) => {
-        setExperience(res.experience);
-        // Fetch full hotel details if experience has a hotel
-        if (res.experience.hotel?.id) {
+    fetchExperienceOrRetreat(slug)
+      .then((exp) => {
+        if (!exp) return;
+        setExperience(exp);
+        // Fetch full hotel details if the entry has a hotel
+        if (exp.hotel?.id) {
           agencyApi
-            .getHotel(res.experience.hotel.id)
+            .getHotel(exp.hotel.id)
             .then((hotelRes) => setHotel(hotelRes.hotel))
             .catch(() => {});
         }
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, [slug]);
 
