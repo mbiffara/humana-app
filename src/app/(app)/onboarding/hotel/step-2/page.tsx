@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
   useHotelWizard,
+  MAX_ROOM_PHOTOS,
   type RoomTypeEntry,
   type AvailabilityBlock,
 } from "@/contexts/HotelWizardContext";
@@ -641,7 +642,7 @@ function RoomPhotos({
   const [isDragOver, setIsDragOver] = useState(false);
 
   function handleFiles(files: FileList | File[]) {
-    const fileArray = Array.from(files).slice(0, 4 - room.photos.length);
+    const fileArray = Array.from(files).slice(0, MAX_ROOM_PHOTOS - room.photos.length);
 
     // Immediately show previews, then upload in background and swap
     // blob URLs for server URLs (only server URLs are persisted on save).
@@ -699,7 +700,7 @@ function RoomPhotos({
         />
 
         {/* Upload zone — label triggers file input natively */}
-        {room.photos.length < 4 && (
+        {room.photos.length < MAX_ROOM_PHOTOS && (
           <label
             htmlFor={inputId}
             onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
