@@ -115,6 +115,25 @@ export default function RetreatPricingStep() {
     return sum + (entry && entry.included !== false ? toCents(entry.price) * rt.capacity : 0);
   }, 0);
 
+  // Guests the included rooms can host on the retreat dates: free units
+  // (bounded by blocked dates and existing bookings) × per-room capacity.
+  const capacityCovered = roomTypes.reduce((sum, rt) => {
+    const entry = state.pricing.find((p) => p.roomTypeId === rt.id);
+    if (!entry || entry.included === false) return sum;
+    const units = availability?.get(rt.id) ?? rt.total_rooms ?? 1;
+    return sum + units * rt.capacity;
+  }, 0);
+  const capacityIsCovered = capacityCovered >= state.capacity;
+
+  // Share the coverage with the wizard so the layout can gate NEXT on it
+  useEffect(() => {
+    if (!roomTypes.length) return;
+    if (state.capacityCovered !== capacityCovered) {
+      set({ capacityCovered });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [capacityCovered, roomTypes.length]);
+
   if (loading) {
     return (
       <div className="flex h-[40vh] items-center justify-center">
@@ -225,6 +244,34 @@ export default function RetreatPricingStep() {
                 </div>
               );
             })}
+
+            {/* Capacity coverage vs. the retreat's maximum */}
+            <div
+              className={`mt-6 flex items-start gap-3 rounded-lg border p-4 ${
+                capacityIsCovered ? "border-emerald-200 bg-emerald-50" : "border-amber-300 bg-amber-50"
+              }`}
+            >
+              {capacityIsCovered ? (
+                <svg className="mt-0.5 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="8 12 11 15 16 9" />
+                </svg>
+              ) : (
+                <svg className="mt-0.5 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              )}
+              <div>
+                <p className={`text-[13px] font-medium ${capacityIsCovered ? "text-emerald-700" : "text-amber-700"}`}>
+                  {tw.pricing.coverageLabel(capacityCovered, state.capacity)}
+                </p>
+                <p className="mt-0.5 text-[12px] text-humana-muted">
+                  {capacityIsCovered ? tw.pricing.coverageOk : tw.pricing.coverageShort}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </section>
