@@ -92,8 +92,13 @@ function BottomBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
-  const { user, setUser } = useAuth();
+  const { user, setUser, refreshAuth } = useAuth();
   const { state, hideBottomBar, isUploading } = useHotelWizard();
+
+  const org = user?.organization;
+  const alreadySubmitted = !!org?.onboarding_completed;
+  // Submitted hotels with unpublished edits or admin feedback can republish
+  const hasSomethingToPublish = !alreadySubmitted || !!org?.pending_changes || !!org?.review_feedback;
   const [submitting, setSubmitting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -268,6 +273,16 @@ function BottomBar() {
       return;
     }
 
+    // Editing after submission withdraws the review server-side — refresh the
+    // user so the UI picks up pending_changes and offers "Publish changes".
+    if (alreadySubmitted && !isLastStep) {
+      try {
+        await refreshAuth();
+      } catch {
+        // best-effort
+      }
+    }
+
     setSubmitting(false);
     setShowConfirmModal(false);
 
@@ -392,7 +407,7 @@ function BottomBar() {
 
       {/* Next / Submit for review */}
       <div className="group/next relative flex w-[200px] justify-end">
-        {isLastStep && user?.organization?.onboarding_completed ? (
+        {isLastStep && !hasSomethingToPublish ? (
           <span className="flex items-center gap-2 px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
@@ -410,7 +425,7 @@ function BottomBar() {
         >
           {submitting ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-          ) : isLastStep ? h.submitForReviewCta : t.onboarding.next}
+          ) : isLastStep ? (alreadySubmitted ? h.publishChangesCta : h.submitForReviewCta) : t.onboarding.next}
           <svg
             width="16"
             height="16"

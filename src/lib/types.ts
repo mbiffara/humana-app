@@ -15,6 +15,11 @@ export interface Organization {
   onboarding_completed: boolean;
   /** Sponsored orgs get full platform access without an active subscription. */
   sponsored?: boolean;
+  /** True when the hotel edited content after submitting for review. */
+  pending_changes?: boolean;
+  /** Admin review comment; presence means "changes requested". */
+  review_feedback?: string | null;
+  review_feedback_at?: string | null;
   hotel_id?: number | null;
   user_count?: number;
   created_at?: string;

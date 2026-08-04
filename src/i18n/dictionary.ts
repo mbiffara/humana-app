@@ -1057,6 +1057,8 @@ type Dictionary = {
     reviewDrawer: {
       title: string;
       pendingReview: string;
+      pendingChangesNote: string;
+      changesRequestedNote: string;
       details: string;
       joined: string;
       lastLogin: string;
@@ -1191,7 +1193,12 @@ type Dictionary = {
       reviewStatusPendingBody: string;
       reviewStatusApprovedTitle: string;
       reviewStatusApprovedBody: string;
+      reviewStatusChangesTitle: string;
+      reviewStatusChangesBody: string;
+      reviewStatusFeedbackTitle: string;
+      reviewStatusFeedbackBody: string;
       submitForReviewCta: string;
+      publishChangesCta: string;
       /* Step 1 — Property Identity */
       step1Eyebrow: string;
       step1Title: string;
@@ -2592,6 +2599,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       reviewDrawer: {
         title: "User Review",
         pendingReview: "Pending Review",
+        pendingChangesNote: "This hotel has unpublished changes. Approval is available once they publish their latest version.",
+        changesRequestedNote: "Feedback sent — waiting for the hotel to publish their changes.",
         details: "Details",
         joined: "Joined",
         lastLogin: "Last login",
@@ -2773,7 +2782,12 @@ export const dictionary: Record<Locale, Dictionary> = {
         reviewStatusPendingBody: "Our team is reviewing your property. You can keep refining your information — updates are saved and visible to the reviewers.",
         reviewStatusApprovedTitle: "Approved",
         reviewStatusApprovedBody: "Your property is part of the HUMANA network. Your full workspace is ready.",
+        reviewStatusChangesTitle: "Unpublished changes",
+        reviewStatusChangesBody: "You've made changes since your last submission. Publish them so our team reviews your latest version.",
+        reviewStatusFeedbackTitle: "Changes requested",
+        reviewStatusFeedbackBody: "Our team reviewed your property and has comments for you to address:",
         submitForReviewCta: "Submit for review",
+        publishChangesCta: "Publish changes",
         publish: "Publish",
         step1Eyebrow: "Step 1 of 5 \u00B7 Property Identity",
         step1Title: "Tell us about your property.",
@@ -4164,6 +4178,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       reviewDrawer: {
         title: "Revisar usuario",
         pendingReview: "Revisión Pendiente",
+        pendingChangesNote: "Este hotel tiene cambios sin publicar. La aprobación estará disponible cuando publique su última versión.",
+        changesRequestedNote: "Comentarios enviados — esperando que el hotel publique sus cambios.",
         details: "Detalles",
         joined: "Se unió",
         lastLogin: "Último acceso",
@@ -4345,7 +4361,12 @@ export const dictionary: Record<Locale, Dictionary> = {
         reviewStatusPendingBody: "Nuestro equipo está revisando tu propiedad. Puedes seguir mejorando tu información — las actualizaciones se guardan y son visibles para los revisores.",
         reviewStatusApprovedTitle: "Aprobada",
         reviewStatusApprovedBody: "Tu propiedad es parte de la red HUMANA. Tu espacio de trabajo completo está listo.",
+        reviewStatusChangesTitle: "Cambios sin publicar",
+        reviewStatusChangesBody: "Hiciste cambios desde tu último envío. Publícalos para que nuestro equipo revise tu versión más reciente.",
+        reviewStatusFeedbackTitle: "Cambios solicitados",
+        reviewStatusFeedbackBody: "Nuestro equipo revisó tu propiedad y tiene comentarios para que atiendas:",
         submitForReviewCta: "Enviar a revisión",
+        publishChangesCta: "Publicar cambios",
         publish: "Publicar",
         step1Eyebrow: "Paso 1 de 5 \u00B7 Identidad de la Propiedad",
         step1Title: "Cu\u00E9ntanos sobre tu propiedad.",
@@ -5737,6 +5758,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       reviewDrawer: {
         title: "Revisar usuário",
         pendingReview: "Revisão Pendente",
+        pendingChangesNote: "Este hotel tem alterações não publicadas. A aprovação estará disponível quando publicar sua versão mais recente.",
+        changesRequestedNote: "Comentários enviados — aguardando o hotel publicar suas alterações.",
         details: "Detalhes",
         joined: "Ingressou",
         lastLogin: "Último acesso",
@@ -5918,7 +5941,12 @@ export const dictionary: Record<Locale, Dictionary> = {
         reviewStatusPendingBody: "Nossa equipe está revisando sua propriedade. Você pode continuar aprimorando suas informações — as atualizações são salvas e visíveis para os revisores.",
         reviewStatusApprovedTitle: "Aprovada",
         reviewStatusApprovedBody: "Sua propriedade faz parte da rede HUMANA. Seu espaço de trabalho completo está pronto.",
+        reviewStatusChangesTitle: "Alterações não publicadas",
+        reviewStatusChangesBody: "Você fez alterações desde o último envio. Publique-as para que nossa equipe revise sua versão mais recente.",
+        reviewStatusFeedbackTitle: "Alterações solicitadas",
+        reviewStatusFeedbackBody: "Nossa equipe revisou sua propriedade e tem comentários para você atender:",
         submitForReviewCta: "Enviar para revisão",
+        publishChangesCta: "Publicar alterações",
         publish: "Publicar",
         step1Eyebrow: "Passo 1 de 5 \u00B7 Identidade da Propriedade",
         step1Title: "Conte-nos sobre sua propriedade.",
