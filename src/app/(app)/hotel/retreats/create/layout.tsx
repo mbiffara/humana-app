@@ -130,7 +130,8 @@ function WizardShell({ children }: { children: ReactNode }) {
     const existing = new Map(retreat.pricing.map((p) => [p.room_type.id, p.id]));
 
     for (const entry of state.pricing) {
-      const cents = toCents(entry.price);
+      // Excluded rooms are not offered — their pricing rows are removed
+      const cents = entry.included === false ? 0 : toCents(entry.price);
       const existingId = existing.get(entry.roomTypeId);
       if (cents > 0) {
         if (existingId) {
@@ -164,7 +165,7 @@ function WizardShell({ children }: { children: ReactNode }) {
       case 0:
         return Boolean(state.name.trim() && state.nights > 0 && state.startDate && state.capacity > 0);
       case 2:
-        return state.pricing.some((p) => toCents(p.price) > 0);
+        return state.pricing.some((p) => p.included !== false && toCents(p.price) > 0);
       case 3:
         // Only persisted uploads count — blob previews are filtered at save,
         // and failed uploads must be retried or removed before advancing
@@ -229,7 +230,7 @@ function WizardShell({ children }: { children: ReactNode }) {
       ? `${new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(new Date(`${state.startDate}T00:00:00`))} – ${dateFmt.format(new Date(`${endDate}T00:00:00`))}`
       : null;
   const minPriceCents = state.pricing.reduce((min, p) => {
-    const cents = toCents(p.price);
+    const cents = p.included === false ? 0 : toCents(p.price);
     return cents > 0 && (min === 0 || cents < min) ? cents : min;
   }, 0);
   const progressPct = Math.round(((activeIndex + 1) / STEP_PATHS.length) * 100);
