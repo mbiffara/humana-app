@@ -11,6 +11,7 @@ import {
 } from "react";
 import { hotelApi } from "@/lib/api/hotel";
 import { amenityIdForName } from "@/lib/amenity-catalog";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type AvailabilityBlock = {
   id: string;
@@ -127,6 +128,26 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [hideBottomBar, setHideBottomBar] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const apiLoaded = useRef(false);
+  const { user } = useAuth();
+
+  // Hydrate the owner fields (step 1) from the authenticated user — they are
+  // saved on the user record, not the hotel, so the profile fetch below
+  // doesn't cover them.
+  useEffect(() => {
+    if (!user) return;
+    setState((prev) => {
+      const patch: Partial<HotelWizardState> = {};
+      if (user.name && !prev.ownerFirstName && !prev.ownerLastName) {
+        const [first, ...rest] = user.name.trim().split(/\s+/);
+        patch.ownerFirstName = first;
+        patch.ownerLastName = rest.join(" ");
+      }
+      if (user.phone && !prev.ownerPhone) {
+        patch.ownerPhone = user.phone;
+      }
+      return Object.keys(patch).length > 0 ? { ...prev, ...patch } : prev;
+    });
+  }, [user]);
 
   // Hydrate: the DB is the source of truth — saved data always wins over
   // sessionStorage. Session data is only used while the API loads (so
