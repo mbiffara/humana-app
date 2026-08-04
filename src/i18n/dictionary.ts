@@ -23,6 +23,7 @@ type Dictionary = {
   hotelWs: {
     badge: string;
     nav: { dashboard: string; calendar: string; rooms: string; retreats: string; bookings: string; settings: string };
+    paywall: { eyebrow: string; title: string; body: string; cta: string };
     dashboard: {
       eyebrowWeek: (week: number) => string;
       welcome: (name: string) => string;
@@ -1325,6 +1326,12 @@ export const dictionary: Record<Locale, Dictionary> = {
     hotelWs: {
       badge: "Hotel Partner",
       nav: { dashboard: "Dashboard", calendar: "Calendar", rooms: "Rooms", retreats: "Retreats", bookings: "Bookings", settings: "Settings" },
+      paywall: {
+        eyebrow: "SUBSCRIPTION REQUIRED",
+        title: "Choose a plan to continue",
+        body: "Select a subscription plan to unlock your hotel workspace and start managing your property, bookings, and retreats.",
+        cta: "SELECT A PLAN",
+      },
       dashboard: {
         eyebrowWeek: (week: number) => `Week ${week}`,
         welcome: (name: string) => `Welcome back, ${name}`,
@@ -2872,6 +2879,12 @@ export const dictionary: Record<Locale, Dictionary> = {
     hotelWs: {
       badge: "Hotel Partner",
       nav: { dashboard: "Dashboard", calendar: "Calendario", rooms: "Habitaciones", retreats: "Retiros", bookings: "Reservas", settings: "Configuración" },
+      paywall: {
+        eyebrow: "SUSCRIPCIÓN REQUERIDA",
+        title: "Elige un plan para continuar",
+        body: "Selecciona un plan de suscripción para desbloquear tu espacio de hotel y comenzar a gestionar tu propiedad, reservas y retiros.",
+        cta: "SELECCIONAR UN PLAN",
+      },
       dashboard: {
         eyebrowWeek: (week: number) => `Semana ${week}`,
         welcome: (name: string) => `Bienvenido de nuevo, ${name}`,
@@ -4419,6 +4432,12 @@ export const dictionary: Record<Locale, Dictionary> = {
     hotelWs: {
       badge: "Hotel Partner",
       nav: { dashboard: "Dashboard", calendar: "Calendário", rooms: "Quartos", retreats: "Retiros", bookings: "Reservas", settings: "Configurações" },
+      paywall: {
+        eyebrow: "ASSINATURA NECESSÁRIA",
+        title: "Escolha um plano para continuar",
+        body: "Selecione um plano de assinatura para desbloquear seu espaço de hotel e começar a gerenciar sua propriedade, reservas e retiros.",
+        cta: "SELECIONAR UM PLANO",
+      },
       dashboard: {
         eyebrowWeek: (week: number) => `Semana ${week}`,
         welcome: (name: string) => `Bem-vindo de volta, ${name}`,
