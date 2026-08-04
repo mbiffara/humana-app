@@ -96,6 +96,7 @@ type HotelWizardContextValue = {
   removeRoomType: (id: string) => void;
   addRoomPhoto: (roomId: string, url: string) => void;
   removeRoomPhoto: (roomId: string, index: number) => void;
+  swapRoomPhotoUrl: (roomId: string, oldUrl: string, newUrl: string) => void;
   addAvailabilityBlock: (roomId: string, block: Omit<AvailabilityBlock, "id">) => void;
   removeAvailabilityBlock: (roomId: string, blockId: string) => void;
   toggleAmenity: (amenity: string) => void;
@@ -287,6 +288,17 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const swapRoomPhotoUrl = useCallback((roomId: string, oldUrl: string, newUrl: string) => {
+    setState((prev) => ({
+      ...prev,
+      roomTypes: prev.roomTypes.map((rt) =>
+        rt.id === roomId
+          ? { ...rt, photos: rt.photos.map((u) => (u === oldUrl ? newUrl : u)) }
+          : rt
+      ),
+    }));
+  }, []);
+
   const addAvailabilityBlock = useCallback((roomId: string, block: Omit<AvailabilityBlock, "id">) => {
     setState((prev) => ({
       ...prev,
@@ -374,6 +386,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         removeRoomType,
         addRoomPhoto,
         removeRoomPhoto,
+        swapRoomPhotoUrl,
         addAvailabilityBlock,
         removeAvailabilityBlock,
         toggleAmenity,
