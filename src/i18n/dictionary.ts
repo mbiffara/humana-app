@@ -1009,7 +1009,7 @@ type Dictionary = {
         tooltipStatus: string; tooltipInvitedBy: string; tooltipInvitedAt: string;
         tooltipOnboarding: string;
       };
-      status: { active: string; pending: string; suspended: string; rejected: string };
+      status: { active: string; pending: string; suspended: string; rejected: string; changes_requested: string };
       onboardingComplete: string;
       onboardingPending: string;
       review: string;
@@ -2563,7 +2563,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           tooltipInvitedAt: "Date the invitation was sent",
           tooltipOnboarding: "Whether the member has completed their profile setup",
         },
-        status: { active: "Active", pending: "Pending", suspended: "Suspended", rejected: "Rejected" },
+        status: { active: "Active", pending: "Pending", suspended: "Suspended", rejected: "Rejected", changes_requested: "Changes requested" },
         onboardingComplete: "Complete",
         onboardingPending: "Pending",
         review: "Review",
@@ -4154,7 +4154,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           tooltipInvitedAt: "Fecha en que se envió la invitación",
           tooltipOnboarding: "Si el miembro ha completado la configuración de su perfil",
         },
-        status: { active: "Activo", pending: "Pendiente", suspended: "Suspendido", rejected: "Rechazado" },
+        status: { active: "Activo", pending: "Pendiente", suspended: "Suspendido", rejected: "Rechazado", changes_requested: "Cambios solicitados" },
         onboardingComplete: "Completo",
         onboardingPending: "Pendiente",
         review: "Revisar",
@@ -5746,7 +5746,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           tooltipInvitedAt: "Data em que o convite foi enviado",
           tooltipOnboarding: "Se o membro completou a configuração do perfil",
         },
-        status: { active: "Ativo", pending: "Pendente", suspended: "Suspenso", rejected: "Rejeitado" },
+        status: { active: "Ativo", pending: "Pendente", suspended: "Suspenso", rejected: "Rejeitado", changes_requested: "Alterações solicitadas" },
         onboardingComplete: "Completo",
         onboardingPending: "Pendente",
         review: "Revisar",

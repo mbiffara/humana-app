@@ -489,7 +489,19 @@ export default function NetworkPage() {
                       <td className="px-3 py-3.5">{getKindBadge(user.organization?.kind)}</td>
 
                       {/* Status */}
-                      <td className="px-3 py-3.5"><StatusBadge status={user.status} label={t.admin.network.status[user.status as keyof typeof t.admin.network.status] || user.status} /></td>
+                      <td className="px-3 py-3.5">{(() => {
+                        // Pending hotels with admin feedback outstanding are waiting on the hotel, not on review
+                        const displayStatus =
+                          user.status === "pending" && user.organization?.review_feedback
+                            ? "changes_requested"
+                            : user.status;
+                        return (
+                          <StatusBadge
+                            status={displayStatus}
+                            label={t.admin.network.status[displayStatus as keyof typeof t.admin.network.status] || displayStatus}
+                          />
+                        );
+                      })()}</td>
 
                       {/* Invited by */}
                       <td className="px-3 py-3.5 text-[13px] text-humana-muted whitespace-nowrap">
