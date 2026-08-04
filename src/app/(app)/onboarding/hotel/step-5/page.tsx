@@ -2,6 +2,7 @@
  *  per-section edit links, plus the verification status of the property. */
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useHotelWizard } from "@/contexts/HotelWizardContext";
@@ -58,24 +59,47 @@ export default function HotelWizardStep5() {
   const org = user?.organization;
   const submitted = !!org?.onboarding_completed;
   const approved = org?.status === "verified";
+  const hasFeedback = !!org?.review_feedback;
+  const hasUnpublished = !!org?.pending_changes;
 
-  const status = approved ? "approved" : submitted ? "pending" : "draft";
+  // Approved hotels have no business on the review step — their workspace is ready.
+  useEffect(() => {
+    if (approved && submitted) {
+      router.replace("/hotel/dashboard");
+    }
+  }, [approved, submitted, router]);
+
+  const status = approved
+    ? "approved"
+    : submitted && hasFeedback
+      ? "feedback"
+      : submitted && hasUnpublished
+        ? "changes"
+        : submitted
+          ? "pending"
+          : "draft";
 
   const statusStyles = {
     draft: "border-humana-line bg-white",
     pending: "border-humana-gold bg-humana-gold-light",
+    changes: "border-humana-gold bg-humana-gold-light",
+    feedback: "border-amber-300 bg-amber-50",
     approved: "border-emerald-300 bg-emerald-50",
   }[status];
 
   const statusTitle = {
     draft: h.reviewStatusDraftTitle,
     pending: h.reviewStatusPendingTitle,
+    changes: h.reviewStatusChangesTitle,
+    feedback: h.reviewStatusFeedbackTitle,
     approved: h.reviewStatusApprovedTitle,
   }[status];
 
   const statusBody = {
     draft: h.reviewStatusDraftBody,
     pending: h.reviewStatusPendingBody,
+    changes: h.reviewStatusChangesBody,
+    feedback: h.reviewStatusFeedbackBody,
     approved: h.reviewStatusApprovedBody,
   }[status];
 
@@ -99,17 +123,22 @@ export default function HotelWizardStep5() {
               <polyline points="8 12 11 15 16 9" />
             </svg>
           ) : (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={status === "feedback" ? "#d97706" : "#d4af37"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
           )}
         </div>
         <div>
-          <p className={`text-[13px] font-semibold uppercase tracking-[0.22em] ${status === "approved" ? "text-emerald-700" : "text-humana-gold"}`}>
+          <p className={`text-[13px] font-semibold uppercase tracking-[0.22em] ${status === "approved" ? "text-emerald-700" : status === "feedback" ? "text-amber-600" : "text-humana-gold"}`}>
             {statusTitle}
           </p>
           <p className="mt-1 text-[14px] leading-relaxed text-humana-ink">{statusBody}</p>
+          {status === "feedback" && org?.review_feedback && (
+            <p className="mt-3 whitespace-pre-line rounded-[6px] border border-amber-200 bg-white px-4 py-3 text-[14px] italic leading-relaxed text-humana-ink">
+              &ldquo;{org.review_feedback}&rdquo;
+            </p>
+          )}
         </div>
       </div>
 

@@ -153,6 +153,23 @@ export function ReviewDrawer({
             const onboardingDone = !!user.organization?.onboarding_completed;
             if (needsOnboarding && !onboardingDone) return null;
 
+            // Hotels with unpublished edits or outstanding feedback are out of
+            // review until they publish their latest version.
+            if (user.organization?.kind === "hotel" && (user.organization?.pending_changes || user.organization?.review_feedback)) {
+              return (
+                <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                  <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+                  </svg>
+                  <p className="text-[13px] leading-relaxed text-amber-700">
+                    {user.organization?.pending_changes
+                      ? t.admin.reviewDrawer.pendingChangesNote
+                      : t.admin.reviewDrawer.changesRequestedNote}
+                  </p>
+                </div>
+              );
+            }
+
             const isAdminInvitedHotel = user.organization?.kind === "hotel" && user.invited_by_organization?.kind === "admin";
 
             return (
