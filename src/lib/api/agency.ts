@@ -17,6 +17,8 @@ export interface PublicHotel {
   longitude: number | null;
   certified: boolean;
   wellness_standard: string | null;
+  /** Present on the public list endpoint: cover image, else first by position. */
+  cover_image_url?: string | null;
 }
 
 export interface PublicHotelImage {

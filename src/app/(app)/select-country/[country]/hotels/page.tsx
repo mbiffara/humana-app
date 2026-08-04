@@ -75,13 +75,23 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
               className="flex flex-col overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
               <Link href={`/select-country/${country}/hotels/${h.id}`} className="relative h-[300px] w-full bg-humana-stone">
-                {/* Use a placeholder since the list endpoint doesn't include images */}
-                <div className="flex h-full items-center justify-center text-humana-subtle">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                </div>
+                {h.cover_image_url ? (
+                  <Image
+                    src={h.cover_image_url}
+                    alt={h.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
+                    className="object-cover transition-transform duration-300 hover:scale-[1.02]"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-humana-subtle">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                  </div>
+                )}
               </Link>
 
               <div className="flex flex-col gap-4 p-8">
@@ -101,7 +111,7 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
                   href={`/select-country/${country}/hotels/${h.id}`}
                   className="mt-2 flex items-center justify-center border border-humana-ink py-3.5 text-[13px] font-semibold uppercase tracking-[0.18em] text-humana-ink transition-all duration-150 hover:bg-humana-ink hover:text-white"
                 >
-                  {t.hotelDetail.viewRooms} →
+                  {t.hotelDetail.viewHotel} →
                 </Link>
               </div>
             </article>

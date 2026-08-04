@@ -860,6 +860,7 @@ type Dictionary = {
     perNight: string;
     rating: string;
     viewRooms: string;
+    viewHotel: string;
     notFound: string;
     boutiqueHotel: string;
     info: string;
@@ -2422,6 +2423,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       perNight: "per night",
       rating: "Rating",
       viewRooms: "View rooms",
+      viewHotel: "View hotel",
       notFound: "Hotel not found",
       boutiqueHotel: "Boutique Hotel",
       info: "Info",
@@ -4030,7 +4032,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       priceFrom: "Desde",
       perNight: "por noche",
       rating: "Calificación",
-      viewRooms: "Ver habitación",
+      viewRooms: "Ver habitaciones",
+      viewHotel: "Ver hotel",
       notFound: "Hotel no encontrado",
       boutiqueHotel: "Hotel Boutique",
       info: "Info",
@@ -5640,7 +5643,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       priceFrom: "A partir de",
       perNight: "por noite",
       rating: "Avaliação",
-      viewRooms: "Ver quarto",
+      viewRooms: "Ver quartos",
+      viewHotel: "Ver hotel",
       notFound: "Hotel não encontrado",
       boutiqueHotel: "Hotel Boutique",
       info: "Info",
