@@ -159,6 +159,16 @@ function BottomBar() {
       };
       const created = await hotelApi.createRoomType(payload);
 
+      // Persist this room's gallery (skip blob: preview URLs that never
+      // finished uploading; the first server URL becomes the thumbnail).
+      const serverPhotos = room.photos.filter((url) => url.startsWith("http"));
+      if (serverPhotos.length > 0) {
+        await hotelApi.batchRoomTypeImages(
+          created.room_type.id,
+          serverPhotos.map((url) => ({ image_url: url })),
+        );
+      }
+
       // Persist blocked date ranges (all other dates are open by default).
       for (const block of room.availability) {
         if (!block.blocked) continue;
