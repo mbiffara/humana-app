@@ -56,6 +56,8 @@ export type RetreatWizardState = {
   photos: string[];
   /** Blob URLs whose background upload failed — blocked from advancing until retried or removed */
   failedUploads: string[];
+  /** Guests the included rooms can host on the retreat dates (null until step 3 computes it) */
+  capacityCovered: number | null;
 };
 
 const initial: RetreatWizardState = {
@@ -73,6 +75,7 @@ const initial: RetreatWizardState = {
   pricing: [],
   photos: [],
   failedUploads: [],
+  capacityCovered: null,
 };
 
 const STORAGE_KEY = "humana.retreat-wizard";
@@ -126,6 +129,7 @@ function stateFromApi(r: ApiRetreatDetail): RetreatWizardState {
     })),
     photos: r.images.map((img) => img.image_url),
     failedUploads: [],
+    capacityCovered: null,
   };
 }
 

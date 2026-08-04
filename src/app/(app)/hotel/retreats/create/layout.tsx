@@ -165,7 +165,11 @@ function WizardShell({ children }: { children: ReactNode }) {
       case 0:
         return Boolean(state.name.trim() && state.nights > 0 && state.startDate && state.capacity > 0);
       case 2:
-        return state.pricing.some((p) => p.included !== false && toCents(p.price) > 0);
+        return (
+          state.pricing.some((p) => p.included !== false && toCents(p.price) > 0) &&
+          // Selected rooms must be able to host the retreat's maximum capacity
+          (state.capacityCovered == null || state.capacityCovered >= state.capacity)
+        );
       case 3:
         // Only persisted uploads count — blob previews are filtered at save,
         // and failed uploads must be retried or removed before advancing
