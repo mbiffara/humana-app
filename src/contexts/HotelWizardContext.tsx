@@ -87,6 +87,9 @@ const initial: HotelWizardState = {
 
 const STORAGE_KEY = "humana.hotel-wizard";
 
+/** Max photos per room type — keep in sync with the roomPhotosMax copy. */
+export const MAX_ROOM_PHOTOS = 8;
+
 type HotelWizardContextValue = {
   state: HotelWizardState;
   set: (patch: Partial<HotelWizardState>) => void;
@@ -270,7 +273,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({
       ...prev,
       roomTypes: prev.roomTypes.map((rt) =>
-        rt.id === roomId && rt.photos.length < 4
+        rt.id === roomId && rt.photos.length < MAX_ROOM_PHOTOS
           ? { ...rt, photos: [...rt.photos, url] }
           : rt
       ),
