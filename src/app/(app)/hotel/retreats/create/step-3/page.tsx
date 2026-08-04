@@ -71,12 +71,12 @@ export default function RetreatPricingStep() {
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up">
-      <section className="rounded-xl border border-humana-line bg-white p-8">
+      <section className="rounded-xl border border-humana-line bg-white p-8 shadow-sm">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
           {tw.stepOf(3, 5)}
         </p>
-        <h2 className="mt-2 text-[24px] font-bold text-humana-ink">{tw.pricing.title}</h2>
-        <p className="mt-1 text-[13px] text-humana-muted">{tw.pricing.subtitle}</p>
+        <h2 className="mt-2 text-[32px] font-light leading-[40px] tracking-[-0.01em] text-humana-ink">{tw.pricing.title}</h2>
+        <p className="mt-1 text-[15px] leading-[22px] text-humana-muted">{tw.pricing.subtitle}</p>
 
         {roomTypes.length === 0 ? (
           <div className="mt-8 flex flex-col items-center rounded-lg border border-dashed border-humana-line py-14 text-center">
@@ -151,7 +151,7 @@ export default function RetreatPricingStep() {
       </section>
 
       {roomTypes.length > 0 && (
-        <section className="rounded-xl border border-humana-line bg-white p-8">
+        <section className="rounded-xl border border-humana-line bg-white p-8 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
             {tw.pricing.earningsTitle}
           </p>

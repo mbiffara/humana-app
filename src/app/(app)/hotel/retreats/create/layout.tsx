@@ -258,7 +258,7 @@ function WizardShell({ children }: { children: ReactNode }) {
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
           {state.retreatId ? tw.editEyebrow : tw.eyebrow}
         </p>
-        <h1 className="mt-2 text-[32px] font-bold text-humana-ink">{tw.title}</h1>
+        <h1 className="mt-2 text-[32px] font-light leading-[40px] tracking-[-0.01em] text-humana-ink">{tw.title}</h1>
         <p className="mt-1 text-[14px] text-humana-muted">{tw.subtitle}</p>
       </div>
 
@@ -275,7 +275,7 @@ function WizardShell({ children }: { children: ReactNode }) {
 
         {/* Preview sidebar */}
         <aside className="sticky top-[108px] w-[340px] shrink-0">
-          <div className="rounded-xl border border-humana-line bg-white p-6">
+          <div className="rounded-xl border border-humana-line bg-white p-6 shadow-sm">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
               {tw.preview.title}
             </p>
@@ -295,7 +295,7 @@ function WizardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-humana-line bg-white p-6">
+          <div className="mt-4 rounded-xl border border-humana-line bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-[12px] text-humana-muted">{tw.preview.progress}</span>
               <span className="text-[13px] font-semibold text-humana-gold">{progressPct}%</span>

@@ -68,18 +68,22 @@ export default function RetreatConfirmationPage() {
   ];
 
   return (
-    <div className="mx-auto flex max-w-[720px] flex-col items-center px-10 py-20 text-center animate-fade-in-scale">
-      <Image src="/brand/isotipo.png" alt="" width={64} height={64} />
-      <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+    <div className="mx-auto flex max-w-[720px] flex-col items-center px-10 py-20 text-center">
+      <div className="animate-fade-in-scale">
+        <Image src="/brand/isotipo.png" alt="" width={64} height={64} />
+      </div>
+      <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold animate-fade-in-up">
         {tw.confirmation.eyebrow}
       </p>
-      <h1 className="mt-3 text-[34px] font-bold text-humana-ink">
+      <h1 className="mt-3 text-[34px] font-light leading-[42px] tracking-[-0.01em] text-humana-ink animate-fade-in-up">
         {tw.confirmation.title(state.name)}
       </h1>
-      <p className="mt-2 text-[14px] text-humana-muted">{tw.confirmation.subtitle}</p>
+      <p className="mt-2 text-[15px] leading-[22px] text-humana-muted animate-fade-in-up">
+        {tw.confirmation.subtitle}
+      </p>
 
       {/* Summary card */}
-      <div className="mt-10 w-full rounded-xl border border-humana-line bg-white p-8 text-left">
+      <div className="mt-10 w-full rounded-xl border border-humana-line bg-white p-8 text-left shadow-sm animate-fade-in-up-delay-1">
         <div className="flex items-center justify-between border-b border-humana-line pb-4">
           <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
             {tw.confirmation.reference}
@@ -105,7 +109,7 @@ export default function RetreatConfirmationPage() {
       </div>
 
       {/* Actions */}
-      <div className="mt-10 flex items-center gap-4">
+      <div className="mt-10 flex items-center gap-4 animate-fade-in-up-delay-2">
         <Link
           href={`/hotel/retreats/create/step-5?id=${state.retreatId}`}
           className="border border-humana-line bg-white px-7 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-colors hover:border-humana-ink"

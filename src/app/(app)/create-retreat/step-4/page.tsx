@@ -5,8 +5,6 @@ import Image from "next/image";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useWizard } from "@/contexts/WizardContext";
 import { WizardVistaPrevia } from "@/components/WizardVistaPrevia";
-import { hotels } from "@/data/hotels";
-import { inventoryBlocks } from "@/data/inventory";
 import { StepIndicator } from "@/components/StepIndicator";
 
 
@@ -28,37 +26,29 @@ function InfoTooltip({ text }: { text: string }) {
 export default function WizardStep4() {
   const { t } = useLocale();
   const { state, set } = useWizard();
-  const hotel = hotels.find((h) => h.id === state.hotelId);
 
-  /* Only show room types that have inventory for this hotel */
-  const hotelInv = inventoryBlocks.filter((b) => b.hotelId === state.hotelId && b.availableRooms > 0);
-  const availableRoomTypes = hotel?.roomTypes.filter((rt) =>
-    hotelInv.some((b) => b.roomTypeId === rt.id)
-  ) ?? [];
+  const roomTypes = state.hotelData?.roomTypes ?? [];
 
-  const [pricing, setPricing] = useState<{ roomTypeId: string; retailPrice: number }[]>(
+  const [pricing, setPricing] = useState<{ roomTypeId: number; retailPrice: number }[]>(
     state.pricing.length > 0
       ? state.pricing
-      : availableRoomTypes.map((rt) => {
-          const inv = hotelInv.find((b) => b.roomTypeId === rt.id);
-          return {
-            roomTypeId: rt.id,
-            retailPrice: Math.round((inv?.pricePerNight ?? rt.pricePerNight) * 1.3),
-          };
-        })
+      : roomTypes.map((rt) => ({
+          roomTypeId: rt.id,
+          retailPrice: Math.round((rt.price_per_night_cents / 100) * 1.3),
+        }))
   );
 
   /* Raw string values for each input so users can freely clear & retype */
-  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [editValues, setEditValues] = useState<Record<number, string>>({});
 
-  function updatePrice(roomTypeId: string, raw: string) {
+  function updatePrice(roomTypeId: number, raw: string) {
     const cleaned = raw.replace(/[^0-9]/g, "");
     setEditValues((prev) => ({ ...prev, [roomTypeId]: cleaned }));
     const num = cleaned === "" ? 0 : parseInt(cleaned);
     setPricing((prev) => prev.map((p) => (p.roomTypeId === roomTypeId ? { ...p, retailPrice: num } : p)));
   }
 
-  function handleBlur(roomTypeId: string) {
+  function handleBlur(roomTypeId: number) {
     setEditValues((prev) => {
       const next = { ...prev };
       delete next[roomTypeId];
@@ -74,19 +64,17 @@ export default function WizardStep4() {
     return { margin, pct };
   }
 
-  /* Total profit calculation (only rooms with inventory) */
-  const totalSale = availableRoomTypes.reduce((s, rt) => {
+  /* Total profit calculation */
+  const totalSale = roomTypes.reduce((s, rt) => {
     const entry = pricing.find((p) => p.roomTypeId === rt.id);
-    const inv = hotelInv.find((b) => b.roomTypeId === rt.id);
-    const costPerNight = inv?.pricePerNight ?? rt.pricePerNight;
+    const costPerNight = rt.price_per_night_cents / 100;
     const retail = entry?.retailPrice ?? Math.round(costPerNight * 1.3);
-    const rooms = inv?.availableRooms ?? 0;
-    return s + retail * rt.maxGuests * rooms * state.nights;
+    const rooms = rt.total_rooms ?? 0;
+    return s + retail * rt.capacity * rooms * state.nights;
   }, 0);
-  const totalCost = availableRoomTypes.reduce((s, rt) => {
-    const inv = hotelInv.find((b) => b.roomTypeId === rt.id);
-    const rooms = inv?.availableRooms ?? 0;
-    return s + (inv?.pricePerNight ?? rt.pricePerNight) * rooms * state.nights;
+  const totalCost = roomTypes.reduce((s, rt) => {
+    const rooms = rt.total_rooms ?? 0;
+    return s + (rt.price_per_night_cents / 100) * rooms * state.nights;
   }, 0);
   const grossMargin = totalSale - totalCost;
   const agencyComm = Math.round(totalSale * 0.16);
@@ -141,30 +129,36 @@ export default function WizardStep4() {
             </div>
 
             {/* Room rows */}
-            {availableRoomTypes.map((rt) => {
+            {roomTypes.map((rt) => {
               const priceEntry = pricing.find((p) => p.roomTypeId === rt.id);
-              const inv = hotelInv.find((b) => b.roomTypeId === rt.id);
-              const costPerNight = inv?.pricePerNight ?? rt.pricePerNight;
+              const costPerNight = rt.price_per_night_cents / 100;
               const retail = priceEntry?.retailPrice ?? Math.round(costPerNight * 1.3);
               const { margin, pct: marginPct } = calcMargin(retail, costPerNight);
+              const rooms = rt.total_rooms ?? 0;
 
               return (
                 <div
                   key={rt.id}
                   className="grid grid-cols-[48px_1.8fr_1fr_0.8fr_1fr_1fr] items-center gap-4 border-b border-humana-line px-6 py-4 last:border-b-0"
                 >
-                  <div className="relative h-[36px] w-[48px] overflow-hidden rounded">
-                    <Image src={rt.image} alt={rt.name} fill className="object-cover" />
+                  <div className="relative h-[36px] w-[48px] overflow-hidden rounded bg-humana-stone">
+                    {rt.image_url ? (
+                      <Image src={rt.image_url} alt={rt.name} fill className="object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[10px] text-humana-subtle">
+                        {rt.name.charAt(0)}
+                      </div>
+                    )}
                   </div>
                   <span className="text-[15px] font-medium text-humana-ink">{rt.name}</span>
                   <span className="text-[14px] text-humana-ink">
-                    {inv?.availableRooms ?? 0} habs · {(inv?.availableRooms ?? 0) * rt.maxGuests} pers.
+                    {rooms} habs · {rooms * rt.capacity} pers.
                   </span>
                   <span className="text-[14px] text-humana-muted">
-                    U$D {costPerNight.toLocaleString("en-US")}
+                    {rt.currency} {costPerNight.toLocaleString("en-US")}
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className="text-[14px] text-humana-muted">U$D</span>
+                    <span className="text-[14px] text-humana-muted">{rt.currency}</span>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -176,7 +170,7 @@ export default function WizardStep4() {
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className={`text-[14px] font-semibold ${margin > 0 ? "text-emerald-600" : margin < 0 ? "text-red-500" : "text-humana-muted"}`}>
-                      {margin >= 0 ? "+" : "−"}U$D {Math.abs(margin).toLocaleString("en-US")}
+                      {margin >= 0 ? "+" : "−"}{rt.currency} {Math.abs(margin).toLocaleString("en-US")}
                     </span>
                     <span className={`text-[12px] ${margin > 0 ? "text-emerald-600" : margin < 0 ? "text-red-500" : "text-humana-subtle"}`}>
                       {margin >= 0 ? "+" : "−"}{Math.abs(marginPct)}%
@@ -188,7 +182,7 @@ export default function WizardStep4() {
           </div>
 
           {/* Total de ganancia */}
-          {availableRoomTypes.length > 0 && (
+          {roomTypes.length > 0 && (
             <div className="border border-humana-line bg-white p-6 shadow-sm">
               <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-subtle">
                 Total de ganancia

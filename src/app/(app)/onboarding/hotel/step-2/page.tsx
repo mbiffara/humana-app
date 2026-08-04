@@ -324,23 +324,24 @@ function AvailabilityCalendar({
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selStart, setSelStart] = useState<string | null>(null);
   const [selEnd, setSelEnd] = useState<string | null>(null);
-  const [units, setUnits] = useState(room.totalUnits);
+  const [units, setUnits] = useState(1);
 
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstDow = getFirstDayOfWeek(viewYear, viewMonth);
 
-  // Build blocked dates set
-  const blockedDates = useMemo(() => {
-    const set = new Set<string>();
+  // Build per-day blocked units map
+  const blockedUnitsMap = useMemo(() => {
+    const map = new Map<string, number>();
     for (const block of room.availability) {
       if (!block.blocked) continue;
       const start = parseDate(block.startDate);
       const end = parseDate(block.endDate);
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        set.add(formatDate(d));
+        const key = formatDate(d);
+        map.set(key, (map.get(key) ?? 0) + block.units);
       }
     }
-    return set;
+    return map;
   }, [room.availability]);
 
   function handleDayClick(dateStr: string) {
@@ -370,7 +371,10 @@ function AvailabilityCalendar({
     setSelEnd(null);
   }
 
+  const canGoPrev = viewYear > today.getFullYear() || (viewYear === today.getFullYear() && viewMonth > today.getMonth());
+
   function prevMonth() {
+    if (!canGoPrev) return;
     if (viewMonth === 0) {
       setViewYear(viewYear - 1);
       setViewMonth(11);
@@ -408,7 +412,7 @@ function AvailabilityCalendar({
         <div className="rounded-[6px] border border-humana-line bg-white p-5">
           {/* Month nav */}
           <div className="flex items-center justify-between mb-4">
-            <button type="button" onClick={prevMonth} className="cursor-pointer p-1 text-humana-muted hover:text-humana-ink transition-colors">
+            <button type="button" onClick={prevMonth} disabled={!canGoPrev} className="cursor-pointer p-1 text-humana-muted hover:text-humana-ink transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:text-humana-muted">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
@@ -441,24 +445,33 @@ function AvailabilityCalendar({
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
               const dateStr = formatDate(new Date(viewYear, viewMonth, day));
-              const isBlocked = blockedDates.has(dateStr);
+              const blockedUnits = blockedUnitsMap.get(dateStr) ?? 0;
+              const hasBlocks = blockedUnits > 0;
+              const available = Math.max(0, room.totalUnits - blockedUnits);
+              const isFullyBlocked = hasBlocks && available === 0;
+              const isLowAvailability = hasBlocks && !isFullyBlocked && available / room.totalUnits <= 0.34;
               const isInSelection =
                 selStart && selEnd ? isDateInRange(dateStr, selStart, selEnd) : false;
               const isSelStart = dateStr === selStart;
               const isSelEnd = dateStr === selEnd;
 
               let bg = "bg-emerald-50/60 text-humana-ink hover:bg-humana-stone";
-              if (isBlocked) bg = "bg-red-50 text-red-400 line-through";
+              if (isFullyBlocked) bg = "bg-humana-ink text-white";
+              else if (isLowAvailability) bg = "bg-humana-gold-light text-humana-ink";
               if (isInSelection || isSelStart || isSelEnd) bg = "bg-humana-gold-light text-humana-gold ring-1 ring-humana-gold/30";
+
+              const label = hasBlocks && !(isInSelection || isSelStart || isSelEnd) ? String(available) : String(day);
+              const tooltip = hasBlocks ? `${available}/${room.totalUnits} available` : undefined;
 
               return (
                 <button
                   key={dateStr}
                   type="button"
                   onClick={() => handleDayClick(dateStr)}
+                  title={tooltip}
                   className={`cursor-pointer flex h-9 items-center justify-center rounded text-[13px] font-medium transition-all duration-150 ${bg}`}
                 >
-                  {day}
+                  {label}
                 </button>
               );
             })}
@@ -472,11 +485,15 @@ function AvailabilityCalendar({
             </div>
             <div className="flex items-center gap-1.5">
               <div className="h-3 w-3 rounded bg-humana-gold-light border border-humana-gold/30" />
-              <span className="text-[11px] text-humana-subtle">{h.legendSelected}</span>
+              <span className="text-[11px] text-humana-subtle">{h.legendLow}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded bg-red-50 border border-red-200" />
-              <span className="text-[11px] text-humana-subtle">{h.legendBlocked}</span>
+              <div className="h-3 w-3 rounded bg-humana-ink" />
+              <span className="text-[11px] text-humana-subtle">{h.legendFullyBlocked}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-3 w-3 rounded bg-humana-gold-light border border-humana-gold/30 ring-1 ring-humana-gold/30" />
+              <span className="text-[11px] text-humana-subtle">{h.legendSelected}</span>
             </div>
           </div>
         </div>
@@ -551,10 +568,7 @@ function AvailabilityCalendar({
                         {formatDateHuman(block.startDate, locale)} → {formatDateHuman(block.endDate, locale)}
                       </span>
                       <span className="text-[11px] opacity-70">
-                        {h.blockedLabel}
-                        {block.units > 0 && block.units < room.totalUnits
-                          ? ` · ${h.unitsCount(block.units)}`
-                          : ""}
+                        {h.blockedLabel} · {h.unitsCount(block.units)}
                       </span>
                     </div>
                     <button
@@ -791,7 +805,6 @@ function RoomTypeCard({
   const h = t.onboarding.hotel;
 
   const photoCount = room.photos.length;
-  const blockCount = room.availability.length;
 
   return (
     <div className="group flex items-center justify-between rounded-[6px] border border-humana-line bg-white p-5 transition-all duration-200 hover:border-humana-gold/30 hover:shadow-sm">
@@ -824,11 +837,6 @@ function RoomTypeCard({
             {photoCount > 0 && (
               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
                 {h.photosCounter(photoCount, 4)}
-              </span>
-            )}
-            {blockCount > 0 && (
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
-                {h.blocksCount(blockCount)}
               </span>
             )}
           </div>

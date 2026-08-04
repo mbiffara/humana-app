@@ -34,7 +34,7 @@ function ReviewCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-humana-line bg-white p-7">
+    <section className="rounded-xl border border-humana-line bg-white p-7 shadow-sm">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
           {title}
@@ -95,8 +95,8 @@ export default function RetreatReviewStep() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
           {tw.stepOf(5, 5)}
         </p>
-        <h2 className="mt-2 text-[24px] font-bold text-humana-ink">{tw.review.title}</h2>
-        <p className="mt-1 text-[13px] text-humana-muted">{tw.review.subtitle}</p>
+        <h2 className="mt-2 text-[32px] font-light leading-[40px] tracking-[-0.01em] text-humana-ink">{tw.review.title}</h2>
+        <p className="mt-1 text-[15px] leading-[22px] text-humana-muted">{tw.review.subtitle}</p>
       </div>
 
       <ReviewCard

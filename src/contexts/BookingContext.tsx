@@ -9,6 +9,17 @@ import {
   type ReactNode,
 } from "react";
 
+export type BookingDisplay = {
+  hotelName: string;
+  hotelImage: string;
+  hotelLocation: string;
+  roomTypeName: string;
+  retreatName: string;
+  pricePerNightCents: number;
+  currency: string;
+  commissionRate: number;
+};
+
 export type BookingState = {
   country: string | null;
   flowType: "retreats" | "hotels" | null;
@@ -21,6 +32,16 @@ export type BookingState = {
   postNights: number;
   clientId: string | null;
   inventoryMode: boolean;
+  // API identifiers
+  experienceId: number | null;
+  hotelApiId: number | null;
+  roomTypeApiId: number | null;
+  clientApiId: number | null;
+  // Booking result
+  bookingId: number | null;
+  bookingReference: string | null;
+  // Display cache
+  display: BookingDisplay | null;
 };
 
 const initial: BookingState = {
@@ -35,6 +56,13 @@ const initial: BookingState = {
   postNights: 0,
   clientId: null,
   inventoryMode: false,
+  experienceId: null,
+  hotelApiId: null,
+  roomTypeApiId: null,
+  clientApiId: null,
+  bookingId: null,
+  bookingReference: null,
+  display: null,
 };
 
 const STORAGE_KEY = "humana.booking";

@@ -1,14 +1,15 @@
-/** Hotel workspace — room type management (HT-03).
- *  Cards per room type with rate, unit counts, live availability and
- *  occupancy (from the calendar API), linking into the 5-step editor
- *  and the individual-units page. */
+/** Hotel workspace — room type management + availability calendar.
+ *  Two tabs: Room Types (CRUD list) and Calendar (tape-chart availability).
+ *  Unified under a single nav item. */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { hotelApi, type CalendarResponse, type RoomType, type RoomTypeStatus } from "@/lib/api/hotel";
+import { HotelCalendar } from "@/components/hotel/HotelCalendar";
 
 const STATUS_STYLES: Record<RoomTypeStatus, { chip: string; dot: string }> = {
   active: { chip: "border-emerald-500 text-emerald-600", dot: "bg-emerald-500" },
@@ -19,6 +20,7 @@ const STATUS_STYLES: Record<RoomTypeStatus, { chip: string; dot: string }> = {
 const OCCUPANCY_WINDOW = 30;
 
 type TypeStats = { available: number; occupancy: number };
+type Tab = "rooms" | "calendar";
 
 function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -27,6 +29,9 @@ function isoDate(date: Date): string {
 export default function RoomTypesPage() {
   const { t } = useLocale();
   const tr = t.hotelWs.roomTypes;
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") === "calendar" ? "calendar" : "rooms";
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [stats, setStats] = useState<Record<number, TypeStats>>({});
   const [loading, setLoading] = useState(true);
@@ -82,39 +87,66 @@ export default function RoomTypesPage() {
   const totalUnits = roomTypes.reduce((sum, rt) => sum + (rt.total_rooms ?? 0), 0);
   const totalAvailable = roomTypes.reduce((sum, rt) => sum + (stats[rt.id]?.available ?? 0), 0);
 
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
-      </div>
-    );
-  }
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "rooms", label: tr.title },
+    { key: "calendar", label: t.hotelWs.calendar.title },
+  ];
 
   return (
-    <div className="mx-auto max-w-[1160px] px-10 py-10">
+    <div className={`mx-auto ${tab === "calendar" ? "max-w-[1480px]" : "max-w-[1400px]"} px-10 py-10`}>
       {/* Header */}
-      <div className="mb-10 flex items-end justify-between">
+      <div className="mb-8 flex items-end justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
             {tr.eyebrow}
           </p>
-          <h1 className="mt-2 text-[32px] font-bold text-humana-ink">{tr.title}</h1>
+          <h1 className="mt-2 text-[32px] font-bold text-humana-ink">
+            {tab === "rooms" ? tr.title : t.hotelWs.calendar.title}
+          </h1>
           <p className="mt-1 text-[14px] text-humana-muted">
-            {roomTypes.length > 0
-              ? tr.summary(roomTypes.length, totalUnits, totalAvailable)
-              : tr.subtitle}
+            {tab === "rooms"
+              ? roomTypes.length > 0
+                ? tr.summary(roomTypes.length, totalUnits, totalAvailable)
+                : tr.subtitle
+              : t.hotelWs.calendar.subtitle}
           </p>
         </div>
-        <Link
-          href="/hotel/rooms/edit/step-1"
-          onClick={() => sessionStorage.removeItem("humana.room-editor")}
-          className="bg-humana-ink px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85"
-        >
-          + {tr.addRoomType}
-        </Link>
+        {tab === "rooms" && (
+          <Link
+            href="/hotel/rooms/edit/step-1"
+            onClick={() => sessionStorage.removeItem("humana.room-editor")}
+            className="bg-humana-ink px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85"
+          >
+            + {tr.addRoomType}
+          </Link>
+        )}
       </div>
 
-      {roomTypes.length === 0 || error ? (
+      {/* Tabs */}
+      <div className="mb-8 flex gap-1 border-b border-humana-line">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`cursor-pointer px-5 pb-3 text-[14px] font-medium transition-colors ${
+              tab === t.key
+                ? "border-b-2 border-humana-gold text-humana-ink"
+                : "text-humana-muted hover:text-humana-ink"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      {tab === "calendar" ? (
+        <HotelCalendar />
+      ) : loading ? (
+        <div className="flex h-[60vh] items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+        </div>
+      ) : roomTypes.length === 0 || error ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-humana-line bg-white py-24 text-center">
           <p className="text-[18px] font-medium text-humana-ink">{tr.empty}</p>
           <p className="mt-2 max-w-md text-[14px] text-humana-muted">{tr.emptyHint}</p>

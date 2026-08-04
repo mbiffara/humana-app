@@ -269,7 +269,7 @@ function BottomBar() {
     setShowConfirmModal(false);
 
     if (isLastStep) {
-      router.push("/dashboard");
+      router.push("/hotel/dashboard");
     } else {
       router.push(STEP_PATHS[activeIndex + 1]);
     }

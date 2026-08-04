@@ -5,9 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useWizard } from "@/contexts/WizardContext";
-import { hotels } from "@/data/hotels";
-import { inventoryBlocks } from "@/data/inventory";
 import { StepIndicator } from "@/components/StepIndicator";
+import { agencyApi } from "@/lib/api/agency";
 
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
@@ -21,14 +20,14 @@ function fmtRange(start: string, end: string) {
 }
 
 /* ─── Sidebar: retreat card styled like dashboard ─── */
-function RetreatPreviewCard({ onPublish }: { onPublish: () => void }) {
+function RetreatPreviewCard({ onPublish, publishing }: { onPublish: () => void; publishing?: boolean }) {
   const { state } = useWizard();
-  const hotel = hotels.find((h) => h.id === state.hotelId);
+  const hotelData = state.hotelData;
   const minPricePerNight = state.pricing.length > 0 ? Math.min(...state.pricing.filter((p) => p.retailPrice > 0).map((p) => p.retailPrice)) : 0;
   const minPrice = minPricePerNight * state.nights;
   const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Meditación";
-  const coverImg = state.gallery[0] ?? hotel?.image ?? "/images/retreat-ibiza.jpg";
-  const location = hotel?.location ?? "";
+  const coverImg = state.gallery[state.coverIndex] ?? state.gallery[0] ?? hotelData?.image ?? "/images/retreat-ibiza.jpg";
+  const location = hotelData ? `${hotelData.city}, ${hotelData.country}` : "";
 
   return (
     <div className="w-[340px] shrink-0">
@@ -66,7 +65,7 @@ function RetreatPreviewCard({ onPublish }: { onPublish: () => void }) {
             <h3 className="text-[20px] font-normal leading-[26px] tracking-[-0.01em] text-humana-ink">
               {state.name || "Sin nombre"}
               <br />
-              <span className="text-humana-muted">{hotel?.name ?? ""}</span>
+              <span className="text-humana-muted">{hotelData?.name ?? ""}</span>
             </h3>
 
             {/* Description */}
@@ -115,9 +114,10 @@ function RetreatPreviewCard({ onPublish }: { onPublish: () => void }) {
           <button
             type="button"
             onClick={onPublish}
-            className="flex flex-[1.5] items-center justify-center gap-3 bg-humana-gold py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
+            disabled={publishing}
+            className="flex flex-[1.5] items-center justify-center gap-3 bg-humana-gold py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
           >
-            Publicar retiro
+            {publishing ? "Publicando…" : "Publicar retiro"}
           </button>
         </div>
       </div>
@@ -128,10 +128,92 @@ function RetreatPreviewCard({ onPublish }: { onPublish: () => void }) {
 export default function WizardStep6() {
   const { t } = useLocale();
   const { state, reset } = useWizard();
-  const hotel = hotels.find((h) => h.id === state.hotelId);
+  const hotelData = state.hotelData;
   const [published, setPublished] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [retreatRef, setRetreatRef] = useState<string | null>(null);
 
-  const hotelInv = inventoryBlocks.filter((b) => b.hotelId === state.hotelId && b.availableRooms > 0);
+  const handlePublish = async () => {
+    setPublishing(true);
+    setPublishError(null);
+
+    try {
+      if (!state.hotelId) {
+        // Fallback: demo mode
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setRetreatRef(`RET-2026-${String(Math.floor(Math.random() * 9000) + 1000)}`);
+        setPublished(true);
+        setPublishing(false);
+        return;
+      }
+
+      // Map wizard type to API retreat_type
+      const typeMap: Record<string, string> = {
+        retreat: "wellness",
+        masterclass: "corporate",
+        meditation: "spiritual",
+      };
+
+      // 1. Create the retreat
+      const res = await agencyApi.createRetreat({
+        hotel_id: state.hotelId,
+        name: state.name,
+        retreat_type: typeMap[state.type] ?? "wellness",
+        duration_nights: state.nights,
+        starts_on: state.startDate,
+        ends_on: state.endDate,
+        capacity: state.capacity,
+        language: state.language,
+        description: state.description,
+        cover_image_url: state.gallery[state.coverIndex] ?? state.gallery[0] ?? null,
+        currency: "USD",
+      });
+
+      const retreatId = res.retreat.id;
+
+      // 2. Replace the full program (days, facilitators, inclusions, pricings)
+      await agencyApi.replaceRetreatProgram(retreatId, {
+        days: state.program.map((day) => ({
+          day_number: day.day,
+          title: day.title,
+          activities: day.activities.map((act, j) => ({
+            name: act.name,
+            time: act.time,
+            description: act.description,
+            position: j,
+          })),
+        })),
+        facilitators: state.facilitators.map((f, i) => ({
+          name: f.name,
+          role: i === 0 ? "lead" : "assistant",
+          bio: f.bio,
+          position: i,
+        })),
+        inclusions: state.included.map((name, i) => ({
+          name,
+          position: i,
+        })),
+        pricings: state.pricing
+          .filter((p) => p.retailPrice > 0)
+          .map((p) => ({
+            room_type_id: p.roomTypeId,
+            price_per_guest_cents: Math.round(p.retailPrice * 100),
+          })),
+      });
+
+      // 3. Submit for review
+      await agencyApi.submitRetreatForReview(retreatId);
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setRetreatRef(res.retreat.slug ?? `RET-${retreatId}`);
+      setPublished(true);
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : "Failed to publish retreat");
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   if (published) {
     const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Corporativo";
@@ -164,7 +246,7 @@ export default function WizardStep6() {
               Referencia
             </span>
             <span className="text-[18px] font-semibold text-humana-ink">
-              RET-2026-{String(Math.floor(Math.random() * 9000) + 1000)}
+              {retreatRef ?? "—"}
             </span>
           </div>
 
@@ -175,7 +257,7 @@ export default function WizardStep6() {
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">Hotel</span>
-              <span className="text-[15px] text-humana-ink">{hotel?.name ?? "—"}</span>
+              <span className="text-[15px] text-humana-ink">{hotelData?.name ?? "—"}</span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">Tipo</span>
@@ -206,13 +288,13 @@ export default function WizardStep6() {
         {/* Action buttons */}
         <div className="animate-fade-in-up-delay-2 flex items-center gap-4">
           <Link
-            href="/dashboard"
+            href="/agency/my-retreats"
             className="flex items-center gap-3 border border-humana-line bg-white px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-all duration-150 hover:border-humana-ink active:scale-[0.98]"
           >
             Ver retiro
           </Link>
           <Link
-            href="/dashboard"
+            href="/agency/my-retreats"
             onClick={reset}
             className="group/cta flex items-center gap-3 bg-humana-ink px-8 py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
           >
@@ -265,18 +347,20 @@ export default function WizardStep6() {
                   Editar
                 </Link>
               </div>
-              {hotel && (
+              {hotelData && (
                 <div className="mt-4 flex items-center gap-4">
-                  <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded border border-humana-line">
-                    <Image src={hotel.image} alt={hotel.name} fill className="object-cover" />
-                  </div>
+                  {hotelData.image && (
+                    <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded border border-humana-line">
+                      <Image src={hotelData.image} alt={hotelData.name} fill className="object-cover" />
+                    </div>
+                  )}
                   <div className="flex flex-col gap-1">
-                    <span className="text-[15px] font-medium text-humana-ink">{hotel.name}</span>
-                    <span className="text-[13px] text-humana-muted">{hotel.location}</span>
+                    <span className="text-[15px] font-medium text-humana-ink">{hotelData.name}</span>
+                    <span className="text-[13px] text-humana-muted">{hotelData.city}, {hotelData.country}</span>
                   </div>
                 </div>
               )}
-              {!hotel && (
+              {!hotelData && (
                 <span className="mt-4 block text-[14px] text-humana-muted">Sin hotel seleccionado</span>
               )}
             </div>
@@ -430,21 +514,20 @@ export default function WizardStep6() {
               </div>
               <div className="mt-4 flex flex-col gap-2.5">
                 {state.pricing.map((p) => {
-                  const rt = hotel?.roomTypes.find((r) => r.id === p.roomTypeId);
-                  const inv = hotelInv.find((b) => b.roomTypeId === p.roomTypeId);
+                  const rt = hotelData?.roomTypes.find((r) => r.id === p.roomTypeId);
                   if (!rt) return null;
                   return (
                     <div key={p.roomTypeId} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="relative h-8 w-10 shrink-0 overflow-hidden rounded">
-                          <Image src={rt.image} alt={rt.name} fill className="object-cover" />
-                        </div>
-                        <span className="text-[14px] text-humana-ink">{rt.name}</span>
-                        {inv && (
-                          <span className="text-[12px] text-humana-subtle">{inv.availableRooms} habs</span>
+                        {rt.image_url && (
+                          <div className="relative h-8 w-10 shrink-0 overflow-hidden rounded">
+                            <Image src={rt.image_url} alt={rt.name} fill className="object-cover" />
+                          </div>
                         )}
+                        <span className="text-[14px] text-humana-ink">{rt.name}</span>
+                        <span className="text-[12px] text-humana-subtle">{rt.total_rooms ?? 0} habs</span>
                       </div>
-                      <span className="text-[14px] font-medium text-humana-ink">U$D {p.retailPrice.toLocaleString("en-US")} /huésped</span>
+                      <span className="text-[14px] font-medium text-humana-ink">{rt.currency} {p.retailPrice.toLocaleString("en-US")} /huésped</span>
                     </div>
                   );
                 })}
@@ -491,7 +574,12 @@ export default function WizardStep6() {
         </div>
 
         {/* RIGHT: Retreat card preview (same UI as dashboard) */}
-        <RetreatPreviewCard onPublish={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setPublished(true); }} />
+        {publishError && (
+          <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-600">
+            {publishError}
+          </div>
+        )}
+        <RetreatPreviewCard onPublish={handlePublish} publishing={publishing} />
       </div>
     </div>
   );

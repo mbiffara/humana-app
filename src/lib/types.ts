@@ -16,6 +16,13 @@ export interface Organization {
   hotel_id?: number | null;
   user_count?: number;
   created_at?: string;
+  // Bank details (hotel orgs, returned when include_onboarding)
+  bank_account_holder?: string | null;
+  bank_iban?: string | null;
+  bank_swift?: string | null;
+  bank_currency?: string | null;
+  bank_country?: string | null;
+  bank_status?: string | null;
 }
 
 export interface User {
@@ -26,6 +33,7 @@ export interface User {
   role: "owner" | "member" | "admin";
   status: "pending" | "active" | "suspended" | "rejected";
   locale: string;
+  avatar_url: string | null;
   platform_admin: boolean;
   last_login_at: string | null;
   created_at: string | null;
@@ -72,7 +80,7 @@ export interface SubscriptionPlan {
   price: string;
   currency: string;
   billing_interval: string;
-  features: Record<string, boolean>;
+  features: Record<string, boolean | number | string>;
   commission_rate: number;
   commission_percent: string;
   stripe_price_id: string | null;
@@ -131,6 +139,7 @@ export interface LoginResponse {
 
 export interface MeResponse {
   user: User;
+  subscription?: Subscription | null;
 }
 
 export interface AdminHotelPreview {

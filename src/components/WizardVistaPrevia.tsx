@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useWizard } from "@/contexts/WizardContext";
-import { hotels } from "@/data/hotels";
 
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
@@ -21,12 +20,12 @@ type Props = {
   onNext?: () => void;
   canProceed?: boolean;
   /** Live pricing from step 4 local state */
-  localPricing?: { roomTypeId: string; retailPrice: number }[];
+  localPricing?: { roomTypeId: number; retailPrice: number }[];
 };
 
 export function WizardVistaPrevia({ currentStep, onNext, canProceed = true, localPricing }: Props) {
   const { state } = useWizard();
-  const hotel = hotels.find((h) => h.id === state.hotelId);
+  const hotelData = state.hotelData;
   const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Meditación";
 
   const activePricing = localPricing ?? state.pricing;
@@ -58,8 +57,8 @@ export function WizardVistaPrevia({ currentStep, onNext, canProceed = true, loca
           <div className="mt-6 flex flex-col gap-3.5">
             <div className="flex items-center justify-between border-b border-humana-line pb-3.5">
               <span className="text-[13px] text-humana-muted">Hotel</span>
-              <span className={`text-[13px] ${hotel ? "font-medium text-humana-ink" : "text-humana-subtle"}`}>
-                {hotel?.name ?? "Pendiente"}
+              <span className={`text-[13px] ${hotelData ? "font-medium text-humana-ink" : "text-humana-subtle"}`}>
+                {hotelData?.name ?? "Pendiente"}
               </span>
             </div>
             <div className="flex items-center justify-between border-b border-humana-line pb-3.5">

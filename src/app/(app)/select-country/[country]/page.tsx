@@ -1,35 +1,35 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
-import { retreats } from "@/data/retreats";
-import { hotels } from "@/data/hotels";
-import { countries } from "@/data/countries";
-
-const slugToCountryId: Record<string, string> = {
-  mexico: "mx",
-  argentina: "ar",
-  usa: "us",
-  spain: "es",
-  brazil: "br",
-  india: "in",
-  indonesia: "id",
-};
+import { countries, countrySlugToId } from "@/data/countries";
+import { agencyApi } from "@/lib/api/agency";
 
 export default function CountryPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);
   const { t } = useLocale();
   const { set } = useBooking();
 
-  const countryId = slugToCountryId[country];
+  const countryId = countrySlugToId[country] ?? country;
   const countryData = countries.find((c) => c.id === countryId);
 
-  const countryRetreats = retreats.filter((r) => r.country === countryId);
-  const countryHotels = hotels.filter((h) => h.country === countryId);
+  const [retreatCount, setRetreatCount] = useState(0);
+  const [hotelCount, setHotelCount] = useState(0);
+
+  useEffect(() => {
+    agencyApi
+      .listExperiences({ country_code: countryId.toUpperCase() })
+      .then((res) => setRetreatCount(res.experiences.length))
+      .catch(() => {});
+    agencyApi
+      .listHotels({ country: countryId.toUpperCase() })
+      .then((res) => setHotelCount(res.hotels.length))
+      .catch(() => {});
+  }, [countryId]);
 
   const name = countryData?.name ?? country.charAt(0).toUpperCase() + country.slice(1);
   const flagCode = countryId ?? country;
@@ -65,7 +65,7 @@ export default function CountryPage({ params }: { params: Promise<{ country: str
         </h1>
 
         <p className="text-[15px] leading-[22px] text-humana-muted">
-          {countryRetreats.length} retiros disponibles · {countryHotels.length} hoteles certificados en la red HUMANA.
+          {retreatCount} retiros disponibles · {hotelCount} hoteles certificados en la red HUMANA.
         </p>
       </div>
 
@@ -96,7 +96,7 @@ export default function CountryPage({ params }: { params: Promise<{ country: str
 
           <div className="mt-8 flex items-baseline gap-3">
             <span className="text-[42px] font-light leading-none tracking-[-0.02em] text-humana-ink">
-              {countryRetreats.length}
+              {retreatCount}
             </span>
             <span className="text-[15px] text-humana-muted">retiros disponibles</span>
           </div>
@@ -137,7 +137,7 @@ export default function CountryPage({ params }: { params: Promise<{ country: str
 
           <div className="mt-8 flex items-baseline gap-3">
             <span className="text-[42px] font-light leading-none tracking-[-0.02em] text-humana-ink">
-              {countryHotels.length}
+              {hotelCount}
             </span>
             <span className="text-[15px] text-humana-muted">hoteles disponibles</span>
           </div>

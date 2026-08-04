@@ -5,14 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
-import type { Retreat } from "@/i18n/dictionary";
-import { retreats as retreatsData } from "@/data/retreats";
+import { useLocale } from "@/i18n/LocaleProvider";
 import { countries, countryIdToSlug } from "@/data/countries";
 import { CounterControl } from "@/components/CounterControl";
 import { FilterChip } from "@/components/FilterChip";
 import { useAuth } from "@/contexts/AuthContext";
-import { ComingSoon } from "@/components/ComingSoon";
+import { agencyApi, type ApiExperience, type AgencyDashboard } from "@/lib/api/agency";
 
 const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ssr: false,
@@ -31,14 +29,10 @@ export default function DashboardPage() {
     }
   }, [isAdmin, router]);
 
-  // Non-admin users see Coming Soon
-  if (!isAdmin && user) {
-    return <ComingSoon />;
-  }
-
   return (
     <div className="flex flex-col">
       <BannerSection />
+      <DashboardKpis />
       <Hero />
       <MapCoverage />
       <RetreatsSection />
@@ -51,6 +45,43 @@ function BannerSection() {
   return (
     <section className="px-16 pt-12">
       <CreateRetreatBanner />
+    </section>
+  );
+}
+
+function DashboardKpis() {
+  const { t, locale } = useLocale();
+  const [dashboard, setDashboard] = useState<AgencyDashboard | null>(null);
+
+  useEffect(() => {
+    agencyApi.getDashboard()
+      .then((res) => setDashboard(res.dashboard))
+      .catch(() => {});
+  }, []);
+
+  if (!dashboard) return null;
+
+  const tag = locale === "es" ? "es-ES" : locale === "pt" ? "pt-PT" : "en-US";
+  const fmt = (cents: number) =>
+    new Intl.NumberFormat(tag, { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(cents / 100);
+
+  const kpis = [
+    { label: t.agencyWs.bookings.kpis.total, value: String(dashboard.total_bookings) },
+    { label: t.agencyWs.bookings.kpis.confirmed, value: String(dashboard.confirmed_count), gold: true },
+    { label: t.agencyWs.bookings.kpis.commission, value: fmt(dashboard.commission_earned_cents) },
+    { label: t.agencyWs.clients.title, value: String(dashboard.active_clients) },
+  ];
+
+  return (
+    <section className="px-16 pt-8">
+      <div className="grid grid-cols-4 gap-5 stagger-children">
+        {kpis.map((kpi) => (
+          <div key={kpi.label} className="border border-humana-line bg-white p-5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">{kpi.label}</p>
+            <p className={`mt-1.5 text-[26px] font-bold ${kpi.gold ? "text-humana-gold" : "text-humana-ink"}`}>{kpi.value}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -99,6 +130,7 @@ type DropdownId = "destination" | "dates" | "guests" | "experience";
 
 function SearchBar() {
   const { locale, t } = useLocale();
+  const router = useRouter();
   const barRef = useRef<HTMLDivElement>(null);
 
   const [openDropdown, setOpenDropdown] = useState<DropdownId | null>(null);
@@ -345,6 +377,12 @@ function SearchBar() {
 
       <button
         type="button"
+        onClick={() => {
+          if (selectedDestination) {
+            const slug = countryIdToSlug[selectedDestination] ?? selectedDestination;
+            router.push(`/select-country/${slug}`);
+          }
+        }}
         className="group flex shrink-0 cursor-pointer items-center justify-center gap-3 bg-humana-ink px-10 text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
       >
         <span className="text-[13px] font-semibold uppercase tracking-[0.22em]">
@@ -498,6 +536,17 @@ function MapCoverage() {
 
 function RetreatsSection() {
   const { t } = useLocale();
+  const [experiences, setExperiences] = useState<ApiExperience[]>([]);
+  const [loadingExp, setLoadingExp] = useState(true);
+
+  useEffect(() => {
+    agencyApi
+      .listExperiences()
+      .then((res) => setExperiences(res.experiences))
+      .catch(() => {})
+      .finally(() => setLoadingExp(false));
+  }, []);
+
   return (
     <section className="flex flex-col gap-10 px-16 py-20">
       <div className="flex items-end justify-between gap-8">
@@ -514,7 +563,9 @@ function RetreatsSection() {
           <h2 className="text-[30px] font-light leading-[38px] tracking-[-0.01em] text-humana-ink">
             {t.retreats.title}
           </h2>
-          <p className="text-[14px] leading-[20px] text-humana-muted">{t.retreats.count}</p>
+          <p className="text-[14px] leading-[20px] text-humana-muted">
+            {loadingExp ? "..." : t.exploreRetreats.showing(experiences.length)}
+          </p>
         </div>
         <div className="flex items-center gap-7">
           <div className="flex items-center gap-2.5">
@@ -529,11 +580,17 @@ function RetreatsSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        {t.retreats.items.map((r) => (
-          <RetreatCardLocal key={r.slug} retreat={r} />
-        ))}
-      </div>
+      {loadingExp ? (
+        <div className="flex h-40 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          {experiences.map((exp) => (
+            <ExperienceCard key={exp.id} experience={exp} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -599,15 +656,32 @@ function FilterChipLocal({ label, active }: { label: string; active?: boolean })
   );
 }
 
-function RetreatCardLocal({ retreat }: { retreat: Retreat }) {
-  const dataRetreat = retreatsData.find(r => r.slug === retreat.slug);
-  const countrySlug = dataRetreat ? (countryIdToSlug[dataRetreat.country] ?? dataRetreat.country) : "mexico";
+function ExperienceCard({ experience }: { experience: ApiExperience }) {
+  const { t } = useLocale();
+  const countrySlug = experience.country_code
+    ? (countryIdToSlug[experience.country_code.toLowerCase()] ?? experience.country_code.toLowerCase())
+    : "mexico";
+  const nights = Math.max(
+    1,
+    Math.round(
+      (new Date(experience.ends_on).getTime() - new Date(experience.starts_on).getTime()) /
+        86400000,
+    ),
+  );
+  const kindLabel = experience.kind === "masterclass" ? "Masterclass" : "Retiro";
+  const tag = `${kindLabel} · ${nights} ${nights === 1 ? "noche" : "noches"}`;
+  const location = experience.location ?? experience.country ?? "";
+  const startF = formatShortDate(experience.starts_on);
+  const endF = formatShortDate(experience.ends_on);
+
   return (
     <article className="flex flex-col overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-      <Link href={`/select-country/${countrySlug}/retreats/${retreat.slug}`} className="relative h-52 w-full bg-humana-stone">
-        <Image src={retreat.image} alt={retreat.title} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-cover" />
+      <Link href={`/select-country/${countrySlug}/retreats/${experience.slug}`} className="relative h-52 w-full bg-humana-stone">
+        {experience.image_url && (
+          <Image src={experience.image_url} alt={experience.title} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-cover" />
+        )}
         <div className="absolute left-3 top-3 bg-white px-2.5 py-1">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-humana-ink">{retreat.tag}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-humana-ink">{tag}</span>
         </div>
       </Link>
 
@@ -618,36 +692,48 @@ function RetreatCardLocal({ retreat }: { retreat: Retreat }) {
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-humana-muted">{retreat.location}</span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-humana-muted">{location}</span>
           </div>
-          <span className="text-[11px] font-medium text-[#4A463E]">{retreat.dates}</span>
+          <span className="text-[11px] font-medium text-[#4A463E]">{startF} — {endF}</span>
         </div>
 
         <h3 className="text-[16px] font-medium leading-[22px] tracking-[-0.01em] text-humana-ink line-clamp-2">
-          {retreat.title} — {retreat.property}
+          {experience.title}{experience.hotel ? ` — ${experience.hotel.name}` : ""}
         </h3>
 
-        <p className="text-[13px] leading-[18px] text-humana-muted line-clamp-2">{retreat.description}</p>
+        <p className="text-[13px] leading-[18px] text-humana-muted line-clamp-2">{experience.description}</p>
 
         <div className="mt-auto h-px bg-humana-line" />
 
         <div className="flex items-end justify-between gap-2">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-humana-subtle">{retreat.fromLabel}</span>
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-humana-subtle">{t.retreatDetail.startingFrom}</span>
             <span className="whitespace-nowrap text-[16px] font-light tracking-[-0.01em] text-humana-ink">
-              {retreat.price}<span className="text-[11px] font-normal text-humana-subtle">{retreat.perGuest}</span>
+              {experience.currency} {experience.price.toLocaleString()}
+              <span className="text-[11px] font-normal text-humana-subtle"> / {t.retreatDetail.perGuest}</span>
             </span>
           </div>
           <div className="flex flex-col items-end gap-0.5">
-            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-humana-gold">{retreat.commission}</span>
-            <Link href={`/select-country/${countrySlug}/retreats/${retreat.slug}`} className="whitespace-nowrap text-[12px] font-medium text-humana-ink transition-colors hover:text-humana-gold">
-              {retreat.cta}
+            {experience.commission_percent && (
+              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-humana-gold">
+                {t.retreatDetail.commission} {experience.commission_percent}
+              </span>
+            )}
+            <Link href={`/select-country/${countrySlug}/retreats/${experience.slug}`} className="whitespace-nowrap text-[12px] font-medium text-humana-ink transition-colors hover:text-humana-gold">
+              {t.retreatDetail.bookNow} →
             </Link>
           </div>
         </div>
       </div>
     </article>
   );
+}
+
+function formatShortDate(iso: string) {
+  const d = new Date(iso + "T00:00:00");
+  const day = d.getDate();
+  const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  return `${day} ${months[d.getMonth()]}`;
 }
 
 function Footer() {

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
+import { AgencyTopNav } from "@/components/agency/AgencyTopNav";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { WizardProvider } from "@/contexts/WizardContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const isOnboarding = pathname.startsWith("/onboarding/");
   const isHotelWorkspace = pathname.startsWith("/hotel/");
+  const isAgency = user?.organization?.kind === "agency";
 
   // Once the persisted session has been read, bounce unauthenticated visitors
   // back to the login portal.
@@ -57,7 +59,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <BookingProvider>
       <WizardProvider>
-        {!isAdmin && !isOnboarding && !isHotelWorkspace && <TopNav />}
+        {!isAdmin && !isOnboarding && !isHotelWorkspace && isAgency && <AgencyTopNav />}
+        {!isAdmin && !isOnboarding && !isHotelWorkspace && !isAgency && <TopNav />}
         <main className="flex-1">{children}</main>
       </WizardProvider>
     </BookingProvider>

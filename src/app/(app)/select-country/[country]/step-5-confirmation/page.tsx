@@ -1,12 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useBooking } from "@/contexts/BookingContext";
-import { retreats } from "@/data/retreats";
-import { clients } from "@/data/clients";
-import { hotels } from "@/data/hotels";
 
 function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -24,27 +21,34 @@ function addDays(dateStr: string, days: number): string {
   return `${y}-${m}-${dd}`;
 }
 
+function diffDays(start: string, end: string): number {
+  const s = new Date(start + "T12:00:00");
+  const e = new Date(end + "T12:00:00");
+  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export default function ConfirmationPage({ params }: { params: Promise<{ country: string }> }) {
-  const { country } = React.use(params);
+  React.use(params);
   const { t } = useLocale();
   const { state, reset } = useBooking();
-  const retreat = retreats.find((r) => r.slug === state.retreatSlug);
-  const client = clients.find((c) => c.id === state.clientId);
-  const hotel = hotels.find((h) => h.id === retreat?.hotelId);
-  const room = hotel?.roomTypes.find((r) => r.id === state.roomTypeId);
 
-  const retreatNights = retreat?.nights ?? 7;
-  const pricePerNight = room?.pricePerNight ?? 185;
+  const retreatStart = state.dates?.start ?? "2026-05-28";
+  const retreatEnd = state.dates?.end ?? "2026-06-01";
+  const retreatNights = diffDays(retreatStart, retreatEnd);
+  const pricePerNight = state.display ? state.display.pricePerNightCents / 100 : 185;
   const preNights = state.preNights;
   const postNights = state.postNights;
   const total = (retreatNights + preNights + postNights) * pricePerNight;
-  const commission = Math.round(total * 0.16);
-  const reservationId = `HUM-2025-0847`;
+  const commissionRate = state.display?.commissionRate ?? 0.16;
+  const commission = Math.round(total * commissionRate);
+  const reservationId = state.bookingReference ?? "HMN-000000";
 
-  const retreatStart = state.dates?.start ?? retreat?.startDate ?? "2026-05-28";
-  const retreatEnd = state.dates?.end ?? retreat?.endDate ?? "2026-06-01";
-  const computedCheckIn = preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart;
-  const computedCheckOut = postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd;
+  const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
+  const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
+
+  const displayHotelName = state.display?.hotelName ?? "Hotel";
+  const displayHotelLocation = state.display?.hotelLocation ?? "";
+  const displayRoomName = state.display?.roomTypeName ?? "Suite";
 
   return (
     <div className="flex flex-col items-center gap-10 bg-humana-stone min-h-screen px-16 py-20">
@@ -54,9 +58,9 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
       </svg>
 
       <div className="animate-fade-in-up flex flex-col items-center gap-3 text-center">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">{state.inventoryMode ? "PASO 5 DE 5 · PLAZAS ADQUIRIDAS" : "PASO 5 DE 5 · RESERVA CONFIRMADA"}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">{state.inventoryMode ? "PASO 5 DE 5 \u00B7 PLAZAS ADQUIRIDAS" : "PASO 5 DE 5 \u00B7 RESERVA CONFIRMADA"}</span>
         <h1 className="text-[36px] font-light leading-[44px] tracking-[-0.02em] text-humana-ink">{state.inventoryMode ? "Plazas guardadas en inventario" : "Reserva creada exitosamente"}</h1>
-        <p className="text-[15px] leading-[22px] text-humana-muted">{state.inventoryMode ? "Las plazas estan disponibles en tu inventario para asignar un cliente en el futuro." : `Se ha enviado un email de confirmacion a ${client?.email ?? "maria.lopez@email.com"}`}</p>
+        <p className="text-[15px] leading-[22px] text-humana-muted">{state.inventoryMode ? "Las plazas estan disponibles en tu inventario para asignar un cliente en el futuro." : `Se ha enviado un email de confirmacion con la referencia ${reservationId}.`}</p>
       </div>
 
       <div className="animate-fade-in-up-delay-1 flex w-full max-w-[640px] flex-col gap-6 border border-humana-line bg-white p-10">
@@ -66,11 +70,11 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
         </div>
         <div className="h-px bg-humana-line" />
         <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-          <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">HOTEL</span><span className="text-[14px] font-medium text-humana-ink">{hotel?.name ?? "Hotel Itzamna"} · {room?.name ?? "Suite Selva"}</span></div>
+          <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">HOTEL</span><span className="text-[14px] font-medium text-humana-ink">{displayHotelName} · {displayRoomName}</span></div>
           <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">CHECK-IN</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckIn)} · 15:00</span></div>
-          <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">UBICACION</span><span className="text-[14px] font-medium text-humana-ink">{hotel?.location ?? "Tulum, Mexico"}</span></div>
+          <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">UBICACION</span><span className="text-[14px] font-medium text-humana-ink">{displayHotelLocation}</span></div>
           <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">CHECK-OUT</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckOut)} · 11:00</span></div>
-          <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{state.inventoryMode ? "TIPO" : "CLIENTE"}</span><span className="text-[14px] font-medium text-humana-ink">{state.inventoryMode ? "Inventario — sin asignar" : (client?.name ?? "Maria Lopez Fernandez")}</span></div>
+          <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{state.inventoryMode ? "TIPO" : "CLIENTE"}</span><span className="text-[14px] font-medium text-humana-ink">{state.inventoryMode ? "Inventario \u2014 sin asignar" : "Cliente asignado"}</span></div>
           <div className="flex flex-col gap-1"><span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">TOTAL PAGADO</span><span className="text-[14px] font-medium text-humana-ink">U$D {total.toLocaleString()}.00</span></div>
         </div>
         <div className="h-px bg-humana-line" />

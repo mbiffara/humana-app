@@ -9,9 +9,20 @@ import {
   type ReactNode,
 } from "react";
 import type { ProgramDay, Facilitator } from "@/data/types";
+import type { PublicRoomType } from "@/lib/api/agency";
+
+export type WizardHotelData = {
+  name: string;
+  city: string;
+  country: string;
+  image: string;
+  description: string | null;
+  roomTypes: PublicRoomType[];
+};
 
 export type WizardState = {
-  hotelId: string | null;
+  hotelId: number | null;
+  hotelData: WizardHotelData | null;
   name: string;
   type: "retreat" | "masterclass" | "meditation";
   nights: number;
@@ -21,7 +32,7 @@ export type WizardState = {
   language: string;
   description: string;
   program: ProgramDay[];
-  pricing: { roomTypeId: string; retailPrice: number }[];
+  pricing: { roomTypeId: number; retailPrice: number }[];
   gallery: string[];
   coverIndex: number;
   facilitators: Facilitator[];
@@ -29,16 +40,16 @@ export type WizardState = {
 };
 
 const initial: WizardState = {
-  hotelId: "h1",
-  name: "Raíz y Ceremonia",
+  hotelId: null,
+  hotelData: null,
+  name: "",
   type: "retreat",
   nights: 5,
-  startDate: "2026-06-01",
-  endDate: "2026-06-06",
+  startDate: "",
+  endDate: "",
   capacity: 0,
   language: "Español",
-  description:
-    "Inmersión en medicina ancestral maya, yoga al amanecer y círculos de cacao guiados por facilitadores certificados. Un viaje interior de 5 noches rodeado de naturaleza y tradición.",
+  description: "",
   program: [],
   pricing: [],
   gallery: [],

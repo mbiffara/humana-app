@@ -1,12 +1,9 @@
-/** Hotel workspace — availability calendar.
- *  Tape-chart grid: room types as rows, days of the month as columns; each
- *  cell shows how many rooms of that type remain available that night.
- *  Click two days in a row to block a date range; blocks are listed below
- *  the grid and can be removed there. */
+/** Reusable hotel availability calendar (tape-chart).
+ *  Room types as rows, days of the month as columns.
+ *  Click two days in a row to block a date range. */
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import {
   hotelApi,
@@ -16,7 +13,6 @@ import {
 
 const LOCALE_TAGS: Record<string, string> = { en: "en-US", es: "es-ES", pt: "pt-PT" };
 
-/** Local-timezone-safe YYYY-MM-DD. */
 function iso(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -24,7 +20,7 @@ function iso(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-export default function HotelCalendarPage() {
+export function HotelCalendar() {
   const { t, locale } = useLocale();
   const tag = LOCALE_TAGS[locale] ?? "en-US";
 
@@ -36,10 +32,8 @@ export default function HotelCalendarPage() {
   const [blocks, setBlocks] = useState<ApiAvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Range selection for creating a block: first click sets start, second
-  // click in the same row sets end; the block panel then submits it.
   const [sel, setSel] = useState<{ roomTypeId: number; start: string; end: string | null } | null>(null);
-  const [unitsToBlock, setUnitsToBlock] = useState<number | null>(null); // null = all units
+  const [unitsToBlock, setUnitsToBlock] = useState<number | null>(null);
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -53,8 +47,6 @@ export default function HotelCalendarPage() {
     return list;
   }, [month]);
 
-  // Guards against out-of-order responses: only the latest request may
-  // apply its results (e.g. fast month switching).
   const requestIdRef = useRef(0);
 
   const fetchCalendar = useCallback(async () => {
@@ -100,8 +92,6 @@ export default function HotelCalendarPage() {
         room_type_id: sel.roomTypeId,
         starts_on: sel.start,
         ends_on: sel.end ?? sel.start,
-        // Blocking every unit is stored as a whole-type block (units: null)
-        // so it stays a full closure even if the room count changes later.
         units:
           unitsToBlock !== null && unitsToBlock < (entry?.rooms_operational ?? 1)
             ? unitsToBlock
@@ -143,7 +133,6 @@ export default function HotelCalendarPage() {
   const roomTypeName = (id: number) =>
     data?.room_types.find((rt) => rt.room_type.id === id)?.room_type.name ?? "—";
 
-  /** Cell tone by remaining availability. */
   function cellClass(available: number, operational: number): string {
     if (operational === 0) return "bg-humana-stone text-humana-subtle";
     if (available === 0) return "bg-humana-ink text-white";
@@ -152,23 +141,38 @@ export default function HotelCalendarPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1480px] px-10 py-10">
-      {/* Header */}
-      <div className="mb-8 flex items-end justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-            {t.hotelWs.badge}
-          </p>
-          <h1 className="mt-2 text-[32px] font-bold text-humana-ink">
-            {t.hotelWs.calendar.title}
-          </h1>
-          <p className="mt-1 text-[14px] text-humana-muted">
-            {t.hotelWs.calendar.subtitle}
-          </p>
+    <>
+      {/* Month navigation + legend (single row) */}
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-humana-line bg-white text-humana-ink transition-colors hover:border-humana-gold"
+            aria-label="Previous month"
+          >
+            ‹
+          </button>
+          <span className="min-w-[190px] text-center text-[16px] font-medium capitalize text-humana-ink">
+            {monthTitle}
+          </span>
+          <button
+            onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-humana-line bg-white text-humana-ink transition-colors hover:border-humana-gold"
+            aria-label="Next month"
+          >
+            ›
+          </button>
+          <button
+            onClick={() => {
+              const now = new Date();
+              setMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+            }}
+            className="cursor-pointer rounded-lg border border-humana-line px-3 py-1.5 text-[12px] font-medium text-humana-muted transition-colors hover:border-humana-ink hover:text-humana-ink"
+          >
+            {t.hotelWs.calendar.today}
+          </button>
         </div>
-
-        {/* Legend */}
-        <div className="flex items-center gap-5 pb-1">
+        <div className="flex items-center gap-5">
           {[
             { cls: "border border-humana-line bg-white", label: t.hotelWs.calendar.legendAvailable },
             { cls: "bg-humana-gold-light", label: t.hotelWs.calendar.legendLow },
@@ -186,29 +190,10 @@ export default function HotelCalendarPage() {
         </div>
       </div>
 
-      {/* Month navigation */}
-      <div className="mb-5 flex items-center gap-4">
-        <button
-          onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-humana-line bg-white text-humana-ink transition-colors hover:border-humana-gold"
-          aria-label="Previous month"
-        >
-          ‹
-        </button>
-        <span className="min-w-[190px] text-center text-[16px] font-medium capitalize text-humana-ink">
-          {monthTitle}
-        </span>
-        <button
-          onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-humana-line bg-white text-humana-ink transition-colors hover:border-humana-gold"
-          aria-label="Next month"
-        >
-          ›
-        </button>
-        {!sel && (
-          <span className="ml-4 text-[12px] text-humana-subtle">{t.hotelWs.calendar.selectHint}</span>
-        )}
-      </div>
+      {/* Selection hint */}
+      {!sel && (
+        <p className="mb-4 text-[12px] text-humana-subtle">{t.hotelWs.calendar.selectHint}</p>
+      )}
 
       {/* Block creation panel */}
       {sel && selEntry && (
@@ -224,7 +209,6 @@ export default function HotelCalendarPage() {
 
           <span className="h-8 w-px bg-humana-line" />
 
-          {/* Units counter */}
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
               {t.hotelWs.calendar.unitsToBlock}
@@ -377,7 +361,7 @@ export default function HotelCalendarPage() {
               );
             })}
 
-            {/* Unassigned bookings row (only when present) */}
+            {/* Unassigned bookings row */}
             {showUnassigned && (
               <div className="contents">
                 <div className="sticky left-0 z-10 bg-white px-5 py-3.5">
@@ -408,7 +392,7 @@ export default function HotelCalendarPage() {
         </div>
       )}
 
-      {/* Blocked periods overlapping this month */}
+      {/* Blocked periods */}
       {!loading && data && data.room_types.length > 0 && (
         <div className="mt-6 rounded-xl border border-humana-line bg-white px-7 py-5">
           <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
@@ -444,18 +428,6 @@ export default function HotelCalendarPage() {
           )}
         </div>
       )}
-
-      {/* Footer link to rooms management */}
-      {!loading && data && data.room_types.length > 0 && (
-        <div className="mt-6 text-right">
-          <Link
-            href="/hotel/rooms"
-            className="text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-gold transition-opacity hover:opacity-70"
-          >
-            {t.hotelWs.rooms.title} →
-          </Link>
-        </div>
-      )}
-    </div>
+    </>
   );
 }

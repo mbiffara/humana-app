@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
-import { retreats } from "@/data/retreats";
-import { hotels } from "@/data/hotels";
+import { agencyApi, type ApiExperience, type PublicRoomType } from "@/lib/api/agency";
 
 const MONTH_NAMES = [
   ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -62,51 +61,97 @@ function getDayName(dateStr: string, localeIdx: number): string {
   return dayNames[localeIdx][d.getDay()];
 }
 
+function diffDays(start: string, end: string): number {
+  const s = new Date(start + "T12:00:00");
+  const e = new Date(end + "T12:00:00");
+  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export default function SelectDatesPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);
   const { t, locale } = useLocale();
   const { state, hydrated, set } = useBooking();
 
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
-      </div>
-    );
-  }
+  const [experience, setExperience] = useState<ApiExperience | null>(null);
+  const [hotelName, setHotelName] = useState("");
+  const [hotelLocation, setHotelLocation] = useState("");
+  const [hotelImage, setHotelImage] = useState("");
+  const [firstRoom, setFirstRoom] = useState<PublicRoomType | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const retreat = retreats.find((r) => r.slug === state.retreatSlug);
-  const hotel = hotels.find((h) => h.id === retreat?.hotelId);
-  const room = hotel?.roomTypes[0];
+  const [preNights, setPreNights] = useState(state.preNights);
+  const [postNights, setPostNights] = useState(state.postNights);
+  const [viewYear, setViewYear] = useState(2026);
+  const [viewMonth, setViewMonth] = useState(0);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    let cancelled = false;
+
+    async function fetchData() {
+      try {
+        // Fetch experiences for this country and find the matching one
+        const expRes = await agencyApi.listExperiences({ country_code: country.toUpperCase() });
+        const exp = expRes.experiences.find((e) => e.slug === state.retreatSlug) ?? expRes.experiences[0];
+        if (!exp || cancelled) return;
+        setExperience(exp);
+
+        // Set calendar view to retreat start month
+        if (exp.starts_on) {
+          const d = new Date(exp.starts_on + "T12:00:00");
+          setViewYear(d.getFullYear());
+          setViewMonth(d.getMonth());
+        }
+
+        // Fetch hotel details
+        if (exp.hotel?.id) {
+          const hotelRes = await agencyApi.getHotel(exp.hotel.id);
+          if (cancelled) return;
+          const h = hotelRes.hotel;
+          setHotelName(h.name);
+          setHotelLocation(`${h.city}, ${h.country}`);
+          const coverImg = h.images?.find((img) => img.is_cover);
+          setHotelImage(coverImg?.image_url ?? h.images?.[0]?.image_url ?? "/images/retreat-tulum.jpg");
+          if (h.room_types?.length > 0) setFirstRoom(h.room_types[0]);
+        }
+      } catch {
+        // Silently handle — will show fallback data
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchData();
+    return () => { cancelled = true; };
+  }, [hydrated, country, state.retreatSlug]);
 
   const localeIdx = locale === "es" ? 1 : locale === "pt" ? 2 : 0;
   const months = MONTH_NAMES[localeIdx];
   const weekdays = WEEKDAY_NAMES[localeIdx];
 
   /* ── Retreat dates are FIXED ── */
-  const retreatStart = retreat?.startDate ?? "2026-05-28";
-  const retreatEnd = retreat?.endDate ?? "2026-06-01";
-  const retreatNights = retreat?.nights ?? 7;
+  const retreatStart = experience?.starts_on ?? "2026-05-28";
+  const retreatEnd = experience?.ends_on ?? "2026-06-01";
+  const retreatNights = diffDays(retreatStart, retreatEnd);
 
-  const [preNights, setPreNights] = useState(state.preNights);
-  const [postNights, setPostNights] = useState(state.postNights);
-
-  /* Calendar view starts at retreat month */
-  const retreatStartMonth = new Date(retreatStart + "T12:00:00").getMonth();
-  const retreatStartYear = new Date(retreatStart + "T12:00:00").getFullYear();
-  const [viewYear, setViewYear] = useState(retreatStartYear);
-  const [viewMonth, setViewMonth] = useState(retreatStartMonth);
-
-  const pricePerNight = room?.pricePerNight ?? 280;
-  const totalNights = retreatNights + preNights + postNights;
+  const pricePerNight = firstRoom ? firstRoom.price_per_night_cents / 100 : 280;
   const retreatCost = retreatNights * pricePerNight;
   const preCost = preNights * pricePerNight;
   const postCost = postNights * pricePerNight;
   const totalPrice = retreatCost + preCost + postCost;
-  const commission = Math.round(totalPrice * 0.16);
+  const commissionRate = experience?.commission_rate ?? 0.16;
+  const commission = Math.round(totalPrice * commissionRate);
 
   const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
   const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
+
+  if (!hydrated || loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+      </div>
+    );
+  }
 
   function handlePrevMonth() {
     if (viewMonth === 0) { setViewMonth(11); setViewYear(viewYear - 1); }
@@ -178,12 +223,32 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
     );
   }
 
+  function handleContinue() {
+    set({
+      dates: { start: retreatStart, end: retreatEnd },
+      preNights,
+      postNights,
+      experienceId: experience?.id ?? null,
+      hotelApiId: experience?.hotel?.id ?? null,
+      display: {
+        hotelName: hotelName || "Hotel",
+        hotelImage,
+        hotelLocation,
+        roomTypeName: firstRoom?.name ?? "",
+        retreatName: experience?.title ?? "",
+        pricePerNightCents: firstRoom?.price_per_night_cents ?? 28000,
+        currency: experience?.currency ?? "USD",
+        commissionRate,
+      },
+    });
+  }
+
   return (
     <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
-          { label: hotel?.name ?? "Hotel", href: retreat ? `/select-country/${country}/retreats/${retreat.slug}` : `/select-country/${country}` },
+          { label: hotelName || "Hotel", href: `/select-country/${country}` },
           { label: "Fechas" },
         ]}
       />
@@ -260,8 +325,8 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
             </span>
 
             <div className="flex flex-col gap-1">
-              <span className="text-[15px] font-medium text-humana-ink">{hotel?.name ?? "Hotel"}</span>
-              <span className="text-[13px] text-humana-muted">{hotel?.location ?? ""}</span>
+              <span className="text-[15px] font-medium text-humana-ink">{hotelName || "Hotel"}</span>
+              <span className="text-[13px] text-humana-muted">{hotelLocation}</span>
             </div>
 
             <div className="h-px bg-humana-line" />
@@ -363,12 +428,12 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
               <span className="text-[18px] font-semibold text-humana-ink">U$D {totalPrice.toLocaleString("en-US")}</span>
             </div>
             <span className="text-[14px] font-medium text-humana-gold">
-              Tu comision estimada: U$D {commission.toLocaleString("en-US")} (16%)
+              Tu comision estimada: U$D {commission.toLocaleString("en-US")} ({Math.round(commissionRate * 100)}%)
             </span>
 
             <Link
               href={`/select-country/${country}/step-2-select-accommodation`}
-              onClick={() => set({ dates: { start: retreatStart, end: retreatEnd }, preNights, postNights })}
+              onClick={handleContinue}
               className="group/cta flex items-center justify-center gap-3 bg-humana-ink py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
             >
               CONTINUAR

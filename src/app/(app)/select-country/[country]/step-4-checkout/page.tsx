@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
-import { retreats } from "@/data/retreats";
-import { hotels } from "@/data/hotels";
-import { clients } from "@/data/clients";
+import { agencyApi } from "@/lib/api/agency";
 
 function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -26,52 +24,87 @@ function addDays(dateStr: string, days: number): string {
   return `${y}-${m}-${dd}`;
 }
 
+function diffDays(start: string, end: string): number {
+  const s = new Date(start + "T12:00:00");
+  const e = new Date(end + "T12:00:00");
+  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export default function CheckoutPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);
   const { t } = useLocale();
   const router = useRouter();
-  const { state } = useBooking();
-  const retreat = retreats.find((r) => r.slug === state.retreatSlug);
-  const hotel = hotels.find((h) => h.id === retreat?.hotelId);
-  const client = clients.find((c) => c.id === state.clientId);
-  const room = hotel?.roomTypes.find((r) => r.id === state.roomTypeId);
+  const { state, set } = useBooking();
 
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
   const [cardName, setCardName] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const retreatNights = retreat?.nights ?? 7;
-  const pricePerNight = room?.pricePerNight ?? 185;
+  const retreatStart = state.dates?.start ?? "2026-05-28";
+  const retreatEnd = state.dates?.end ?? "2026-06-01";
+  const retreatNights = diffDays(retreatStart, retreatEnd);
+  const pricePerNight = state.display ? state.display.pricePerNightCents / 100 : 185;
   const preNights = state.preNights;
   const postNights = state.postNights;
   const retreatCost = retreatNights * pricePerNight;
   const preCost = preNights * pricePerNight;
   const postCost = postNights * pricePerNight;
   const total = retreatCost + preCost + postCost;
-  const commissionAgency = Math.round(total * 0.16);
+  const commissionRate = state.display?.commissionRate ?? 0.16;
+  const commissionAgency = Math.round(total * commissionRate);
   const commissionOffice = Math.round(total * 0.02);
   const netCreator = total - commissionAgency - commissionOffice;
 
-  const retreatStart = state.dates?.start ?? retreat?.startDate ?? "2026-05-28";
-  const retreatEnd = state.dates?.end ?? retreat?.endDate ?? "2026-06-01";
   const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
   const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
+
+  const displayHotelName = state.display?.hotelName ?? "Hotel";
+  const displayHotelImage = state.display?.hotelImage ?? "/images/retreat-tulum.jpg";
+  const displayHotelLocation = state.display?.hotelLocation ?? "";
+  const displayRoomName = state.display?.roomTypeName ?? "Suite";
 
   function formatCardNumber(value: string) { const digits = value.replace(/\D/g, "").slice(0, 16); return digits.replace(/(.{4})/g, "$1 ").trim(); }
   function formatExpiry(value: string) { const digits = value.replace(/\D/g, "").slice(0, 4); if (digits.length >= 3) return digits.slice(0, 2) + " / " + digits.slice(2); return digits; }
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    if (processing || (!state.experienceId && !state.hotelApiId)) return;
     setProcessing(true);
-    setTimeout(() => { router.push(`/select-country/${country}/step-5-confirmation`); }, 1500);
+    setError(null);
+
+    try {
+      const result = await agencyApi.createBooking({
+        experience_id: state.experienceId ?? undefined,
+        hotel_id: !state.experienceId ? (state.hotelApiId ?? undefined) : undefined,
+        client_id: state.clientApiId ?? undefined,
+        room_type_id: state.roomTypeApiId ?? undefined,
+        guests: state.guests,
+        starts_on: computedCheckIn,
+        ends_on: computedCheckOut,
+      });
+      set({
+        bookingId: result.booking.id,
+        bookingReference: result.booking.reference,
+      });
+      router.push(`/select-country/${country}/step-5-confirmation`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error creating booking";
+      if (message.toLowerCase().includes("availability")) {
+        setError("La habitacion seleccionada ya no tiene disponibilidad para estas fechas. Por favor, vuelve al paso 2 y selecciona otra.");
+      } else {
+        setError(message);
+      }
+      setProcessing(false);
+    }
   }
 
   return (
     <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb items={[
         { label: t.breadcrumb.home, href: "/dashboard" },
-        { label: hotel?.name ?? "Hotel", href: retreat ? `/select-country/${country}/retreats/${retreat.slug}` : `/select-country/${country}` },
+        { label: displayHotelName, href: `/select-country/${country}` },
         { label: "Alojamiento", href: `/select-country/${country}/step-2-select-accommodation` },
         { label: "Checkout" },
       ]} />
@@ -81,18 +114,25 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
         <h1 className="text-[36px] font-light leading-[44px] tracking-[-0.02em] text-humana-ink">Checkout y pago</h1>
       </div>
 
+      {error && (
+        <div className="flex items-center gap-3 border border-red-200 bg-red-50 px-6 py-4">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+          <span className="text-[14px] text-red-700">{error}</span>
+        </div>
+      )}
+
       <div className="flex gap-12">
         <div className="flex flex-1 flex-col gap-8">
           <div className="flex flex-col gap-6 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">DETALLE DE LA RESERVA</span>
             <div className="flex items-center gap-4">
-              <div className="relative h-[60px] w-[80px] shrink-0 overflow-hidden bg-humana-stone"><Image src={hotel?.image ?? "/images/retreat-tulum.jpg"} alt={hotel?.name ?? ""} fill className="object-cover" /></div>
-              <div className="flex flex-col gap-0.5"><span className="text-[15px] font-medium text-humana-ink">{hotel?.name ?? "Hotel Itzamna"}</span><span className="text-[13px] text-humana-muted">{room?.name ?? "Suite Cenote"} · {hotel?.location ?? "Tulum, Mexico"}</span></div>
+              <div className="relative h-[60px] w-[80px] shrink-0 overflow-hidden bg-humana-stone"><Image src={displayHotelImage} alt={displayHotelName} fill className="object-cover" /></div>
+              <div className="flex flex-col gap-0.5"><span className="text-[15px] font-medium text-humana-ink">{displayHotelName}</span><span className="text-[13px] text-humana-muted">{displayRoomName} · {displayHotelLocation}</span></div>
             </div>
             <div className="h-px bg-humana-line" />
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">{state.inventoryMode ? "Tipo" : "Cliente"}</span><span className="text-[14px] font-medium text-humana-ink">{state.inventoryMode ? "Compra para inventario" : (client?.name ?? "\u2014")}</span></div>
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Habitacion</span><span className="text-[14px] font-medium text-humana-ink">{room?.name ?? "Suite"}</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">{state.inventoryMode ? "Tipo" : "Cliente"}</span><span className="text-[14px] font-medium text-humana-ink">{state.inventoryMode ? "Compra para inventario" : (state.clientId ? "Cliente asignado" : "\u2014")}</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Habitacion</span><span className="text-[14px] font-medium text-humana-ink">{displayRoomName}</span></div>
               <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Check-in</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckIn)} · 15:00</span></div>
               <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Check-out</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckOut)} · 11:00</span></div>
             </div>
@@ -108,7 +148,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
           <div className="flex flex-col gap-5 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">DESGLOSE DE COMISIONES</span>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Comision agencia (16%)</span><span className="text-[15px] font-medium text-humana-gold">U$D {commissionAgency.toLocaleString()}.00</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Comision agencia ({Math.round(commissionRate * 100)}%)</span><span className="text-[15px] font-medium text-humana-gold">U$D {commissionAgency.toLocaleString()}.00</span></div>
               <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Neto al hotel</span><span className="text-[14px] font-medium text-humana-ink">U$D {netCreator.toLocaleString()}.00</span></div>
             </div>
           </div>
