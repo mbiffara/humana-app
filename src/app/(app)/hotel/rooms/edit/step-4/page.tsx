@@ -32,8 +32,10 @@ export default function RoomAvailabilityStep() {
   });
   const [entry, setEntry] = useState<CalendarRoomType | null>(null);
   const [blocks, setBlocks] = useState<ApiAvailabilityBlock[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ from: "", to: "", units: "", reason: "" });
+  // Range selection on the calendar (like the onboarding availability step)
+  const [selStart, setSelStart] = useState<string | null>(null);
+  const [selEnd, setSelEnd] = useState<string | null>(null);
+  const [form, setForm] = useState({ units: "", reason: "" });
   const [loading, setLoading] = useState(true);
 
   const roomTypeId = state.roomTypeId;
@@ -60,21 +62,38 @@ export default function RoomAvailabilityStep() {
     fetchData();
   }, [fetchData]);
 
+  function handleDayClick(dateStr: string) {
+    if (!selStart || (selStart && selEnd)) {
+      setSelStart(dateStr);
+      setSelEnd(null);
+    } else if (dateStr < selStart) {
+      setSelEnd(selStart);
+      setSelStart(dateStr);
+    } else {
+      setSelEnd(dateStr);
+    }
+  }
+
+  function clearSelection() {
+    setSelStart(null);
+    setSelEnd(null);
+    setForm({ units: "", reason: "" });
+  }
+
   async function createBlock() {
-    if (!roomTypeId || !form.from || !form.to) return;
+    if (!roomTypeId || !selStart || !selEnd) return;
     try {
       await hotelApi.createAvailabilityBlock({
         room_type_id: roomTypeId,
-        starts_on: form.from,
-        ends_on: form.to,
+        starts_on: selStart,
+        ends_on: selEnd,
         units: form.units ? parseInt(form.units, 10) : undefined,
         reason: form.reason || undefined,
       });
-      setForm({ from: "", to: "", units: "", reason: "" });
-      setShowForm(false);
+      clearSelection();
       fetchData();
     } catch {
-      /* validation error — leave the form open for correction */
+      /* validation error — leave the selection for correction */
     }
   }
 
@@ -135,38 +154,19 @@ export default function RoomAvailabilityStep() {
             ›
           </button>
         </div>
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          className="cursor-pointer bg-humana-ink px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition-opacity hover:opacity-85"
-        >
-          + {te.availability.blockDates}
-        </button>
+        <span className="text-[12px] text-humana-muted">{te.availability.selectHint}</span>
       </div>
 
-      {/* Block form */}
-      {showForm && (
-        <div className="flex flex-wrap items-end gap-3 border-x border-humana-line bg-humana-stone/40 px-4 py-4">
-          <div>
-            <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-humana-muted">
-              {te.availability.from}
-            </label>
-            <input
-              type="date"
-              value={form.from}
-              onChange={(e) => setForm((f) => ({ ...f, from: e.target.value }))}
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-humana-muted">
-              {te.availability.to}
-            </label>
-            <input
-              type="date"
-              value={form.to}
-              onChange={(e) => setForm((f) => ({ ...f, to: e.target.value }))}
-              className={inputClass}
-            />
+      {/* Selection panel — appears once a range selection starts */}
+      {selStart && (
+        <div className="flex flex-wrap items-end gap-3 border-x border-humana-line bg-humana-stone/40 px-4 py-4 animate-fade-in-up">
+          <div className="mr-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-humana-muted">
+              {te.availability.selectedLabel}
+            </p>
+            <p className="mt-1 text-[13px] font-medium text-humana-ink">
+              {selStart} → {selEnd ?? "…"}
+            </p>
           </div>
           <div>
             <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-humana-muted">
@@ -190,10 +190,16 @@ export default function RoomAvailabilityStep() {
             className={`${inputClass} flex-1`}
           />
           <button
+            onClick={clearSelection}
+            className="cursor-pointer border border-humana-line bg-white px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-humana-muted transition-colors hover:text-humana-ink"
+          >
+            {te.availability.cancel}
+          </button>
+          <button
             onClick={createBlock}
-            disabled={!form.from || !form.to}
+            disabled={!selEnd}
             className={`cursor-pointer bg-humana-ink px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition-opacity ${
-              !form.from || !form.to ? "cursor-not-allowed opacity-40" : "hover:opacity-85"
+              !selEnd ? "cursor-not-allowed opacity-40" : "hover:opacity-85"
             }`}
           >
             {te.availability.add}
@@ -216,26 +222,37 @@ export default function RoomAvailabilityStep() {
               const date = new Date(`${day.date}T00:00:00`);
               const soldOut = day.available <= 0;
               const hasBlocked = day.blocked > 0;
+              const isPast = day.date < isoDate(new Date());
+              const inSelection =
+                selStart != null &&
+                (selEnd
+                  ? day.date >= selStart && day.date <= selEnd
+                  : day.date === selStart);
               return (
-                <div
+                <button
                   key={day.date}
-                  className={`flex flex-col items-center rounded-md border px-1 py-2 text-center ${
-                    soldOut
-                      ? "border-humana-ink bg-humana-ink text-white"
-                      : hasBlocked
-                        ? "border-red-200 bg-red-50"
-                        : day.booked > 0
-                          ? "border-humana-gold/40 bg-humana-gold-light/40"
-                          : "border-humana-line bg-white"
+                  type="button"
+                  disabled={isPast}
+                  onClick={() => handleDayClick(day.date)}
+                  className={`flex cursor-pointer flex-col items-center rounded-md border px-1 py-2 text-center transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+                    inSelection
+                      ? "border-humana-gold bg-humana-gold-light ring-1 ring-humana-gold/40"
+                      : soldOut
+                        ? "border-humana-ink bg-humana-ink text-white"
+                        : hasBlocked
+                          ? "border-red-200 bg-red-50"
+                          : day.booked > 0
+                            ? "border-humana-gold/40 bg-humana-gold-light/40"
+                            : "border-humana-line bg-white hover:border-humana-gold/60"
                   }`}
                 >
-                  <span className={`text-[13px] font-semibold ${soldOut ? "text-white" : "text-humana-ink"}`}>
+                  <span className={`text-[13px] font-semibold ${soldOut && !inSelection ? "text-white" : "text-humana-ink"}`}>
                     {date.getDate()}
                   </span>
-                  <span className={`text-[10px] ${soldOut ? "text-white/70" : hasBlocked ? "text-red-500" : "text-humana-subtle"}`}>
+                  <span className={`text-[10px] ${soldOut && !inSelection ? "text-white/70" : hasBlocked ? "text-red-500" : "text-humana-subtle"}`}>
                     {day.available}/{total}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
