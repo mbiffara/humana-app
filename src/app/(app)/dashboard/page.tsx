@@ -140,10 +140,26 @@ function SearchBar() {
   const [selectedExperiences, setSelectedExperiences] = useState<Set<string>>(
     () => new Set(["retreat", "masterclass"])
   );
-  const [startDate, setStartDate] = useState<string | null>("2026-05-14");
-  const [endDate, setEndDate] = useState<string | null>("2026-05-21");
-  const [calMonth, setCalMonth] = useState(4); // May = 4
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [calMonth, setCalMonth] = useState(0);
   const [calYear, setCalYear] = useState(2026);
+
+  // Default the search to a future range (two weeks out, 7 nights). Set on
+  // mount — not in the initializer — so prerendered HTML never disagrees
+  // with the client date.
+  useEffect(() => {
+    const iso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const start = new Date();
+    start.setDate(start.getDate() + 14);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    setStartDate(iso(start));
+    setEndDate(iso(end));
+    setCalMonth(start.getMonth());
+    setCalYear(start.getFullYear());
+  }, []);
 
   const toggle = useCallback((id: DropdownId) => {
     setOpenDropdown((prev) => (prev === id ? null : id));
