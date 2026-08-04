@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { hotelApi } from "@/lib/api/hotel";
+import { amenityIdForName } from "@/lib/amenity-catalog";
 
 export type AvailabilityBlock = {
   id: string;
@@ -95,6 +96,7 @@ type HotelWizardContextValue = {
   removeRoomType: (id: string) => void;
   addRoomPhoto: (roomId: string, url: string) => void;
   removeRoomPhoto: (roomId: string, index: number) => void;
+  swapRoomPhotoUrl: (roomId: string, oldUrl: string, newUrl: string) => void;
   addAvailabilityBlock: (roomId: string, block: Omit<AvailabilityBlock, "id">) => void;
   removeAvailabilityBlock: (roomId: string, blockId: string) => void;
   toggleAmenity: (amenity: string) => void;
@@ -123,10 +125,11 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [isUploading, setIsUploading] = useState(false);
   const apiLoaded = useRef(false);
 
-  // Hydrate: sessionStorage first, then API fallback
+  // Hydrate: the DB is the source of truth — saved data always wins over
+  // sessionStorage. Session data is only used while the API loads (so
+  // in-progress edits reappear instantly) and as fallback when the API has
+  // no hotel yet or is unreachable.
   useEffect(() => {
-    let hasSessionData = false;
-
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -140,22 +143,24 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
           }));
         }
         const merged = { ...initial, ...parsed };
-        // Only use session data if it has meaningful content
         if (merged.hotelName || merged.ownerFirstName || merged.roomTypes.length > 0) {
           setState(merged);
-          hasSessionData = true;
         }
       }
     } catch {
       /* empty */
     }
 
-    // If no meaningful session data, try loading from API
-    if (!hasSessionData && !apiLoaded.current) {
+    if (!apiLoaded.current) {
       apiLoaded.current = true;
-      hotelApi.getProfile().then((res) => {
-        if (!res.hotel) return;
+      Promise.all([
+        hotelApi.getProfile(),
+        hotelApi.listAvailabilityBlocks().catch(() => ({ availability_blocks: [] })),
+      ]).then(([res, blocksRes]) => {
         const h = res.hotel;
+        // No hotel saved yet — keep whatever the session had
+        if (!h) return;
+
         const patch: Partial<HotelWizardState> = {};
 
         if (h.name) patch.hotelName = h.name;
@@ -171,8 +176,9 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         if (h.check_in_time) patch.checkInTime = h.check_in_time;
         if (h.check_out_time) patch.checkOutTime = h.check_out_time;
 
-        // Hydrate room types from API
+        // Hydrate room types, including their saved photos and blocked dates
         if (h.room_types && h.room_types.length > 0) {
+          const blocks = blocksRes.availability_blocks;
           patch.roomTypes = h.room_types.map((rt) => ({
             id: `api_${rt.id}`,
             name: rt.name,
@@ -182,22 +188,31 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
             baseRate: rt.price_per_night_cents / 100,
             roomSize: rt.area_sqm || 0,
             bedType: rt.bed_type || "King",
-            photos: [],
-            availability: [],
+            photos: (rt.images ?? []).map((img) => img.image_url),
+            availability: blocks
+              .filter((b) => b.room_type_id === rt.id)
+              .map((b) => ({
+                id: `api_block_${b.id}`,
+                startDate: b.starts_on,
+                endDate: b.ends_on,
+                // null units means the whole room type is closed
+                units: b.units ?? rt.total_rooms ?? 1,
+                blocked: true,
+              })),
           }));
         }
 
-        // Hydrate amenities
+        // Hydrate amenities — match stored display names back to catalog ids
         if (h.amenities && h.amenities.length > 0) {
-          const knownIds = ["wifi", "pool", "spa", "breakfast", "parking", "ac", "yoga-studio", "gym", "meditation-room", "private-garden", "ocean-terrace", "private-chef"];
           const amenityIds: string[] = [];
           const customNames: string[] = [];
           for (const a of h.amenities) {
-            if (knownIds.includes(a.name)) amenityIds.push(a.name);
+            const id = amenityIdForName(a.name);
+            if (id) amenityIds.push(id);
             else customNames.push(a.name);
           }
-          if (amenityIds.length) patch.amenities = amenityIds;
-          if (customNames.length) patch.customAmenities = customNames;
+          patch.amenities = amenityIds;
+          patch.customAmenities = customNames;
         }
 
         // Hydrate images
@@ -209,7 +224,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
           setState((prev) => ({ ...prev, ...patch }));
         }
       }).catch(() => {
-        // API unavailable — continue with empty state
+        // API unavailable — continue with session state
       });
     }
 
@@ -268,6 +283,17 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
       roomTypes: prev.roomTypes.map((rt) =>
         rt.id === roomId
           ? { ...rt, photos: rt.photos.filter((_, i) => i !== index) }
+          : rt
+      ),
+    }));
+  }, []);
+
+  const swapRoomPhotoUrl = useCallback((roomId: string, oldUrl: string, newUrl: string) => {
+    setState((prev) => ({
+      ...prev,
+      roomTypes: prev.roomTypes.map((rt) =>
+        rt.id === roomId
+          ? { ...rt, photos: rt.photos.map((u) => (u === oldUrl ? newUrl : u)) }
           : rt
       ),
     }));
@@ -360,6 +386,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         removeRoomType,
         addRoomPhoto,
         removeRoomPhoto,
+        swapRoomPhotoUrl,
         addAvailabilityBlock,
         removeAvailabilityBlock,
         toggleAmenity,

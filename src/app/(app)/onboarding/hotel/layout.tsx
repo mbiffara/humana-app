@@ -9,12 +9,14 @@ import { hotelApi } from "@/lib/api/hotel";
 import { api } from "@/lib/api";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
+import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
 
 const STEP_PATHS = [
   "/onboarding/hotel/step-1",
   "/onboarding/hotel/step-2",
   "/onboarding/hotel/step-3",
   "/onboarding/hotel/step-4",
+  "/onboarding/hotel/step-5",
 ];
 
 function StepProgressBar() {
@@ -159,6 +161,16 @@ function BottomBar() {
       };
       const created = await hotelApi.createRoomType(payload);
 
+      // Persist this room's gallery (skip blob: preview URLs that never
+      // finished uploading; the first server URL becomes the thumbnail).
+      const serverPhotos = room.photos.filter((url) => url.startsWith("http"));
+      if (serverPhotos.length > 0) {
+        await hotelApi.batchRoomTypeImages(
+          created.room_type.id,
+          serverPhotos.map((url) => ({ image_url: url })),
+        );
+      }
+
       // Persist blocked date ranges (all other dates are open by default).
       for (const block of room.availability) {
         if (!block.blocked) continue;
@@ -181,21 +193,6 @@ function BottomBar() {
   }
 
   async function saveStep3() {
-    const AMENITY_CATALOG: Record<string, { name: string; category: string; featured: boolean }> = {
-      wifi: { name: "Wi-Fi", category: "facilities", featured: true },
-      pool: { name: "Pool", category: "facilities", featured: true },
-      spa: { name: "Spa & Sauna", category: "wellness", featured: true },
-      breakfast: { name: "Breakfast", category: "dining", featured: true },
-      parking: { name: "Parking", category: "facilities", featured: true },
-      ac: { name: "Air Conditioning", category: "facilities", featured: true },
-      "yoga-studio": { name: "Yoga Studio", category: "wellness", featured: true },
-      gym: { name: "Gym", category: "facilities", featured: true },
-      "meditation-room": { name: "Meditation Room", category: "wellness", featured: false },
-      "private-garden": { name: "Private Garden", category: "recreation", featured: false },
-      "ocean-terrace": { name: "Ocean Terrace", category: "recreation", featured: false },
-      "private-chef": { name: "Private Chef", category: "dining", featured: false },
-    };
-
     const allAmenities = [
       ...state.amenities.map((id) => {
         const entry = AMENITY_CATALOG[id];
@@ -218,6 +215,9 @@ function BottomBar() {
         serverPhotos.map((url) => ({ image_url: url })),
       );
     }
+  }
+
+  async function saveStep5() {
     const res = await hotelApi.submitForReview();
     // Refresh user state so app layout sees onboarding_completed = true
     setUser(res.user);
@@ -254,6 +254,9 @@ function BottomBar() {
         case 3:
           await saveStep4();
           break;
+        case 4:
+          await saveStep5();
+          break;
       }
     } catch (err) {
       console.error("Save error:", err);
@@ -269,7 +272,7 @@ function BottomBar() {
     setShowConfirmModal(false);
 
     if (isLastStep) {
-      router.push("/hotel/dashboard");
+      router.push("/onboarding/hotel/under-review");
     } else {
       router.push(STEP_PATHS[activeIndex + 1]);
     }
@@ -387,8 +390,18 @@ function BottomBar() {
         ))}
       </div>
 
-      {/* Next / Publish */}
+      {/* Next / Submit for review */}
       <div className="group/next relative flex w-[200px] justify-end">
+        {isLastStep && user?.organization?.onboarding_completed ? (
+          <span className="flex items-center gap-2 px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            {h.reviewStatusPendingTitle}
+          </span>
+        ) : (
+        <>
         <button
           type="button"
           onClick={handleNext}
@@ -397,7 +410,7 @@ function BottomBar() {
         >
           {submitting ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-          ) : isLastStep ? h.publish : t.onboarding.next}
+          ) : isLastStep ? h.submitForReviewCta : t.onboarding.next}
           <svg
             width="16"
             height="16"
@@ -424,6 +437,8 @@ function BottomBar() {
             </ul>
             <div className="absolute -bottom-1 right-8 h-2 w-2 rotate-45 bg-humana-ink" />
           </div>
+        )}
+        </>
         )}
       </div>
       </div>

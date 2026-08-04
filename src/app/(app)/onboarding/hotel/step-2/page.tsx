@@ -8,7 +8,7 @@ import {
   type AvailabilityBlock,
 } from "@/contexts/HotelWizardContext";
 import { useLocale } from "@/i18n/LocaleProvider";
-import { createPreviewUrl } from "@/lib/upload";
+import { createPreviewUrl, uploadImage } from "@/lib/upload";
 
 /* ─── Shared ─── */
 const INPUT =
@@ -635,21 +635,37 @@ function RoomPhotos({
   onBack: () => void;
   onDone: () => void;
 }) {
-  const { addRoomPhoto, removeRoomPhoto } = useHotelWizard();
+  const { addRoomPhoto, removeRoomPhoto, swapRoomPhotoUrl, setIsUploading } = useHotelWizard();
   const { t } = useLocale();
   const h = t.onboarding.hotel;
   const [isDragOver, setIsDragOver] = useState(false);
 
   function handleFiles(files: FileList | File[]) {
     const fileArray = Array.from(files).slice(0, 4 - room.photos.length);
+
+    // Immediately show previews, then upload in background and swap
+    // blob URLs for server URLs (only server URLs are persisted on save).
+    const entries: { blobUrl: string; file: File }[] = [];
     for (const file of fileArray) {
       try {
-        const url = createPreviewUrl(file);
-        addRoomPhoto(room.id, url);
+        const blobUrl = createPreviewUrl(file);
+        addRoomPhoto(room.id, blobUrl);
+        entries.push({ blobUrl, file });
       } catch {
         // skip invalid files
       }
     }
+    if (entries.length === 0) return;
+
+    setIsUploading(true);
+    Promise.allSettled(
+      entries.map(async ({ blobUrl, file }) => {
+        const serverUrl = await uploadImage(file);
+        if (serverUrl.startsWith("http")) {
+          swapRoomPhotoUrl(room.id, blobUrl, serverUrl);
+        }
+      })
+    ).finally(() => setIsUploading(false));
   }
 
   const inputId = `room-photo-upload-${room.id}`;
