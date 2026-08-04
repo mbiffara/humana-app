@@ -326,7 +326,7 @@ function WizardShell({ children }: { children: ReactNode }) {
             {activeIndex > 0 ? (
               <Link
                 href={STEP_PATHS[activeIndex - 1]}
-                className="flex-1 border border-humana-line bg-white py-3.5 text-center text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-colors hover:border-humana-ink"
+                className="shrink-0 border border-humana-line bg-white px-6 py-3.5 text-center text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-colors hover:border-humana-ink"
               >
                 {tw.back}
               </Link>
@@ -336,7 +336,7 @@ function WizardShell({ children }: { children: ReactNode }) {
                 onClick={() => {
                   if (!state.retreatId) reset();
                 }}
-                className="flex-1 border border-humana-line bg-white py-3.5 text-center text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-colors hover:border-humana-ink"
+                className="shrink-0 border border-humana-line bg-white px-6 py-3.5 text-center text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-ink transition-colors hover:border-humana-ink"
               >
                 {tw.back}
               </Link>
