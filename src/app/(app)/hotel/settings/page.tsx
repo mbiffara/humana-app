@@ -12,9 +12,12 @@ import { api } from "@/lib/api";
 import { hotelApi, type HotelProfile, type OrgProfile } from "@/lib/api/hotel";
 import { uploadImage } from "@/lib/upload";
 import PlacesAutocomplete, { type PlaceResult } from "@/components/PlacesAutocomplete";
+import { TimePicker } from "@/components/TimePicker";
+import { StarRating } from "@/components/StarRating";
+import { AMENITY_CATALOG, amenityIdForName } from "@/lib/amenity-catalog";
 import type { SubscriptionPlan, Subscription } from "@/lib/types";
 
-type SettingsTab = "profile" | "account" | "subscription" | "payments";
+type SettingsTab = "profile" | "property" | "account" | "subscription" | "payments";
 
 const SIDEBAR_TABS: { key: SettingsTab; icon: React.ReactNode }[] = [
   {
@@ -23,6 +26,17 @@ const SIDEBAR_TABS: { key: SettingsTab; icon: React.ReactNode }[] = [
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
         <circle cx="12" cy="7" r="4" />
+      </svg>
+    ),
+  },
+  {
+    key: "property",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 21h18" />
+        <path d="M5 21V7l7-4 7 4v14" />
+        <path d="M9 9h1M9 13h1M14 9h1M14 13h1" />
+        <path d="M10 21v-4h4v4" />
       </svg>
     ),
   },
@@ -265,6 +279,18 @@ export default function HotelSettingsPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
+  // Property form
+  const [description, setDescription] = useState("");
+  const [stars, setStars] = useState(0);
+  const [checkInTime, setCheckInTime] = useState("15:00");
+  const [checkOutTime, setCheckOutTime] = useState("11:00");
+  const [amenityIds, setAmenityIds] = useState<string[]>([]);
+  const [customAmenities, setCustomAmenities] = useState<string[]>([]);
+  const [customInput, setCustomInput] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [propertySaving, setPropertySaving] = useState(false);
+
   // Account modals
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
@@ -304,6 +330,21 @@ export default function HotelSettingsPage() {
         setContactEmail(h.contact_email ?? "");
         setPhone(h.phone ?? "");
         setLogoUrl(h.logo_url ?? null);
+        // Property tab
+        setDescription(h.description ?? "");
+        setStars(h.stars ?? 0);
+        setCheckInTime(h.check_in_time ?? "15:00");
+        setCheckOutTime(h.check_out_time ?? "11:00");
+        const ids: string[] = [];
+        const custom: string[] = [];
+        for (const a of h.amenities ?? []) {
+          const id = amenityIdForName(a.name);
+          if (id) ids.push(id);
+          else custom.push(a.name);
+        }
+        setAmenityIds(ids);
+        setCustomAmenities(custom);
+        setPhotos((h.images ?? []).map((img) => img.image_url));
       }
       // Bank details from org
       if (org) {
@@ -391,6 +432,62 @@ export default function HotelSettingsPage() {
     setCity(place.city);
     setCountry(place.country);
     setCountryCode(place.country_code);
+  }
+
+  async function saveProperty() {
+    setPropertySaving(true);
+    try {
+      const allAmenities = [
+        ...amenityIds.map((id) => {
+          const entry = AMENITY_CATALOG[id];
+          return entry
+            ? { name: entry.name, category: entry.category, featured: entry.featured }
+            : { name: id, category: "general", featured: false };
+        }),
+        ...customAmenities.map((n) => ({ name: n, category: "general", featured: false })),
+      ];
+      await Promise.all([
+        hotelApi.updateProfile({
+          description,
+          stars,
+          check_in_time: checkInTime,
+          check_out_time: checkOutTime,
+        }),
+        hotelApi.batchAmenities(allAmenities),
+        hotelApi.batchImages(
+          photos.filter((url) => url.startsWith("http")).map((url) => ({ image_url: url })),
+        ),
+      ]);
+      showSaved();
+    } catch {
+      // ignore
+    } finally {
+      setPropertySaving(false);
+    }
+  }
+
+  function addCustomAmenity() {
+    const nameTrimmed = customInput.trim();
+    if (!nameTrimmed) return;
+    const exists =
+      customAmenities.some((a) => a.toLowerCase() === nameTrimmed.toLowerCase()) ||
+      amenityIdForName(nameTrimmed) != null;
+    if (!exists) setCustomAmenities((prev) => [...prev, nameTrimmed]);
+    setCustomInput("");
+  }
+
+  async function handleAddPhotos(files: FileList) {
+    setUploadingPhotos(true);
+    try {
+      const uploads = await Promise.allSettled(Array.from(files).map((f) => uploadImage(f)));
+      const urls = uploads
+        .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
+        .map((r) => r.value)
+        .filter((url) => url.startsWith("http"));
+      if (urls.length) setPhotos((prev) => [...prev, ...urls]);
+    } finally {
+      setUploadingPhotos(false);
+    }
   }
 
   async function handleLogoUpload(file: File) {
@@ -662,6 +759,184 @@ export default function HotelSettingsPage() {
                   className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
                 >
                   {saving ? ts.profile.saving : ts.profile.save}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ─── Property tab ─── */}
+          {tab === "property" && (
+            <div className="border border-humana-line bg-white p-7 animate-fade-in-up">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                {ts.property.eyebrow}
+              </p>
+              <h2 className="mt-2 text-[22px] font-light tracking-[-0.01em] text-humana-ink">
+                {ts.property.title}
+              </h2>
+              <p className="mt-1 text-[14px] text-humana-muted">{ts.property.subtitle}</p>
+
+              {/* Description + stars + times */}
+              <div className="mt-6 flex flex-col gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                    {ts.property.descriptionLabel}
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
+                    className="w-full resize-y border border-humana-line px-3.5 py-2.5 text-[14px] leading-relaxed text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
+                  />
+                </div>
+                <div className="flex flex-wrap items-end gap-6">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                      {ts.property.starsLabel}
+                    </label>
+                    <StarRating value={stars} onChange={setStars} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                      {ts.property.checkInLabel}
+                    </label>
+                    <TimePicker value={checkInTime} onChange={setCheckInTime} />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                      {ts.property.checkOutLabel}
+                    </label>
+                    <TimePicker value={checkOutTime} onChange={setCheckOutTime} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Amenities */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <p className="text-[13px] font-semibold text-humana-ink">{ts.property.amenitiesTitle}</p>
+                <p className="mt-0.5 text-[12px] text-humana-muted">{ts.property.amenitiesHint}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {Object.entries(AMENITY_CATALOG).map(([id, entry]) => {
+                    const selected = amenityIds.includes(id);
+                    return (
+                      <button
+                        key={id}
+                        onClick={() =>
+                          setAmenityIds((prev) =>
+                            selected ? prev.filter((a) => a !== id) : [...prev, id],
+                          )
+                        }
+                        className={`cursor-pointer rounded-full border px-4 py-2 text-[13px] transition-all ${
+                          selected
+                            ? "border-humana-ink bg-humana-ink text-white"
+                            : "border-humana-line bg-white text-humana-muted hover:border-humana-ink hover:text-humana-ink"
+                        }`}
+                      >
+                        {entry.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-5 text-[12px] font-semibold text-humana-ink">{ts.property.customAmenities}</p>
+                {customAmenities.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {customAmenities.map((nameItem) => (
+                      <button
+                        key={nameItem}
+                        onClick={() => setCustomAmenities((prev) => prev.filter((a) => a !== nameItem))}
+                        className="group cursor-pointer flex items-center gap-2 rounded-full border border-humana-gold/50 bg-humana-gold-light px-4 py-2 text-[13px] text-humana-ink transition-all hover:border-humana-ink"
+                      >
+                        {nameItem}
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-50 transition-opacity group-hover:opacity-100">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="text"
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustomAmenity();
+                      }
+                    }}
+                    placeholder={ts.property.customPlaceholder}
+                    className="max-w-[340px] flex-1 rounded-full border border-humana-line bg-white px-4 py-2 text-[13px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/60 focus:border-humana-gold"
+                  />
+                  <button
+                    onClick={addCustomAmenity}
+                    disabled={!customInput.trim()}
+                    className="cursor-pointer rounded-full bg-humana-ink px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {ts.property.addCustom}
+                  </button>
+                </div>
+              </div>
+
+              {/* Photos */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <p className="text-[13px] font-semibold text-humana-ink">{ts.property.photosTitle}</p>
+                <p className="mt-0.5 text-[12px] text-humana-muted">{ts.property.photosHint}</p>
+                <div className="mt-4 grid grid-cols-4 gap-3">
+                  {photos.map((url, i) => (
+                    <div key={`${url}-${i}`} className="group relative aspect-[4/3] overflow-hidden rounded-[6px] bg-humana-stone">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`${name} ${i + 1}`} className="h-full w-full object-cover" />
+                      {i === 0 && (
+                        <span className="absolute left-2 top-2 rounded bg-humana-gold px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+                          {ts.property.cover}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => setPhotos((prev) => prev.filter((_, idx) => idx !== i))}
+                        aria-label="Remove photo"
+                        className="absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  <label className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[6px] border-2 border-dashed border-humana-line text-humana-muted transition-colors hover:border-humana-gold hover:text-humana-gold">
+                    {uploadingPhotos ? (
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+                    ) : (
+                      <>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                          {ts.property.addPhotos}
+                        </span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="sr-only"
+                      onChange={(e) => {
+                        if (e.target.files?.length) handleAddPhotos(e.target.files);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Save */}
+              <div className="mt-8 flex justify-end">
+                <button
+                  onClick={saveProperty}
+                  disabled={propertySaving || uploadingPhotos}
+                  className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+                >
+                  {propertySaving ? ts.profile.saving : ts.profile.save}
                 </button>
               </div>
             </div>

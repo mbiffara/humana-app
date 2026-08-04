@@ -425,6 +425,24 @@ type Dictionary = {
       title: string;
       subtitle: string;
       tabs: Record<string, string>;
+      property: {
+        eyebrow: string;
+        title: string;
+        subtitle: string;
+        descriptionLabel: string;
+        starsLabel: string;
+        checkInLabel: string;
+        checkOutLabel: string;
+        amenitiesTitle: string;
+        amenitiesHint: string;
+        customAmenities: string;
+        customPlaceholder: string;
+        addCustom: string;
+        photosTitle: string;
+        photosHint: string;
+        cover: string;
+        addPhotos: string;
+      };
       profile: {
         eyebrow: string;
         hotelName: string;
@@ -1811,7 +1829,25 @@ export const dictionary: Record<Locale, Dictionary> = {
         eyebrow: "SETTINGS",
         title: "Settings",
         subtitle: "Manage your hotel profile, account, subscription, and payments.",
-        tabs: { profile: "Profile", account: "Account", subscription: "Subscription", payments: "Payments" },
+        tabs: { profile: "Profile", property: "Property", account: "Account", subscription: "Subscription", payments: "Payments" },
+        property: {
+          eyebrow: "PROPERTY",
+          title: "Property details",
+          subtitle: "Keep your description, schedule, amenities, and photos up to date.",
+          descriptionLabel: "Description",
+          starsLabel: "Star rating",
+          checkInLabel: "Check-in time",
+          checkOutLabel: "Check-out time",
+          amenitiesTitle: "Amenities",
+          amenitiesHint: "Select everything your property offers.",
+          customAmenities: "Custom amenities",
+          customPlaceholder: "e.g. Fireplace, Tea ceremony set…",
+          addCustom: "Add",
+          photosTitle: "Photos",
+          photosHint: "The first photo is the cover shown across the network.",
+          cover: "Cover",
+          addPhotos: "Add photos",
+        },
         profile: {
           eyebrow: "HOTEL IDENTITY",
           hotelName: "Hotel name",
@@ -3402,7 +3438,25 @@ export const dictionary: Record<Locale, Dictionary> = {
         eyebrow: "CONFIGURACIÓN",
         title: "Configuración",
         subtitle: "Administra el perfil de tu hotel, cuenta, suscripción y pagos.",
-        tabs: { profile: "Perfil", account: "Cuenta", subscription: "Suscripción", payments: "Pagos" },
+        tabs: { profile: "Perfil", property: "Propiedad", account: "Cuenta", subscription: "Suscripción", payments: "Pagos" },
+        property: {
+          eyebrow: "PROPIEDAD",
+          title: "Detalles de la propiedad",
+          subtitle: "Mantén al día tu descripción, horarios, amenidades y fotos.",
+          descriptionLabel: "Descripción",
+          starsLabel: "Clasificación por estrellas",
+          checkInLabel: "Hora de check-in",
+          checkOutLabel: "Hora de check-out",
+          amenitiesTitle: "Amenidades",
+          amenitiesHint: "Selecciona todo lo que ofrece tu propiedad.",
+          customAmenities: "Amenidades personalizadas",
+          customPlaceholder: "ej. Chimenea, Set de ceremonia de té…",
+          addCustom: "Agregar",
+          photosTitle: "Fotos",
+          photosHint: "La primera foto es la portada que se muestra en la red.",
+          cover: "Portada",
+          addPhotos: "Agregar fotos",
+        },
         profile: {
           eyebrow: "IDENTIDAD DEL HOTEL",
           hotelName: "Nombre del hotel",
@@ -4993,7 +5047,25 @@ export const dictionary: Record<Locale, Dictionary> = {
         eyebrow: "CONFIGURAÇÕES",
         title: "Configurações",
         subtitle: "Gerencie o perfil do hotel, conta, assinatura e pagamentos.",
-        tabs: { profile: "Perfil", account: "Conta", subscription: "Assinatura", payments: "Pagamentos" },
+        tabs: { profile: "Perfil", property: "Propriedade", account: "Conta", subscription: "Assinatura", payments: "Pagamentos" },
+        property: {
+          eyebrow: "PROPRIEDADE",
+          title: "Detalhes da propriedade",
+          subtitle: "Mantenha sua descrição, horários, comodidades e fotos em dia.",
+          descriptionLabel: "Descrição",
+          starsLabel: "Classificação por estrelas",
+          checkInLabel: "Horário de check-in",
+          checkOutLabel: "Horário de check-out",
+          amenitiesTitle: "Comodidades",
+          amenitiesHint: "Selecione tudo o que sua propriedade oferece.",
+          customAmenities: "Comodidades personalizadas",
+          customPlaceholder: "ex. Lareira, Kit de cerimônia do chá…",
+          addCustom: "Adicionar",
+          photosTitle: "Fotos",
+          photosHint: "A primeira foto é a capa exibida na rede.",
+          cover: "Capa",
+          addPhotos: "Adicionar fotos",
+        },
         profile: {
           eyebrow: "IDENTIDADE DO HOTEL",
           hotelName: "Nome do hotel",
