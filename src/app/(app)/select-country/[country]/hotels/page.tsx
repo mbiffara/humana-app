@@ -111,7 +111,7 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
                   href={`/select-country/${country}/hotels/${h.id}`}
                   className="mt-2 flex items-center justify-center border border-humana-ink py-3.5 text-[13px] font-semibold uppercase tracking-[0.18em] text-humana-ink transition-all duration-150 hover:bg-humana-ink hover:text-white"
                 >
-                  {t.hotelDetail.viewHotel} →
+                  {t.hotelDetail.viewRooms} →
                 </Link>
               </div>
             </article>
