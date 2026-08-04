@@ -8,11 +8,10 @@ import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { hotelApi, type Room, type RoomStatus, type RoomType } from "@/lib/api/hotel";
 
-const STATUS_ORDER: RoomStatus[] = ["available", "maintenance", "out_of_service"];
+const STATUS_ORDER: RoomStatus[] = ["available", "out_of_service"];
 
 const STATUS_STYLES: Record<RoomStatus, string> = {
   available: "bg-humana-gold-light text-humana-ink",
-  maintenance: "bg-amber-100 text-amber-900",
   out_of_service: "bg-humana-stone text-humana-subtle",
 };
 
@@ -25,6 +24,17 @@ export default function HotelRoomsPage() {
 
   // Room type id whose ⋮ actions menu is open
   const [openMenu, setOpenMenu] = useState<number | null>(null);
+  // Room type ids with their unit list expanded (collapsed by default)
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+
+  function toggleExpanded(roomTypeId: number) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(roomTypeId)) next.delete(roomTypeId);
+      else next.add(roomTypeId);
+      return next;
+    });
+  }
   // In-progress room renames, keyed by room id. Cleared after save so the
   // input falls back to the server value — a rejected rename (e.g. duplicate
   // number) visibly reverts instead of lingering as if it were saved.
@@ -97,6 +107,8 @@ export default function HotelRoomsPage() {
         number: nextRoomNumber(roomType),
       });
       setRooms((prev) => [...prev, res.room]);
+      // Reveal the list so the new room is visible
+      setExpanded((prev) => new Set(prev).add(roomType.id));
     } catch {
       // duplicate number race or validation error — refetch to resync
       fetchData();
@@ -150,8 +162,29 @@ export default function HotelRoomsPage() {
                 key={roomType.id}
                 className="overflow-hidden rounded-xl border border-humana-line bg-white"
               >
-                {/* Room type header */}
-                <div className="flex items-center justify-between border-b border-humana-line px-7 py-5">
+                {/* Room type header — click to expand/collapse the unit list */}
+                <div
+                  onClick={() => toggleExpanded(roomType.id)}
+                  className={`flex cursor-pointer items-center justify-between px-7 py-5 transition-colors hover:bg-humana-stone/40 ${
+                    expanded.has(roomType.id) ? "border-b border-humana-line" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`shrink-0 text-humana-muted transition-transform duration-200 ${
+                        expanded.has(roomType.id) ? "rotate-90" : ""
+                      }`}
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
                   <div>
                     <h2 className="text-[18px] font-semibold text-humana-ink">{roomType.name}</h2>
                     <p className="mt-0.5 text-[12px] text-humana-muted">
@@ -164,9 +197,10 @@ export default function HotelRoomsPage() {
                       {t.hotelWs.calendar.perNight}
                     </p>
                   </div>
+                  </div>
 
-                  {/* Actions menu */}
-                  <div className="relative">
+                  {/* Actions menu — clicks must not toggle the collapse */}
+                  <div className="relative" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setOpenMenu((prev) => (prev === roomType.id ? null : roomType.id))}
                       aria-label={t.hotelWs.rooms.addRoom}
@@ -198,6 +232,7 @@ export default function HotelRoomsPage() {
                 </div>
 
                 {/* Rooms list */}
+                {expanded.has(roomType.id) && (
                 <div className="px-7 py-3">
                   {typeRooms.map((room) => (
                     <div
@@ -262,6 +297,7 @@ export default function HotelRoomsPage() {
                     </div>
                   ))}
                 </div>
+                )}
               </section>
             );
           })}

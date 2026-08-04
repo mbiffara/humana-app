@@ -363,7 +363,7 @@ export interface RoomTypeCreate {
   amenities?: string[];
 }
 
-export type RoomStatus = "available" | "maintenance" | "out_of_service";
+export type RoomStatus = "available" | "out_of_service";
 
 export interface Room {
   id: number;

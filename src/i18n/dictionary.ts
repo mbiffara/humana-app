@@ -96,7 +96,7 @@ type Dictionary = {
       subtitle: string;
       addRoom: string;
       numberPlaceholder: string;
-      statuses: { available: string; maintenance: string; out_of_service: string };
+      statuses: { available: string; out_of_service: string };
       empty: string;
       emptyHint: string;
       autoLabel: string;
@@ -1444,7 +1444,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         subtitle: "Name, number, and manage every room in your property.",
         addRoom: "Add room",
         numberPlaceholder: "Room name or number",
-        statuses: { available: "Available", maintenance: "Maintenance", out_of_service: "Out of service" },
+        statuses: { available: "Available", out_of_service: "Out of service" },
         empty: "Your rooms will appear here",
         emptyHint: "Define your room types and their quantities to generate rooms.",
         autoLabel: "Auto-generated",
@@ -3035,7 +3035,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         subtitle: "Nombra, numera y gestiona cada habitación de tu propiedad.",
         addRoom: "Agregar habitación",
         numberPlaceholder: "Nombre o número de habitación",
-        statuses: { available: "Disponible", maintenance: "Mantenimiento", out_of_service: "Fuera de servicio" },
+        statuses: { available: "Disponible", out_of_service: "Fuera de servicio" },
         empty: "Tus habitaciones aparecerán aquí",
         emptyHint: "Define tus tipos de habitación y sus cantidades para generar habitaciones.",
         autoLabel: "Autogenerada",
@@ -4626,7 +4626,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         subtitle: "Nomeie, numere e gerencie cada quarto da sua propriedade.",
         addRoom: "Adicionar quarto",
         numberPlaceholder: "Nome ou número do quarto",
-        statuses: { available: "Disponível", maintenance: "Manutenção", out_of_service: "Fora de serviço" },
+        statuses: { available: "Disponível", out_of_service: "Fora de serviço" },
         empty: "Os seus quartos aparecerão aqui",
         emptyHint: "Defina os seus tipos de quarto e as suas quantidades para gerar quartos.",
         autoLabel: "Gerado automaticamente",
