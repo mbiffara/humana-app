@@ -6,6 +6,7 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type ApiExperience, type PublicRoomType } from "@/lib/api/agency";
+import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
 
 const MONTH_NAMES = [
   ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -90,9 +91,14 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
 
     async function fetchData() {
       try {
-        // Fetch experiences for this country and find the matching one
+        // Fetch experiences for this country and find the matching one;
+        // slugs that aren't experiences may be hotel-published retreats
         const expRes = await agencyApi.listExperiences({ country_code: country.toUpperCase() });
-        const exp = expRes.experiences.find((e) => e.slug === state.retreatSlug) ?? expRes.experiences[0];
+        let exp = expRes.experiences.find((e) => e.slug === state.retreatSlug) ?? null;
+        if (!exp && state.retreatSlug) {
+          exp = await fetchExperienceOrRetreat(state.retreatSlug);
+        }
+        exp = exp ?? expRes.experiences[0];
         if (!exp || cancelled) return;
         setExperience(exp);
 
@@ -228,7 +234,8 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
       dates: { start: retreatStart, end: retreatEnd },
       preNights,
       postNights,
-      experienceId: experience?.id ?? null,
+      // Adapted retreats book through the direct hotel path — no experience_id
+      experienceId: experience && !experience.is_retreat ? experience.id : null,
       hotelApiId: experience?.hotel?.id ?? null,
       display: {
         hotelName: hotelName || "Hotel",

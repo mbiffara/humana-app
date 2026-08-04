@@ -8,6 +8,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { FilterChip } from "@/components/FilterChip";
 import { countries, countrySlugToId } from "@/data/countries";
 import { agencyApi, type ApiExperience } from "@/lib/api/agency";
+import { retreatToExperience } from "@/lib/retreat-experience";
 
 type FilterType = "all" | "retreat" | "masterclass" | "meditation";
 
@@ -30,10 +31,23 @@ export default function CountryRetreatsPage({ params }: { params: Promise<{ coun
   const countryName = countryData?.name ?? country.charAt(0).toUpperCase() + country.slice(1);
 
   useEffect(() => {
-    agencyApi
-      .listExperiences({ country_code: countryId.toUpperCase() })
-      .then((res) => setExperiences(res.experiences))
-      .catch(() => {})
+    // Experiences and hotel-published retreats are separate catalogs — show both
+    Promise.all([
+      agencyApi
+        .listExperiences({ country_code: countryId.toUpperCase() })
+        .then((res) => res.experiences)
+        .catch(() => [] as ApiExperience[]),
+      agencyApi
+        .listPublicRetreats({ country_code: countryId.toUpperCase() })
+        .then((res) => res.retreats.map(retreatToExperience))
+        .catch(() => [] as ApiExperience[]),
+    ])
+      .then(([exps, retreats]) => {
+        const merged = [...exps, ...retreats].sort((a, b) =>
+          (a.starts_on || "").localeCompare(b.starts_on || ""),
+        );
+        setExperiences(merged);
+      })
       .finally(() => setLoading(false));
   }, [countryId]);
 

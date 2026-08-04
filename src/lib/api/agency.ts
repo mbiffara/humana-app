@@ -93,6 +93,35 @@ export interface ApiExperience {
   commission_rate?: number;
   commission_percent?: string;
   hotel?: PublicHotel;
+  /** True when this entry is an adapted hotel-published Retreat (not an Experience).
+   *  Retreat bookings go through the direct hotel path (no experience_id). */
+  is_retreat?: boolean;
+}
+
+/** Published hotel-created retreat from the public marketplace endpoints. */
+export interface PublicRetreat {
+  id: number;
+  name: string;
+  slug: string;
+  retreat_type: string;
+  status: string;
+  duration_nights: number;
+  starts_on: string | null;
+  ends_on: string | null;
+  capacity: number | null;
+  language: string;
+  description: string | null;
+  short_description: string | null;
+  location: string | null;
+  country: string | null;
+  country_code: string | null;
+  min_price_cents: number;
+  min_price: number;
+  currency: string;
+  cover_image_url: string | null;
+  featured: boolean;
+  certified: boolean;
+  hotel?: PublicHotel;
 }
 
 export interface ApiClient {
@@ -303,6 +332,17 @@ export const agencyApi = {
   },
   getExperience: (idOrSlug: number | string) =>
     api.get<{ experience: ApiExperience }>(`/experiences/${idOrSlug}`),
+
+  // Public retreats (hotel-published marketplace)
+  listPublicRetreats: (params?: { country_code?: string; type?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.country_code) qs.set("country_code", params.country_code);
+    if (params?.type) qs.set("type", params.type);
+    const q = qs.toString();
+    return api.get<{ retreats: PublicRetreat[] }>(`/public/retreats${q ? `?${q}` : ""}`);
+  },
+  getPublicRetreat: (idOrSlug: number | string) =>
+    api.get<{ retreat: PublicRetreat }>(`/public/retreats/${idOrSlug}`),
 
   // Public hotels
   getHotel: (id: number) =>
