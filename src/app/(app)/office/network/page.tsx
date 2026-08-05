@@ -6,7 +6,115 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { officeApi } from "@/lib/api/office";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Pagination } from "@/components/admin/Pagination";
-import type { User, PaginationMeta } from "@/lib/types";
+import type { User, Organization, PaginationMeta } from "@/lib/types";
+
+function ContactModal({
+  open,
+  onClose,
+  org,
+  t,
+}: {
+  open: boolean;
+  onClose: () => void;
+  org: Organization | null;
+  t: ReturnType<typeof useLocale>["t"];
+}) {
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    if (open && org) {
+      const kindLabel = t.officeWs.dashboard.pendingKind[org.kind as "hotel" | "agency"] || org.kind;
+      setSubject(t.officeWs.dashboard.approvalSubject(org.name));
+      setMessage(t.officeWs.dashboard.approvalMessage(kindLabel, org.name, org.city || "", org.country || ""));
+      setSent(false);
+    }
+  }, [open, org, t]);
+
+  if (!open) return null;
+
+  const handleSend = async () => {
+    if (!message.trim()) return;
+    setSending(true);
+    try {
+      await officeApi.contactAdmin({ subject, message });
+      setSent(true);
+      setTimeout(() => onClose(), 1500);
+    } catch {
+      // keep modal open
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-[fade-in_0.15s_ease-out]" onClick={onClose}>
+      <div className="w-full max-w-[520px] rounded-[12px] bg-white shadow-xl animate-[fade-in-scale_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+        <div className="border-b border-humana-line px-6 py-4">
+          <div className="flex items-center gap-2">
+            <svg className="h-5 w-5 text-humana-gold" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+            <h3 className="text-[15px] font-semibold text-humana-ink">{t.officeWs.dashboard.contactAdmin}</h3>
+          </div>
+          <p className="mt-1 text-[12px] text-humana-muted">info@humana.global</p>
+        </div>
+        <div className="space-y-4 px-6 py-5">
+          {sent ? (
+            <div className="flex items-center gap-3 rounded-lg bg-emerald-50 px-4 py-3">
+              <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-[14px] font-medium text-emerald-700">{t.officeWs.dashboard.contactSent}</span>
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
+                  {t.officeWs.dashboard.contactSubject}
+                </label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="w-full rounded-lg border border-humana-line bg-white px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
+                  {t.officeWs.dashboard.contactMessage}
+                </label>
+                <textarea
+                  rows={5}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder={t.officeWs.dashboard.contactMessagePlaceholder}
+                  className="w-full resize-none rounded-lg border border-humana-line bg-white px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
+                />
+              </div>
+            </>
+          )}
+        </div>
+        {!sent && (
+          <div className="flex items-center justify-end gap-3 border-t border-humana-line px-6 py-4">
+            <button onClick={onClose} className="cursor-pointer rounded-lg px-4 py-2 text-[13px] font-medium text-humana-muted transition-colors hover:bg-humana-stone">
+              {t.officeWs.dashboard.contactCancel}
+            </button>
+            <button
+              onClick={handleSend}
+              disabled={sending || !message.trim()}
+              className="cursor-pointer rounded-lg bg-humana-ink px-5 py-2 text-[13px] font-semibold uppercase tracking-[0.15em] text-white transition-all hover:bg-humana-ink/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {sending ? t.officeWs.dashboard.contactSending : t.officeWs.dashboard.contactSend}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function HeaderTooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -40,6 +148,8 @@ export default function OfficeNetworkPage() {
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<string>("");
   const [page, setPage] = useState(1);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactOrg, setContactOrg] = useState<Organization | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -171,6 +281,7 @@ export default function OfficeNetworkPage() {
                   <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
                     <span className="inline-flex items-center gap-1.5">{ts.columns.onboarding} <HeaderTooltip text={ts.tooltips.onboarding} /></span>
                   </th>
+                  <th className="py-3 pl-3 pr-6 w-12"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -260,6 +371,24 @@ export default function OfficeNetworkPage() {
                           </span>
                         )}
                       </td>
+
+                      {/* Action — email button only for pending orgs */}
+                      <td className="py-3.5 pl-3 pr-6">
+                        {user.organization?.status === "pending" && (
+                          <button
+                            onClick={() => {
+                              setContactOrg(user.organization);
+                              setContactOpen(true);
+                            }}
+                            title={t.officeWs.dashboard.requestApproval}
+                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-humana-gold/30 bg-humana-gold/5 text-humana-gold transition-all hover:bg-humana-gold hover:text-white"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                            </svg>
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -273,6 +402,13 @@ export default function OfficeNetworkPage() {
           )}
         </>
       )}
+
+      <ContactModal
+        open={contactOpen}
+        onClose={() => setContactOpen(false)}
+        org={contactOrg}
+        t={t}
+      />
     </div>
   );
 }
