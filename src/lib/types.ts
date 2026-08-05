@@ -149,6 +149,130 @@ export interface MeResponse {
   subscription?: Subscription | null;
 }
 
+// --- Office workspace types ---
+
+export interface OfficeDashboard {
+  hotels_count: number;
+  agencies_count: number;
+  total_bookings: number;
+  confirmed_bookings: number;
+  bookings_this_month: number;
+  published_retreats: number;
+  pending_retreats: number;
+  volume_cents: number;
+  office_revenue_cents: number;
+  office_fee_rate: number;
+  country: string;
+  country_code: string;
+  countries_count: number;
+  member_since: string;
+  top_hotels: OfficeDashboardHotel[];
+  top_agencies: OfficeDashboardAgency[];
+  pending_organizations: Organization[];
+}
+
+export interface OfficeDashboardAgency {
+  id: number;
+  name: string;
+  city: string | null;
+  country: string | null;
+  total_volume_cents: number;
+  booking_count: number;
+}
+
+export interface OfficeDashboardHotel extends OfficeHotelSummary {
+  total_revenue_cents: number;
+  booking_count: number;
+}
+
+export interface OfficeHotelSummary {
+  id: number;
+  name: string;
+  city: string;
+  country: string;
+  country_code: string;
+  latitude: number | null;
+  longitude: number | null;
+  certified: boolean;
+  wellness_standard: string | null;
+}
+
+export interface OfficeAgencySummary extends Organization {
+  user_count: number;
+  booking_count: number;
+  confirmed_count: number;
+  volume_cents: number;
+  office_fee_cents: number;
+}
+
+export interface OfficeBookingSummary {
+  total: number;
+  confirmed: number;
+  volume_cents: number;
+  office_revenue_cents: number;
+}
+
+export interface OfficeBooking {
+  id: number;
+  reference: string;
+  status: string;
+  guests: number;
+  starts_on: string | null;
+  ends_on: string | null;
+  amount_cents: number;
+  amount: number;
+  currency: string;
+  commission_cents: number;
+  commission: number;
+  notes: string | null;
+  client: { id: number; name: string; email: string } | null;
+  experience: { id: number; title: string; hotel: OfficeHotelSummary | null } | null;
+  hotel: OfficeHotelSummary | null;
+  agency: Organization;
+  office_fee_cents: number;
+  office_fee_rate: number;
+  created_at: string;
+}
+
+export interface OfficeRevenue {
+  total_volume_cents: number;
+  total_office_revenue_cents: number;
+  office_fee_rate: number;
+  monthly: OfficeMonthlyRevenue[];
+  top_hotels: OfficeTopEntity[];
+  top_agencies: OfficeTopEntity[];
+}
+
+export interface OfficeMonthlyRevenue {
+  month: string;
+  label: string;
+  volume_cents: number;
+  office_revenue_cents: number;
+  booking_count: number;
+}
+
+export interface OfficeTopEntity {
+  id: number;
+  name: string;
+  city?: string;
+  country?: string;
+  volume_cents: number;
+}
+
+export interface OfficeRetreatSummary {
+  id: number;
+  name: string;
+  slug: string;
+  retreat_type: string;
+  status: string;
+  duration_nights: number;
+  starts_on: string | null;
+  ends_on: string | null;
+  capacity: number;
+  hotel: OfficeHotelSummary | null;
+  created_at: string;
+}
+
 export interface AdminHotelPreview {
   id: number;
   name: string;

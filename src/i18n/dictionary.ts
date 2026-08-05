@@ -1361,6 +1361,168 @@ type Dictionary = {
       addAtLeastOnePhoto: string;
     };
   };
+  officeWs: {
+    badge: string;
+    nav: {
+      dashboard: string;
+      network: string;
+      retreats: string;
+      bookings: string;
+      settings: string;
+    };
+    dashboard: {
+      eyebrow: string;
+      title: string;
+      subtitle: (country: string) => string;
+      last30: string;
+      last7: string;
+      last90: string;
+      thisYear: string;
+      allTime: string;
+      kpis: {
+        gmv: string;
+        gmvDelta: string;
+        bookings: string;
+        bookingsThisMonth: (n: number) => string;
+        hotels: string;
+        hotelsDetail: (countries: number, pending: number) => string;
+        agencies: string;
+        agenciesDetail: (countries: number) => string;
+        retreats: string;
+        retreatsPending: (n: number) => string;
+      };
+      topHotels: string;
+      topHotelsReport: string;
+      topHotelsTooltip: string;
+      topAgencies: string;
+      topAgenciesReport: string;
+      topAgenciesTooltip: string;
+      noAgencies: string;
+      bookingsLabel: string;
+      pendingApprovals: string;
+      pendingApprovalsViewAll: string;
+      noHotels: string;
+      noPending: string;
+      pendingKind: { hotel: string; agency: string };
+      requestApproval: string;
+      approvalSubject: (name: string) => string;
+      approvalMessage: (kind: string, name: string, city: string, country: string) => string;
+      contactAdmin: string;
+      contactSubject: string;
+      contactMessage: string;
+      contactMessagePlaceholder: string;
+      contactSend: string;
+      contactSending: string;
+      contactSent: string;
+      contactCancel: string;
+      memberSince: string;
+      occupancy: string;
+    };
+    network: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      tabs: { all: string; hotels: string; agencies: string };
+      searchPlaceholder: string;
+      createUser: string;
+      columns: {
+        name: string; city: string; kind: string; status: string; users: string; bookings: string;
+        organization: string; type: string; invitedAt: string; onboarding: string;
+      };
+      tooltips: {
+        name: string; organization: string; type: string; status: string; invitedAt: string; onboarding: string;
+      };
+      status: { active: string; pending: string; suspended: string; rejected: string };
+      onboardingComplete: string;
+      onboardingPending: string;
+      kindLabels: { hotel: string; agency: string };
+      roleLabels: { hotel: string; agency: string };
+      empty: string;
+      emptyHint: string;
+      create: {
+        eyebrow: string;
+        title: string;
+        subtitle: string;
+        orgKind: string;
+        hotel: string;
+        agency: string;
+        email: string;
+        emailPlaceholder: string;
+        emailHint: string;
+        orgName: string;
+        orgNamePlaceholder: string;
+        country: string;
+        submit: string;
+        submitting: string;
+        cancel: string;
+        successMessage: string;
+        breadcrumb: string;
+        preview: string;
+        previewRole: string;
+        previewEmail: string;
+        previewCountry: string;
+        previewOffice: string;
+        previewExpires: string;
+        previewApproval: string;
+        previewExpiresValue: string;
+        previewApprovalValue: string;
+      };
+    };
+    retreats: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      filters: { all: string; active: string; draft: string; pending: string; closed: string };
+      columns: { name: string; hotel: string; type: string; dates: string; capacity: string; status: string };
+      empty: string;
+    };
+    bookings: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      kpis: { total: string; confirmed: string; volume: string; officeRevenue: string };
+      filters: { all: string; confirmed: string; inquiry: string; cancelled: string };
+      columns: { reference: string; agency: string; experience: string; guests: string; amount: string; officeFee: string; status: string };
+      empty: string;
+      monthlyRevenue: string;
+      monthlyVolume: string;
+      monthlyOfficeFee: string;
+      monthlyBookings: string;
+      viewMonthly: string;
+      viewBookings: string;
+    };
+    settings: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      tabs: { profile: string; payments: string };
+      profile: {
+        eyebrow: string;
+        officeName: string;
+        contactEmail: string;
+        phone: string;
+        location: string;
+        country: string;
+        save: string;
+        saving: string;
+        saved: string;
+      };
+      payments: {
+        eyebrow: string;
+        title: string;
+        accountHolder: string;
+        iban: string;
+        swift: string;
+        currency: string;
+        country: string;
+        save: string;
+        saving: string;
+        statusConfigured: string;
+        statusPending: string;
+      };
+    };
+    statusLabels: { pending: string; verified: string; suspended: string; active: string; draft: string; closed: string; pending_review: string };
+  };
   suspended: {
     title: string;
     subtitle: string;
@@ -2977,6 +3139,167 @@ export const dictionary: Record<Locale, Dictionary> = {
         addAtLeastOnePhoto: "Add at least one photo",
       },
     },
+    officeWs: {
+      badge: "Office",
+      nav: { dashboard: "Dashboard", network: "Network", retreats: "Retreats", bookings: "Bookings", settings: "Settings" },
+      dashboard: {
+        eyebrow: "CONTROL PANEL",
+        title: "Platform Overview",
+        subtitle: (country: string) => `Managing the ${country} region`,
+        last30: "Last 30 days",
+        last7: "Last 7 days",
+        last90: "Last 90 days",
+        thisYear: "This year",
+        allTime: "All time",
+        kpis: {
+          gmv: "GMV Total",
+          gmvDelta: "confirmed volume",
+          bookings: "Active Bookings",
+          bookingsThisMonth: (n: number) => `+${n} this month`,
+          hotels: "Hotels in Network",
+          hotelsDetail: (countries: number, pending: number) => `${countries} ${countries === 1 ? "country" : "countries"} · ${pending} pending`,
+          agencies: "Active Agencies",
+          agenciesDetail: (countries: number) => `${countries} ${countries === 1 ? "country" : "countries"}`,
+          retreats: "Published Retreats",
+          retreatsPending: (n: number) => `${n} pending review`,
+        },
+        topHotels: "Top Hotels by Revenue",
+        topHotelsReport: "View full report",
+        topHotelsTooltip: "Hotels ranked by confirmed booking revenue in your region",
+        topAgencies: "Top Agencies by Volume",
+        topAgenciesReport: "View full report",
+        topAgenciesTooltip: "Agencies ranked by total confirmed booking volume in your region",
+        noAgencies: "No agencies in your region yet",
+        bookingsLabel: "bookings",
+        pendingApprovals: "Pending Approvals",
+        pendingApprovalsViewAll: "View network",
+        noHotels: "No hotels in your region yet",
+        noPending: "No pending approvals",
+        pendingKind: { hotel: "Hotel", agency: "Agency" },
+        requestApproval: "Request Approval",
+        approvalSubject: (name: string) => `Approval request: ${name}`,
+        approvalMessage: (kind: string, name: string, city: string, country: string) => `Requesting approval for ${kind} "${name}" (${city}, ${country}).\n\nPlease review and approve this organization.`,
+        contactAdmin: "Contact HUMANA",
+        contactSubject: "Subject",
+        contactMessage: "Message",
+        contactMessagePlaceholder: "Write your message to HUMANA admin...",
+        contactSend: "Send Email",
+        contactSending: "Sending...",
+        contactSent: "Email sent successfully",
+        contactCancel: "Cancel",
+        memberSince: "Member since",
+        occupancy: "occ.",
+      },
+      network: {
+        eyebrow: "NETWORK",
+        title: "Regional Network",
+        subtitle: "Hotels and agencies in your territory.",
+        tabs: { all: "All", hotels: "Hotels", agencies: "Agencies" },
+        searchPlaceholder: "Search by name…",
+        createUser: "Create User",
+        columns: {
+          name: "Name", city: "City", kind: "Type", status: "Status", users: "Users", bookings: "Bookings",
+          organization: "Organization", type: "Type", invitedAt: "Invite Date", onboarding: "Onboarding",
+        },
+        tooltips: {
+          name: "Name and email of the platform member",
+          organization: "Company or entity the member belongs to",
+          type: "Organization type: Hotel or Agency",
+          status: "Current account status on the platform",
+          invitedAt: "Date the invitation was sent",
+          onboarding: "Whether the member has completed their profile setup",
+        },
+        status: { active: "Active", pending: "Pending", suspended: "Suspended", rejected: "Rejected" },
+        onboardingComplete: "Complete",
+        onboardingPending: "Pending",
+        kindLabels: { hotel: "Hotel", agency: "Agency" },
+        roleLabels: { hotel: "Hotel Manager", agency: "Travel Agent" },
+        empty: "No organizations found",
+        emptyHint: "Organizations in your region will appear here.",
+        create: {
+          eyebrow: "NEW MEMBER",
+          title: "Invite a new member to the network.",
+          subtitle: "Fill in the details below. A link will be sent to activate the account.",
+          orgKind: "ROLE",
+          hotel: "Hotel",
+          agency: "Agency",
+          email: "EMAIL ADDRESS",
+          emailPlaceholder: "marina@viajesglobal.com",
+          emailHint: "A link will be sent to this address.",
+          orgName: "ORGANIZATION NAME",
+          orgNamePlaceholder: "Enter organization name",
+          country: "COUNTRY",
+          submit: "SEND INVITE",
+          submitting: "Sending...",
+          cancel: "Cancel",
+          successMessage: "Invitation sent. Awaiting admin approval.",
+          breadcrumb: "Create new member",
+          preview: "INVITE PREVIEW",
+          previewRole: "Role",
+          previewEmail: "Email",
+          previewCountry: "Country",
+          previewOffice: "Office",
+          previewExpires: "Link expires",
+          previewApproval: "Approval",
+          previewExpiresValue: "7 days",
+          previewApprovalValue: "Requires admin review",
+        },
+      },
+      retreats: {
+        eyebrow: "RETREATS",
+        title: "Regional Retreats",
+        subtitle: "Retreats offered by hotels in your territory.",
+        filters: { all: "All", active: "Active", draft: "Draft", pending: "Under Review", closed: "Closed" },
+        columns: { name: "Name", hotel: "Hotel", type: "Type", dates: "Dates", capacity: "Capacity", status: "Status" },
+        empty: "No retreats found",
+      },
+      bookings: {
+        eyebrow: "BOOKINGS",
+        title: "Regional Bookings",
+        subtitle: "All bookings made by agencies in your territory.",
+        kpis: { total: "Total", confirmed: "Confirmed", volume: "Volume", officeRevenue: "Office Revenue (2%)" },
+        filters: { all: "All", confirmed: "Confirmed", inquiry: "Pending", cancelled: "Cancelled" },
+        columns: { reference: "Reference", agency: "Agency", experience: "Experience", guests: "Guests", amount: "Amount", officeFee: "Office Fee", status: "Status" },
+        empty: "No bookings found",
+        monthlyRevenue: "Monthly Revenue",
+        monthlyVolume: "Volume",
+        monthlyOfficeFee: "Office Fee (2%)",
+        monthlyBookings: "Bookings",
+        viewMonthly: "Monthly",
+        viewBookings: "Bookings",
+      },
+      settings: {
+        eyebrow: "SETTINGS",
+        title: "Office Settings",
+        subtitle: "Manage your office profile and team.",
+        tabs: { profile: "Profile", payments: "Payments" },
+        profile: {
+          eyebrow: "OFFICE PROFILE",
+          officeName: "Office Name",
+          contactEmail: "Contact Email",
+          phone: "Phone",
+          location: "Location",
+          country: "Country",
+          save: "Save Changes",
+          saving: "Saving…",
+          saved: "Changes saved successfully",
+        },
+        payments: {
+          eyebrow: "PAYMENT RECEIVING",
+          title: "Bank Account",
+          accountHolder: "Account Holder Name",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Currency",
+          country: "Country",
+          save: "Save Bank Details",
+          saving: "Saving…",
+          statusConfigured: "Configured",
+          statusPending: "Pending",
+        },
+      },
+      statusLabels: { pending: "Pending", verified: "Active", suspended: "Suspended", active: "Active", draft: "Draft", closed: "Closed", pending_review: "Under Review" },
+    },
     suspended: {
       title: "Account Suspended",
       subtitle: "Your access to the HUMANA platform has been suspended.",
@@ -4585,6 +4908,167 @@ export const dictionary: Record<Locale, Dictionary> = {
         addAtLeastOneAmenity: "Selecciona al menos una amenidad",
         addAtLeastOnePhoto: "Agrega al menos una foto",
       },
+    },
+    officeWs: {
+      badge: "Oficina",
+      nav: { dashboard: "Panel", network: "Red", retreats: "Retiros", bookings: "Reservas", settings: "Configuración" },
+      dashboard: {
+        eyebrow: "PANEL DE CONTROL",
+        title: "Vista General",
+        subtitle: (country: string) => `Gestionando la región de ${country}`,
+        last30: "Últimos 30 días",
+        last7: "Últimos 7 días",
+        last90: "Últimos 90 días",
+        thisYear: "Este año",
+        allTime: "Todo el tiempo",
+        kpis: {
+          gmv: "GMV Total",
+          gmvDelta: "volumen confirmado",
+          bookings: "Reservas Activas",
+          bookingsThisMonth: (n: number) => `+${n} este mes`,
+          hotels: "Hoteles en Red",
+          hotelsDetail: (countries: number, pending: number) => `${countries} ${countries === 1 ? "país" : "países"} · ${pending} pendientes`,
+          agencies: "Agencias Activas",
+          agenciesDetail: (countries: number) => `${countries} ${countries === 1 ? "país" : "países"}`,
+          retreats: "Retiros Publicados",
+          retreatsPending: (n: number) => `${n} en revisión`,
+        },
+        topHotels: "Mejores Hoteles por Ingreso",
+        topHotelsReport: "Ver informe completo",
+        topHotelsTooltip: "Hoteles ordenados por ingresos de reservas confirmadas en tu región",
+        topAgencies: "Mejores Agencias por Volumen",
+        topAgenciesReport: "Ver informe completo",
+        topAgenciesTooltip: "Agencias ordenadas por volumen total de reservas confirmadas en tu región",
+        noAgencies: "No hay agencias en tu región aún",
+        bookingsLabel: "reservas",
+        pendingApprovals: "Aprobaciones Pendientes",
+        pendingApprovalsViewAll: "Ver red",
+        noHotels: "No hay hoteles en tu región aún",
+        noPending: "Sin aprobaciones pendientes",
+        pendingKind: { hotel: "Hotel", agency: "Agencia" },
+        requestApproval: "Solicitar Aprobación",
+        approvalSubject: (name: string) => `Solicitud de aprobación: ${name}`,
+        approvalMessage: (kind: string, name: string, city: string, country: string) => `Solicitamos la aprobación del ${kind} "${name}" (${city}, ${country}).\n\nPor favor revise y apruebe esta organización.`,
+        contactAdmin: "Contactar HUMANA",
+        contactSubject: "Asunto",
+        contactMessage: "Mensaje",
+        contactMessagePlaceholder: "Escribe tu mensaje al admin de HUMANA...",
+        contactSend: "Enviar Email",
+        contactSending: "Enviando...",
+        contactSent: "Email enviado exitosamente",
+        contactCancel: "Cancelar",
+        memberSince: "Miembro desde",
+        occupancy: "ocu.",
+      },
+      network: {
+        eyebrow: "RED",
+        title: "Red Regional",
+        subtitle: "Hoteles y agencias en tu territorio.",
+        tabs: { all: "Todos", hotels: "Hoteles", agencies: "Agencias" },
+        searchPlaceholder: "Buscar por nombre…",
+        createUser: "Crear Usuario",
+        columns: {
+          name: "Nombre", city: "Ciudad", kind: "Tipo", status: "Estado", users: "Usuarios", bookings: "Reservas",
+          organization: "Organización", type: "Tipo", invitedAt: "Fecha Invitación", onboarding: "Onboarding",
+        },
+        tooltips: {
+          name: "Nombre y email del miembro de la plataforma",
+          organization: "Empresa o entidad a la que pertenece el miembro",
+          type: "Tipo de organización: Hotel o Agencia",
+          status: "Estado actual de la cuenta en la plataforma",
+          invitedAt: "Fecha en que se envió la invitación",
+          onboarding: "Si el miembro ha completado la configuración de su perfil",
+        },
+        status: { active: "Activo", pending: "Pendiente", suspended: "Suspendido", rejected: "Rechazado" },
+        onboardingComplete: "Completo",
+        onboardingPending: "Pendiente",
+        kindLabels: { hotel: "Hotel", agency: "Agencia" },
+        roleLabels: { hotel: "Gerente de Hotel", agency: "Agente de Viajes" },
+        empty: "No se encontraron organizaciones",
+        emptyHint: "Las organizaciones de tu región aparecerán aquí.",
+        create: {
+          eyebrow: "NUEVO MIEMBRO",
+          title: "Invita a un nuevo miembro a la red.",
+          subtitle: "Completa los datos a continuación. Se enviará un enlace para activar la cuenta.",
+          orgKind: "ROL",
+          hotel: "Hotel",
+          agency: "Agencia",
+          email: "CORREO ELECTRÓNICO",
+          emailPlaceholder: "marina@viajesglobal.com",
+          emailHint: "Se enviará un enlace a esta dirección.",
+          orgName: "NOMBRE DE ORGANIZACIÓN",
+          orgNamePlaceholder: "Ingresa el nombre de la organización",
+          country: "PAÍS",
+          submit: "ENVIAR INVITACIÓN",
+          submitting: "Enviando...",
+          cancel: "Cancelar",
+          successMessage: "Invitación enviada. Esperando aprobación del administrador.",
+          breadcrumb: "Crear nuevo miembro",
+          preview: "VISTA PREVIA",
+          previewRole: "Rol",
+          previewEmail: "Email",
+          previewCountry: "País",
+          previewOffice: "Oficina",
+          previewExpires: "El enlace expira",
+          previewApproval: "Aprobación",
+          previewExpiresValue: "7 días",
+          previewApprovalValue: "Requiere revisión del admin",
+        },
+      },
+      retreats: {
+        eyebrow: "RETIROS",
+        title: "Retiros Regionales",
+        subtitle: "Retiros ofrecidos por hoteles en tu territorio.",
+        filters: { all: "Todos", active: "Activos", draft: "Borrador", pending: "En Revisión", closed: "Cerrados" },
+        columns: { name: "Nombre", hotel: "Hotel", type: "Tipo", dates: "Fechas", capacity: "Capacidad", status: "Estado" },
+        empty: "No se encontraron retiros",
+      },
+      bookings: {
+        eyebrow: "RESERVAS",
+        title: "Reservas Regionales",
+        subtitle: "Todas las reservas de agencias en tu territorio.",
+        kpis: { total: "Total", confirmed: "Confirmadas", volume: "Volumen", officeRevenue: "Ingresos Oficina (2%)" },
+        filters: { all: "Todas", confirmed: "Confirmadas", inquiry: "Pendientes", cancelled: "Canceladas" },
+        columns: { reference: "Referencia", agency: "Agencia", experience: "Experiencia", guests: "Huéspedes", amount: "Monto", officeFee: "Comisión Oficina", status: "Estado" },
+        empty: "No se encontraron reservas",
+        monthlyRevenue: "Ingresos Mensuales",
+        monthlyVolume: "Volumen",
+        monthlyOfficeFee: "Comisión Oficina (2%)",
+        monthlyBookings: "Reservas",
+        viewMonthly: "Mensual",
+        viewBookings: "Reservas",
+      },
+      settings: {
+        eyebrow: "CONFIGURACIÓN",
+        title: "Configuración de Oficina",
+        subtitle: "Gestiona tu perfil de oficina y equipo.",
+        tabs: { profile: "Perfil", payments: "Pagos" },
+        profile: {
+          eyebrow: "PERFIL DE OFICINA",
+          officeName: "Nombre de Oficina",
+          contactEmail: "Email de Contacto",
+          phone: "Teléfono",
+          location: "Ubicación",
+          country: "País",
+          save: "Guardar Cambios",
+          saving: "Guardando…",
+          saved: "Cambios guardados exitosamente",
+        },
+        payments: {
+          eyebrow: "RECEPCIÓN DE PAGOS",
+          title: "Cuenta Bancaria",
+          accountHolder: "Titular de la Cuenta",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Moneda",
+          country: "País",
+          save: "Guardar Datos Bancarios",
+          saving: "Guardando…",
+          statusConfigured: "Configurado",
+          statusPending: "Pendiente",
+        },
+      },
+      statusLabels: { pending: "Pendiente", verified: "Activo", suspended: "Suspendido", active: "Activo", draft: "Borrador", closed: "Cerrado", pending_review: "En Revisión" },
     },
     suspended: {
       title: "Cuenta Suspendida",
@@ -6195,6 +6679,167 @@ export const dictionary: Record<Locale, Dictionary> = {
         addAtLeastOneAmenity: "Selecione pelo menos uma comodidade",
         addAtLeastOnePhoto: "Adicione pelo menos uma foto",
       },
+    },
+    officeWs: {
+      badge: "Escritório",
+      nav: { dashboard: "Painel", network: "Rede", retreats: "Retiros", bookings: "Reservas", settings: "Configurações" },
+      dashboard: {
+        eyebrow: "PAINEL DE CONTROLE",
+        title: "Visão Geral",
+        subtitle: (country: string) => `Gerenciando a região de ${country}`,
+        last30: "Últimos 30 dias",
+        last7: "Últimos 7 dias",
+        last90: "Últimos 90 dias",
+        thisYear: "Este ano",
+        allTime: "Todo o tempo",
+        kpis: {
+          gmv: "GMV Total",
+          gmvDelta: "volume confirmado",
+          bookings: "Reservas Ativas",
+          bookingsThisMonth: (n: number) => `+${n} este mês`,
+          hotels: "Hotéis na Rede",
+          hotelsDetail: (countries: number, pending: number) => `${countries} ${countries === 1 ? "país" : "países"} · ${pending} pendentes`,
+          agencies: "Agências Ativas",
+          agenciesDetail: (countries: number) => `${countries} ${countries === 1 ? "país" : "países"}`,
+          retreats: "Retiros Publicados",
+          retreatsPending: (n: number) => `${n} em revisão`,
+        },
+        topHotels: "Melhores Hotéis por Receita",
+        topHotelsReport: "Ver relatório completo",
+        topHotelsTooltip: "Hotéis classificados por receita de reservas confirmadas na sua região",
+        topAgencies: "Melhores Agências por Volume",
+        topAgenciesReport: "Ver relatório completo",
+        topAgenciesTooltip: "Agências classificadas por volume total de reservas confirmadas na sua região",
+        noAgencies: "Nenhuma agência na sua região ainda",
+        bookingsLabel: "reservas",
+        pendingApprovals: "Aprovações Pendentes",
+        pendingApprovalsViewAll: "Ver rede",
+        noHotels: "Nenhum hotel na sua região ainda",
+        noPending: "Sem aprovações pendentes",
+        pendingKind: { hotel: "Hotel", agency: "Agência" },
+        requestApproval: "Solicitar Aprovação",
+        approvalSubject: (name: string) => `Solicitação de aprovação: ${name}`,
+        approvalMessage: (kind: string, name: string, city: string, country: string) => `Solicitamos a aprovação do ${kind} "${name}" (${city}, ${country}).\n\nPor favor revise e aprove esta organização.`,
+        contactAdmin: "Contatar HUMANA",
+        contactSubject: "Assunto",
+        contactMessage: "Mensagem",
+        contactMessagePlaceholder: "Escreva sua mensagem para o admin da HUMANA...",
+        contactSend: "Enviar Email",
+        contactSending: "Enviando...",
+        contactSent: "Email enviado com sucesso",
+        contactCancel: "Cancelar",
+        memberSince: "Membro desde",
+        occupancy: "ocu.",
+      },
+      network: {
+        eyebrow: "REDE",
+        title: "Rede Regional",
+        subtitle: "Hotéis e agências no seu território.",
+        tabs: { all: "Todos", hotels: "Hotéis", agencies: "Agências" },
+        searchPlaceholder: "Buscar por nome…",
+        createUser: "Criar Usuário",
+        columns: {
+          name: "Nome", city: "Cidade", kind: "Tipo", status: "Status", users: "Usuários", bookings: "Reservas",
+          organization: "Organização", type: "Tipo", invitedAt: "Data do Convite", onboarding: "Onboarding",
+        },
+        tooltips: {
+          name: "Nome e email do membro da plataforma",
+          organization: "Empresa ou entidade à qual o membro pertence",
+          type: "Tipo de organização: Hotel ou Agência",
+          status: "Status atual da conta na plataforma",
+          invitedAt: "Data em que o convite foi enviado",
+          onboarding: "Se o membro completou a configuração do perfil",
+        },
+        status: { active: "Ativo", pending: "Pendente", suspended: "Suspenso", rejected: "Rejeitado" },
+        onboardingComplete: "Completo",
+        onboardingPending: "Pendente",
+        kindLabels: { hotel: "Hotel", agency: "Agência" },
+        roleLabels: { hotel: "Gerente de Hotel", agency: "Agente de Viagens" },
+        empty: "Nenhuma organização encontrada",
+        emptyHint: "Organizações na sua região aparecerão aqui.",
+        create: {
+          eyebrow: "NOVO MEMBRO",
+          title: "Convide um novo membro para a rede.",
+          subtitle: "Preencha os dados abaixo. Um link será enviado para ativar a conta.",
+          orgKind: "FUNÇÃO",
+          hotel: "Hotel",
+          agency: "Agência",
+          email: "ENDEREÇO DE EMAIL",
+          emailPlaceholder: "marina@viajesglobal.com",
+          emailHint: "Um link será enviado para este endereço.",
+          orgName: "NOME DA ORGANIZAÇÃO",
+          orgNamePlaceholder: "Digite o nome da organização",
+          country: "PAÍS",
+          submit: "ENVIAR CONVITE",
+          submitting: "Enviando...",
+          cancel: "Cancelar",
+          successMessage: "Convite enviado. Aguardando aprovação do administrador.",
+          breadcrumb: "Criar novo membro",
+          preview: "PRÉVIA DO CONVITE",
+          previewRole: "Função",
+          previewEmail: "Email",
+          previewCountry: "País",
+          previewOffice: "Escritório",
+          previewExpires: "Link expira em",
+          previewApproval: "Aprovação",
+          previewExpiresValue: "7 dias",
+          previewApprovalValue: "Requer revisão do admin",
+        },
+      },
+      retreats: {
+        eyebrow: "RETIROS",
+        title: "Retiros Regionais",
+        subtitle: "Retiros oferecidos por hotéis no seu território.",
+        filters: { all: "Todos", active: "Ativos", draft: "Rascunho", pending: "Em Revisão", closed: "Encerrados" },
+        columns: { name: "Nome", hotel: "Hotel", type: "Tipo", dates: "Datas", capacity: "Capacidade", status: "Status" },
+        empty: "Nenhum retiro encontrado",
+      },
+      bookings: {
+        eyebrow: "RESERVAS",
+        title: "Reservas Regionais",
+        subtitle: "Todas as reservas de agências no seu território.",
+        kpis: { total: "Total", confirmed: "Confirmadas", volume: "Volume", officeRevenue: "Receita Escritório (2%)" },
+        filters: { all: "Todas", confirmed: "Confirmadas", inquiry: "Pendentes", cancelled: "Canceladas" },
+        columns: { reference: "Referência", agency: "Agência", experience: "Experiência", guests: "Hóspedes", amount: "Valor", officeFee: "Taxa Escritório", status: "Status" },
+        empty: "Nenhuma reserva encontrada",
+        monthlyRevenue: "Receita Mensal",
+        monthlyVolume: "Volume",
+        monthlyOfficeFee: "Taxa Escritório (2%)",
+        monthlyBookings: "Reservas",
+        viewMonthly: "Mensal",
+        viewBookings: "Reservas",
+      },
+      settings: {
+        eyebrow: "CONFIGURAÇÕES",
+        title: "Configurações do Escritório",
+        subtitle: "Gerencie o perfil e equipe do escritório.",
+        tabs: { profile: "Perfil", payments: "Pagamentos" },
+        profile: {
+          eyebrow: "PERFIL DO ESCRITÓRIO",
+          officeName: "Nome do Escritório",
+          contactEmail: "Email de Contato",
+          phone: "Telefone",
+          location: "Localização",
+          country: "País",
+          save: "Salvar Alterações",
+          saving: "Salvando…",
+          saved: "Alterações salvas com sucesso",
+        },
+        payments: {
+          eyebrow: "RECEBIMENTO DE PAGAMENTOS",
+          title: "Conta Bancária",
+          accountHolder: "Titular da Conta",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Moeda",
+          country: "País",
+          save: "Salvar Dados Bancários",
+          saving: "Salvando…",
+          statusConfigured: "Configurado",
+          statusPending: "Pendente",
+        },
+      },
+      statusLabels: { pending: "Pendente", verified: "Ativo", suspended: "Suspenso", active: "Ativo", draft: "Rascunho", closed: "Encerrado", pending_review: "Em Revisão" },
     },
     suspended: {
       title: "Conta Suspensa",

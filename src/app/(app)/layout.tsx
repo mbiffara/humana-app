@@ -11,9 +11,10 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, isOffice } = useAuth();
   const isOnboarding = pathname.startsWith("/onboarding/");
   const isHotelWorkspace = pathname.startsWith("/hotel/");
+  const isOfficeWorkspace = pathname.startsWith("/office/");
   const isAgency = user?.organization?.kind === "agency";
 
   // Once the persisted session has been read, bounce unauthenticated visitors
@@ -51,7 +52,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     ) {
       router.replace("/onboarding/hotel/step-5");
     }
-  }, [loading, user, router, isOnboarding]);
+    // Office users landing on /dashboard get redirected to /office/dashboard
+    if (!loading && user && isOffice && pathname === "/dashboard") {
+      router.replace("/office/dashboard");
+    }
+  }, [loading, user, router, isOnboarding, isOffice, pathname]);
 
   if (loading) {
     return (
@@ -72,8 +77,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <BookingProvider>
       <WizardProvider>
-        {!isAdmin && !isOnboarding && !isHotelWorkspace && isAgency && <AgencyTopNav />}
-        {!isAdmin && !isOnboarding && !isHotelWorkspace && !isAgency && <TopNav />}
+        {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && isAgency && <AgencyTopNav />}
+        {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && !isAgency && !isOffice && <TopNav />}
         <main className="flex-1">{children}</main>
       </WizardProvider>
     </BookingProvider>

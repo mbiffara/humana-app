@@ -24,6 +24,7 @@ interface AuthContextValue {
   /** Set user directly (e.g. after invitation acceptance). */
   setUser: (user: User) => void;
   isAdmin: boolean;
+  isOffice: boolean;
   /** Active subscription for hotel/agency users (null if none). */
   subscription: Subscription | null;
   /** Update subscription state (e.g. after selecting a plan or cancelling). */
@@ -114,9 +115,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAdmin = user?.platform_admin ?? false;
+  const isOffice = user?.organization?.kind === "office";
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setUser, isAdmin, subscription, setSubscription, refreshAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser, isAdmin, isOffice, subscription, setSubscription, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   );
