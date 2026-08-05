@@ -16,7 +16,6 @@ export function AdminTopNav() {
     { label: t.admin.nav.overview, href: "/admin/dashboard" },
     { label: t.admin.nav.network, href: "/admin/network" },
     { label: t.admin.nav.subscriptions, href: "/admin/subscriptions" },
-    { label: t.admin.nav.settings, href: "/admin/settings" },
   ];
 
   const initials = user?.name

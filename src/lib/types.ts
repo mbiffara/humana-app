@@ -345,3 +345,30 @@ export interface AdminRoomImage {
   position: number;
   is_primary: boolean;
 }
+
+export interface AdminBooking {
+  id: number;
+  reference: string;
+  status: string;
+  guests: number;
+  starts_on: string | null;
+  ends_on: string | null;
+  amount_cents: number;
+  amount: number;
+  currency: string;
+  commission_cents: number;
+  commission: number;
+  notes: string | null;
+  created_at: string;
+  client: { id: number; name: string; email: string } | null;
+  agency: Organization;
+  hotel: { id: number; name: string; city: string; country: string; country_code: string } | null;
+  experience: { id: number; title: string; kind: string } | null;
+  room_type: { id: number; name: string } | null;
+}
+
+export interface AdminBookingsSummary {
+  total_amount_cents: number;
+  total_commission_cents: number;
+  count: number;
+}
