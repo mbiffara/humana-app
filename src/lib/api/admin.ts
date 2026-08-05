@@ -10,6 +10,8 @@ import type {
   PlatformSetting,
   Country,
   AdminHotelPreview,
+  AdminBooking,
+  AdminBookingsSummary,
 } from "@/lib/types";
 
 interface OrganizationsResponse {
@@ -228,5 +230,23 @@ export const adminApi = {
   getHotelPreview: (hotelId: number) =>
     api.get<{ hotel: AdminHotelPreview; organization: Organization; owner: User | null }>(
       `/admin/hotels/${hotelId}`,
+    ),
+
+  // ─── Bookings (Sales) ──────────────────────────────────────────
+
+  /** List all bookings across the platform with filters. */
+  listBookings: (params?: {
+    status?: string;
+    country_code?: string;
+    organization_id?: number;
+    hotel_id?: number;
+    from?: string;
+    to?: string;
+    q?: string;
+    page?: number;
+    per_page?: number;
+  }) =>
+    api.get<{ bookings: AdminBooking[]; meta: PaginationMeta; summary: AdminBookingsSummary }>(
+      `/admin/bookings${qs(params || {})}`,
     ),
 };

@@ -1147,6 +1147,37 @@ type Dictionary = {
       deleteCountryPassword: string; deleting: string; delete: string;
       cancel: string;
     };
+    sales: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      breadcrumb: string;
+      reference: string;
+      date: string;
+      agency: string;
+      hotel: string;
+      country: string;
+      client: string;
+      guests: string;
+      amount: string;
+      commission: string;
+      status: string;
+      experience: string;
+      noResults: string;
+      searchPlaceholder: string;
+      allStatuses: string;
+      allCountries: string;
+      allAgencies: string;
+      allHotels: string;
+      totalVolume: string;
+      totalCommission: string;
+      totalBookings: string;
+      viewSales: string;
+      inquiry: string;
+      confirmed: string;
+      cancelled: string;
+      completed: string;
+    };
   };
   comingSoon: {
     eyebrow: string;
@@ -2930,6 +2961,37 @@ export const dictionary: Record<Locale, Dictionary> = {
         delete: "Delete permanently",
         cancel: "Cancel",
       },
+      sales: {
+        eyebrow: "SALES OVERVIEW",
+        title: "Sales & Transactions",
+        subtitle: "All bookings across the platform — by agency, hotel, and country.",
+        breadcrumb: "Sales",
+        reference: "Reference",
+        date: "Date",
+        agency: "Agency",
+        hotel: "Hotel",
+        country: "Country",
+        client: "Client",
+        guests: "Guests",
+        amount: "Amount",
+        commission: "Commission",
+        status: "Status",
+        experience: "Experience",
+        noResults: "No bookings found matching your criteria.",
+        searchPlaceholder: "Search by reference...",
+        allStatuses: "All statuses",
+        allCountries: "All countries",
+        allAgencies: "All agencies",
+        allHotels: "All hotels",
+        totalVolume: "Total Volume",
+        totalCommission: "Total Commission",
+        totalBookings: "Total Bookings",
+        viewSales: "View Sales",
+        inquiry: "Inquiry",
+        confirmed: "Confirmed",
+        cancelled: "Cancelled",
+        completed: "Completed",
+      },
     },
     comingSoon: {
       eyebrow: "COMING SOON",
@@ -4699,6 +4761,37 @@ export const dictionary: Record<Locale, Dictionary> = {
         deleting: "Eliminando...",
         delete: "Eliminar permanentemente",
         cancel: "Cancelar",
+      },
+      sales: {
+        eyebrow: "RESUMEN DE VENTAS",
+        title: "Ventas y Transacciones",
+        subtitle: "Todas las reservas de la plataforma — por agencia, hotel y país.",
+        breadcrumb: "Ventas",
+        reference: "Referencia",
+        date: "Fecha",
+        agency: "Agencia",
+        hotel: "Hotel",
+        country: "País",
+        client: "Cliente",
+        guests: "Huéspedes",
+        amount: "Monto",
+        commission: "Comisión",
+        status: "Estado",
+        experience: "Experiencia",
+        noResults: "No se encontraron reservas con los criterios seleccionados.",
+        searchPlaceholder: "Buscar por referencia...",
+        allStatuses: "Todos los estados",
+        allCountries: "Todos los países",
+        allAgencies: "Todas las agencias",
+        allHotels: "Todos los hoteles",
+        totalVolume: "Volumen Total",
+        totalCommission: "Comisión Total",
+        totalBookings: "Total Reservas",
+        viewSales: "Ver Ventas",
+        inquiry: "Consulta",
+        confirmed: "Confirmada",
+        cancelled: "Cancelada",
+        completed: "Completada",
       },
     },
     comingSoon: {
@@ -6470,6 +6563,37 @@ export const dictionary: Record<Locale, Dictionary> = {
         deleting: "Excluindo...",
         delete: "Excluir permanentemente",
         cancel: "Cancelar",
+      },
+      sales: {
+        eyebrow: "VISÃO DE VENDAS",
+        title: "Vendas e Transações",
+        subtitle: "Todas as reservas da plataforma — por agência, hotel e país.",
+        breadcrumb: "Vendas",
+        reference: "Referência",
+        date: "Data",
+        agency: "Agência",
+        hotel: "Hotel",
+        country: "País",
+        client: "Cliente",
+        guests: "Hóspedes",
+        amount: "Valor",
+        commission: "Comissão",
+        status: "Status",
+        experience: "Experiência",
+        noResults: "Nenhuma reserva encontrada com os critérios selecionados.",
+        searchPlaceholder: "Buscar por referência...",
+        allStatuses: "Todos os status",
+        allCountries: "Todos os países",
+        allAgencies: "Todas as agências",
+        allHotels: "Todos os hotéis",
+        totalVolume: "Volume Total",
+        totalCommission: "Comissão Total",
+        totalBookings: "Total Reservas",
+        viewSales: "Ver Vendas",
+        inquiry: "Consulta",
+        confirmed: "Confirmada",
+        cancelled: "Cancelada",
+        completed: "Concluída",
       },
     },
     comingSoon: {
