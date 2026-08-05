@@ -1,0 +1,121 @@
+/** Office workspace top navigation — matches Hotel/Agency nav branding with gold accents. */
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LanguageSwitcher, useLocale } from "@/i18n/LocaleProvider";
+import { useAuth } from "@/contexts/AuthContext";
+
+export function OfficeTopNav() {
+  const { t } = useLocale();
+  const { user, logout } = useAuth();
+  const pathname = usePathname();
+
+  const links = [
+    { label: t.officeWs.nav.dashboard, href: "/office/dashboard", match: ["/office/dashboard"] },
+    { label: t.officeWs.nav.network, href: "/office/network", match: ["/office/network"] },
+    { label: t.officeWs.nav.retreats, href: "/office/retreats" },
+    { label: t.officeWs.nav.bookings, href: "/office/bookings" },
+  ];
+
+  const initials = user?.name
+    ?.split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "OF";
+
+  return (
+    <nav className="sticky top-0 z-50 border-b border-humana-line bg-white/95 backdrop-blur-sm animate-[fade-in-down_0.4s_ease-out]">
+      <div className="mx-auto flex max-w-[1480px] items-center justify-between px-10 py-5">
+        {/* Left: Logo + Office badge */}
+        <Link
+          href="/office/dashboard"
+          className="flex items-center gap-3 transition-opacity hover:opacity-80"
+        >
+          <Image
+            src="/brand/isotipo.png"
+            alt="HUMANA"
+            width={36}
+            height={36}
+            priority
+          />
+          <Image
+            src="/brand/humana-text.svg"
+            alt=""
+            width={160}
+            height={50}
+            className="h-[34px] w-auto"
+            priority
+          />
+          <span className="ml-1 rounded bg-humana-gold px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+            {t.officeWs.badge}
+          </span>
+        </Link>
+
+        {/* Center: Nav links */}
+        <div className="flex items-center gap-10">
+          {links.map((link) => {
+            const matchPaths = "match" in link && link.match ? link.match : [link.href];
+            const isActive = matchPaths.some((p) => pathname.startsWith(p));
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative pb-1 text-[14px] transition-all duration-200 ${
+                  isActive
+                    ? "font-medium text-humana-ink"
+                    : "font-normal text-humana-muted hover:text-humana-ink"
+                }`}
+              >
+                {link.label}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 h-[2px] w-full bg-humana-gold animate-[shimmer_1s_ease-out]" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Right: Language + User */}
+        <div className="flex items-center gap-5">
+          <LanguageSwitcher />
+          <span className="h-3.5 w-px bg-[#D8D4C8]" />
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/office/settings"
+              className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 transition-all duration-150 hover:bg-humana-stone/70"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-humana-gold">
+                <span className="text-[12px] font-semibold text-white">
+                  {initials}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[13px] font-medium text-humana-ink">
+                  {user?.name}
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                  {user?.organization?.name}
+                </span>
+              </div>
+            </Link>
+            <button
+              onClick={logout}
+              className="ml-3 cursor-pointer text-[12px] text-humana-muted transition-colors hover:text-red-600"
+              title="Logout"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
