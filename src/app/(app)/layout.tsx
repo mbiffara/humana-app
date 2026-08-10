@@ -7,11 +7,12 @@ import { AgencyTopNav } from "@/components/agency/AgencyTopNav";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { WizardProvider } from "@/contexts/WizardContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { SubscriptionPaywall } from "@/components/agency/SubscriptionPaywall";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, isAdmin, isOffice } = useAuth();
+  const { user, loading, isAdmin, isOffice, subscription } = useAuth();
   const isOnboarding = pathname.startsWith("/onboarding/");
   const isHotelWorkspace = pathname.startsWith("/hotel/");
   const isOfficeWorkspace = pathname.startsWith("/office/");
@@ -55,6 +56,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     // Office users landing on /dashboard get redirected to /office/dashboard
     if (!loading && user && isOffice && pathname === "/dashboard") {
       router.replace("/office/dashboard");
+      return;
     }
   }, [loading, user, router, isOnboarding, isOffice, pathname]);
 
@@ -74,12 +76,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!user) return null;
   if (user.status === "suspended") return null;
 
+  // Agency paywall: show plan-selection modal when no active subscription
+  const isAgencyPaywallExempt = pathname.startsWith("/agency/settings") || isOnboarding;
+  const hasActiveSubscription =
+    subscription != null &&
+    (subscription.status === "active" || subscription.status === "trialing");
+  const showAgencyPaywall =
+    isAgency &&
+    user.organization?.onboarding_completed &&
+    !hasActiveSubscription &&
+    !isAgencyPaywallExempt;
+
+  // Lock body scroll while agency paywall is visible
+  useEffect(() => {
+    if (showAgencyPaywall) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [showAgencyPaywall]);
+
   return (
     <BookingProvider>
       <WizardProvider>
         {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && isAgency && <AgencyTopNav />}
         {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && !isAgency && !isOffice && <TopNav />}
-        <main className="flex-1">{children}</main>
+        <div className="relative flex-1">
+          <main>{children}</main>
+          {showAgencyPaywall && <SubscriptionPaywall />}
+        </div>
       </WizardProvider>
     </BookingProvider>
   );
