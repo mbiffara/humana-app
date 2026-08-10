@@ -24,7 +24,7 @@ export type WizardState = {
   hotelId: number | null;
   hotelData: WizardHotelData | null;
   name: string;
-  type: "retreat" | "masterclass" | "meditation";
+  type: "wellness" | "spiritual" | "liderazgo_mujeres" | "constelaciones_familiares" | "breathwork" | "neurociencia" | "kabbalah" | "mindfulness";
   nights: number;
   startDate: string;
   endDate: string;
@@ -43,7 +43,7 @@ const initial: WizardState = {
   hotelId: null,
   hotelData: null,
   name: "",
-  type: "retreat",
+  type: "wellness",
   nights: 5,
   startDate: "",
   endDate: "",

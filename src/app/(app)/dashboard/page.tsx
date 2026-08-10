@@ -140,7 +140,7 @@ function SearchBar() {
   const [adults, setAdults] = useState(2);
   const [rooms, setRooms] = useState(1);
   const [selectedExperiences, setSelectedExperiences] = useState<Set<string>>(
-    () => new Set(["retreat", "masterclass"])
+    () => new Set(["wellness", "spiritual"])
   );
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -197,9 +197,10 @@ function SearchBar() {
   const guestDisplay = `${t.search.adultCount(adults)} · ${t.search.roomCount(rooms)}`;
 
   const expLabels: Record<string, string> = {
-    retreat: t.retreats.filters.retreat,
-    masterclass: t.retreats.filters.masterclass,
-    meditation: t.retreats.filters.meditation,
+    wellness: t.retreats.filters.wellness,
+    spiritual: t.retreats.filters.spiritual,
+    breathwork: t.retreats.filters.breathwork,
+    mindfulness: t.retreats.filters.mindfulness,
   };
   const expDisplay =
     selectedExperiences.size > 0
@@ -386,9 +387,10 @@ function SearchBar() {
             </span>
           </div>
           <div className="flex flex-wrap gap-2.5">
-            <FilterChip label={t.retreats.filters.retreat} active={selectedExperiences.has("retreat")} onClick={() => toggleExperience("retreat")} />
-            <FilterChip label={t.retreats.filters.masterclass} active={selectedExperiences.has("masterclass")} onClick={() => toggleExperience("masterclass")} />
-            <FilterChip label={t.retreats.filters.meditation} active={selectedExperiences.has("meditation")} onClick={() => toggleExperience("meditation")} />
+            <FilterChip label={t.retreats.filters.wellness} active={selectedExperiences.has("wellness")} onClick={() => toggleExperience("wellness")} />
+            <FilterChip label={t.retreats.filters.spiritual} active={selectedExperiences.has("spiritual")} onClick={() => toggleExperience("spiritual")} />
+            <FilterChip label={t.retreats.filters.breathwork} active={selectedExperiences.has("breathwork")} onClick={() => toggleExperience("breathwork")} />
+            <FilterChip label={t.retreats.filters.mindfulness} active={selectedExperiences.has("mindfulness")} onClick={() => toggleExperience("mindfulness")} />
           </div>
         </div>
       </SearchField>
@@ -588,9 +590,10 @@ function RetreatsSection() {
         <div className="flex items-center gap-7">
           <div className="flex items-center gap-2.5">
             <FilterChipLocal label={t.retreats.filters.all} active />
-            <FilterChipLocal label={t.retreats.filters.retreat} />
-            <FilterChipLocal label={t.retreats.filters.masterclass} />
-            <FilterChipLocal label={t.retreats.filters.meditation} />
+            <FilterChipLocal label={t.retreats.filters.wellness} />
+            <FilterChipLocal label={t.retreats.filters.spiritual} />
+            <FilterChipLocal label={t.retreats.filters.breathwork} />
+            <FilterChipLocal label={t.retreats.filters.mindfulness} />
           </div>
           <span className="text-[13px] font-medium text-humana-gold underline underline-offset-4 cursor-default">
             {t.retreats.seeAll}
@@ -687,7 +690,7 @@ function ExperienceCard({ experience }: { experience: ApiExperience }) {
         86400000,
     ),
   );
-  const kindLabel = experience.kind === "masterclass" ? "Masterclass" : "Retiro";
+  const kindLabel = t.hotelWs?.retreats?.wizard?.types?.[experience.kind as keyof typeof t.hotelWs.retreats.wizard.types] ?? experience.kind;
   const tag = `${kindLabel} · ${nights} ${nights === 1 ? "noche" : "noches"}`;
   const location = experience.location ?? experience.country ?? "";
   const startF = formatShortDate(experience.starts_on);

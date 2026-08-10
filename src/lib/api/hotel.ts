@@ -450,7 +450,7 @@ export interface ImageCreate {
 }
 
 // Retreats — shapes mirror ApiSerializers.retreat and friends
-export type RetreatType = "wellness" | "spiritual" | "corporate" | "adventure" | "medical";
+export type RetreatType = "wellness" | "spiritual" | "liderazgo_mujeres" | "constelaciones_familiares" | "breathwork" | "neurociencia" | "kabbalah" | "mindfulness";
 export type RetreatStatus =
   | "draft"
   | "pending_review"

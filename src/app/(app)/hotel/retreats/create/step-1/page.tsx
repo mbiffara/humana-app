@@ -6,7 +6,7 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { computeEndDate, useRetreatWizard } from "@/contexts/RetreatWizardContext";
 import type { RetreatType } from "@/lib/api/hotel";
 
-const RETREAT_TYPES: RetreatType[] = ["wellness", "spiritual", "corporate", "adventure", "medical"];
+const RETREAT_TYPES: RetreatType[] = ["wellness", "spiritual", "liderazgo_mujeres", "constelaciones_familiares", "breathwork", "neurociencia", "kabbalah", "mindfulness"];
 const LANGUAGES = [
   { value: "es", label: "Español" },
   { value: "en", label: "English" },

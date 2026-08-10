@@ -25,63 +25,111 @@ const GEO_URL =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 type MarkerKey =
-  | "usa"
-  | "mexico"
-  | "argentina"
-  | "brazil"
   | "spain"
-  | "india"
-  | "indonesia";
+  | "colombia"
+  | "ecuador"
+  | "peru"
+  | "brazil"
+  | "paraguay"
+  | "chile"
+  | "argentina"
+  | "uruguay"
+  | "costa-rica"
+  | "el-salvador"
+  | "panama"
+  | "dominican-republic"
+  | "usa"
+  | "mexico";
 
 const markerCoords: Record<MarkerKey, [number, number]> = {
+  spain: [-3.7, 40],
+  colombia: [-74, 4.5],
+  ecuador: [-78.5, -1.8],
+  peru: [-76, -10],
+  brazil: [-51, -14],
+  paraguay: [-58, -23],
+  chile: [-71, -33],
+  argentina: [-64, -34],
+  uruguay: [-56, -33],
+  "costa-rica": [-84, 10],
+  "el-salvador": [-89, 13.7],
+  panama: [-80, 9],
+  "dominican-republic": [-70, 19],
   usa: [-98, 38],
   mexico: [-102, 23],
-  argentina: [-64, -34],
-  brazil: [-51, -14],
-  spain: [-3.7, 40],
-  india: [78, 20],
-  indonesia: [120, -2],
 };
 
 const markerFlagCodes: Record<MarkerKey, string> = {
+  spain: "es",
+  colombia: "co",
+  ecuador: "ec",
+  peru: "pe",
+  brazil: "br",
+  paraguay: "py",
+  chile: "cl",
+  argentina: "ar",
+  uruguay: "uy",
+  "costa-rica": "cr",
+  "el-salvador": "sv",
+  panama: "pa",
+  "dominican-republic": "do",
   usa: "us",
   mexico: "mx",
-  argentina: "ar",
-  brazil: "br",
-  spain: "es",
-  india: "in",
-  indonesia: "id",
 };
 
 const markerCountryIds: Record<MarkerKey, string> = {
+  spain: "es",
+  colombia: "co",
+  ecuador: "ec",
+  peru: "pe",
+  brazil: "br",
+  paraguay: "py",
+  chile: "cl",
+  argentina: "ar",
+  uruguay: "uy",
+  "costa-rica": "cr",
+  "el-salvador": "sv",
+  panama: "pa",
+  "dominican-republic": "do",
   usa: "us",
   mexico: "mx",
-  argentina: "ar",
-  brazil: "br",
-  spain: "es",
-  india: "in",
-  indonesia: "id",
 };
 
 /** ISO 3166-1 numeric → MarkerKey */
 const isoNumericToMarker: Record<string, MarkerKey> = {
+  "724": "spain",
+  "170": "colombia",
+  "218": "ecuador",
+  "604": "peru",
+  "076": "brazil",
+  "600": "paraguay",
+  "152": "chile",
+  "032": "argentina",
+  "858": "uruguay",
+  "188": "costa-rica",
+  "222": "el-salvador",
+  "591": "panama",
+  "214": "dominican-republic",
   "840": "usa",
   "484": "mexico",
-  "032": "argentina",
-  "076": "brazil",
-  "724": "spain",
-  "356": "india",
-  "360": "indonesia",
 };
 
 const markerKeys: MarkerKey[] = [
+  "spain",
+  "colombia",
+  "ecuador",
+  "peru",
+  "brazil",
+  "paraguay",
+  "chile",
+  "argentina",
+  "uruguay",
+  "costa-rica",
+  "el-salvador",
+  "panama",
+  "dominican-republic",
   "usa",
   "mexico",
-  "argentina",
-  "brazil",
-  "spain",
-  "india",
-  "indonesia",
 ];
 
 function ZoomControls() {
@@ -320,7 +368,7 @@ export default function WorldMap({
             wrapperStyle={{ width: "100%", height: "100%", overflow: "hidden" }}
             contentStyle={{ width: "100%", height: "100%", overflow: "hidden" }}
           >
-            {renderMap(180, [15, 10], 420)}
+            {renderMap(180, [-40, 5], 420)}
           </TransformComponent>
           <ZoomControls />
         </TransformWrapper>
@@ -348,7 +396,7 @@ export default function WorldMap({
           wrapperStyle={{ width: "100%", height: "100%" }}
           contentStyle={{ width: "100%", height: "100%" }}
         >
-          {renderMap(185, [60, -10], 480)}
+          {renderMap(185, [-40, 5], 480)}
         </TransformComponent>
         <ZoomControls />
       </TransformWrapper>

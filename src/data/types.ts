@@ -51,7 +51,7 @@ export type RetreatData = {
   hotelName: string;
   location: string;
   country: string;
-  type: "retreat" | "masterclass" | "corporate";
+  type: "wellness" | "spiritual" | "liderazgo_mujeres" | "constelaciones_familiares" | "breathwork" | "neurociencia" | "kabbalah" | "mindfulness";
   startDate: string;
   endDate: string;
   nights: number;

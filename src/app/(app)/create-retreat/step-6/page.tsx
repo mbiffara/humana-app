@@ -25,7 +25,12 @@ function RetreatPreviewCard({ onPublish, publishing }: { onPublish: () => void; 
   const hotelData = state.hotelData;
   const minPricePerNight = state.pricing.length > 0 ? Math.min(...state.pricing.filter((p) => p.retailPrice > 0).map((p) => p.retailPrice)) : 0;
   const minPrice = minPricePerNight * state.nights;
-  const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Meditación";
+  const typeLabels: Record<string, string> = {
+    wellness: "Bienestar", spiritual: "Espiritual", liderazgo_mujeres: "Liderazgo Mujeres",
+    constelaciones_familiares: "Constelaciones Familiares", breathwork: "Breathwork",
+    neurociencia: "Neurociencia", kabbalah: "Kabbalah", mindfulness: "Mindfulness",
+  };
+  const typeLabel = typeLabels[state.type] ?? state.type;
   const coverImg = state.gallery[state.coverIndex] ?? state.gallery[0] ?? hotelData?.image ?? "/images/retreat-ibiza.jpg";
   const location = hotelData ? `${hotelData.city}, ${hotelData.country}` : "";
 
@@ -148,18 +153,11 @@ export default function WizardStep6() {
         return;
       }
 
-      // Map wizard type to API retreat_type
-      const typeMap: Record<string, string> = {
-        retreat: "wellness",
-        masterclass: "corporate",
-        meditation: "spiritual",
-      };
-
       // 1. Create the retreat
       const res = await agencyApi.createRetreat({
         hotel_id: state.hotelId,
         name: state.name,
-        retreat_type: typeMap[state.type] ?? "wellness",
+        retreat_type: state.type,
         duration_nights: state.nights,
         starts_on: state.startDate,
         ends_on: state.endDate,
@@ -216,7 +214,12 @@ export default function WizardStep6() {
   };
 
   if (published) {
-    const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Corporativo";
+    const pubTypeLabels: Record<string, string> = {
+      wellness: "Bienestar", spiritual: "Espiritual", liderazgo_mujeres: "Liderazgo Mujeres",
+      constelaciones_familiares: "Constelaciones Familiares", breathwork: "Breathwork",
+      neurociencia: "Neurociencia", kabbalah: "Kabbalah", mindfulness: "Mindfulness",
+    };
+    const typeLabel = pubTypeLabels[state.type] ?? state.type;
     const minPrice = state.pricing.length > 0 ? Math.min(...state.pricing.filter((p) => p.retailPrice > 0).map((p) => p.retailPrice)) : 0;
 
     return (
@@ -386,7 +389,7 @@ export default function WizardStep6() {
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] text-humana-muted">Tipo</span>
                   <span className="text-[14px] text-humana-ink">
-                    {state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Corporativo"}
+                    {t.createRetreat.step2.types[state.type as keyof typeof t.createRetreat.step2.types] ?? state.type}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
