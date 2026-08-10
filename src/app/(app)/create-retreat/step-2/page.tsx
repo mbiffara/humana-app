@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { StepIndicator } from "@/components/StepIndicator";
 import { WizardVistaPrevia } from "@/components/WizardVistaPrevia";
-import { useWizard } from "@/contexts/WizardContext";
+import { useWizard, type WizardState } from "@/contexts/WizardContext";
 
 
 export default function WizardStep2() {
@@ -84,12 +84,12 @@ export default function WizardStep2() {
                   </label>
                   <select
                     value={state.type}
-                    onChange={(e) => set({ type: e.target.value as "retreat" | "masterclass" | "meditation" })}
+                    onChange={(e) => set({ type: e.target.value as WizardState["type"] })}
                     className="w-full border border-humana-line bg-white px-4 py-3 text-[15px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
                   >
-                    <option value="retreat">{t.createRetreat.step2.types.retreat}</option>
-                    <option value="masterclass">{t.createRetreat.step2.types.masterclass}</option>
-                    <option value="meditation">{t.createRetreat.step2.types.meditation}</option>
+                    {(Object.keys(t.createRetreat.step2.types) as Array<keyof typeof t.createRetreat.step2.types>).map((key) => (
+                      <option key={key} value={key}>{t.createRetreat.step2.types[key]}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex flex-col gap-2">

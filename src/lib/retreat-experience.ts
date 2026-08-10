@@ -11,7 +11,7 @@ export function retreatToExperience(r: PublicRetreat): ApiExperience {
   return {
     id: r.id,
     slug: r.slug,
-    kind: "retreat",
+    kind: r.retreat_type ?? "wellness",
     status: "published",
     title: r.name,
     description: r.short_description || r.description,

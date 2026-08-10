@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useWizard } from "@/contexts/WizardContext";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
@@ -25,8 +26,9 @@ type Props = {
 
 export function WizardVistaPrevia({ currentStep, onNext, canProceed = true, localPricing }: Props) {
   const { state } = useWizard();
+  const { t } = useLocale();
   const hotelData = state.hotelData;
-  const typeLabel = state.type === "retreat" ? "Retiro" : state.type === "masterclass" ? "Masterclass" : "Meditación";
+  const typeLabel = t.createRetreat.step2.types[state.type as keyof typeof t.createRetreat.step2.types] ?? state.type;
 
   const activePricing = localPricing ?? state.pricing;
   const validPrices = activePricing.filter((p) => p.retailPrice > 0);

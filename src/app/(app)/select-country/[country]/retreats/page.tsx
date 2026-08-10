@@ -10,7 +10,7 @@ import { countries, countrySlugToId } from "@/data/countries";
 import { agencyApi, type ApiExperience } from "@/lib/api/agency";
 import { retreatToExperience } from "@/lib/retreat-experience";
 
-type FilterType = "all" | "retreat" | "masterclass" | "meditation";
+type FilterType = "all" | "wellness" | "spiritual" | "breathwork" | "mindfulness";
 
 function formatShortDate(iso: string) {
   const d = new Date(iso + "T00:00:00");
@@ -92,9 +92,10 @@ export default function CountryRetreatsPage({ params }: { params: Promise<{ coun
 
         <div className="flex items-center gap-2.5">
           <FilterChip label={t.retreats.filters.all} active={filter === "all"} onClick={() => setFilter("all")} />
-          <FilterChip label={t.retreats.filters.retreat} active={filter === "retreat"} onClick={() => setFilter("retreat")} />
-          <FilterChip label={t.retreats.filters.masterclass} active={filter === "masterclass"} onClick={() => setFilter("masterclass")} />
-          <FilterChip label={t.retreats.filters.meditation} active={filter === "meditation"} onClick={() => setFilter("meditation")} />
+          <FilterChip label={t.retreats.filters.wellness} active={filter === "wellness"} onClick={() => setFilter("wellness")} />
+          <FilterChip label={t.retreats.filters.spiritual} active={filter === "spiritual"} onClick={() => setFilter("spiritual")} />
+          <FilterChip label={t.retreats.filters.breathwork} active={filter === "breathwork"} onClick={() => setFilter("breathwork")} />
+          <FilterChip label={t.retreats.filters.mindfulness} active={filter === "mindfulness"} onClick={() => setFilter("mindfulness")} />
         </div>
       </div>
 
@@ -112,7 +113,7 @@ export default function CountryRetreatsPage({ params }: { params: Promise<{ coun
                 (new Date(exp.ends_on).getTime() - new Date(exp.starts_on).getTime()) / 86400000,
               ),
             );
-            const kindLabel = exp.kind === "masterclass" ? "Masterclass" : "Retiro";
+            const kindLabel = t.hotelWs?.retreats?.wizard?.types?.[exp.kind as keyof typeof t.hotelWs.retreats.wizard.types] ?? exp.kind;
             const tag = `${kindLabel} · ${nights} ${nights === 1 ? "noche" : "noches"}`;
             const location = exp.location ?? exp.country ?? "";
 

@@ -108,7 +108,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
 
   const hotelName = experience.hotel?.name ?? hotel?.name ?? "";
   const location = experience.location ?? "";
-  const kindLabel = experience.kind === "masterclass" ? "MASTERCLASS" : "RETREAT";
+  const kindLabel = (t.hotelWs?.retreats?.wizard?.types?.[experience.kind as keyof typeof t.hotelWs.retreats.wizard.types] ?? experience.kind).toUpperCase();
 
   return (
     <div className="animate-fade-in-up flex flex-col">

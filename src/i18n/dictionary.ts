@@ -287,9 +287,12 @@ type Dictionary = {
         types: {
           wellness: string;
           spiritual: string;
-          corporate: string;
-          adventure: string;
-          medical: string;
+          liderazgo_mujeres: string;
+          constelaciones_familiares: string;
+          breathwork: string;
+          neurociencia: string;
+          kabbalah: string;
+          mindfulness: string;
         };
         info: {
           title: string;
@@ -759,20 +762,28 @@ type Dictionary = {
     experiencesSingular: string;
     experiencesPlural: (n: number) => string;
     countries: {
+      spain: string;
+      colombia: string;
+      ecuador: string;
+      peru: string;
+      brazil: string;
+      paraguay: string;
+      chile: string;
+      argentina: string;
+      uruguay: string;
+      "costa-rica": string;
+      "el-salvador": string;
+      panama: string;
+      "dominican-republic": string;
       usa: string;
       mexico: string;
-      argentina: string;
-      brazil: string;
-      spain: string;
-      india: string;
-      indonesia: string;
     };
   };
   retreats: {
     eyebrow: string;
     title: string;
     count: string;
-    filters: { all: string; retreat: string; masterclass: string; meditation: string };
+    filters: { all: string; wellness: string; spiritual: string; breathwork: string; mindfulness: string };
     seeAll: string;
     items: Retreat[];
   };
@@ -929,7 +940,7 @@ type Dictionary = {
       capacity: string;
       language: string;
       description: string;
-      types: { retreat: string; masterclass: string; meditation: string };
+      types: { wellness: string; spiritual: string; liderazgo_mujeres: string; constelaciones_familiares: string; breathwork: string; neurociencia: string; kabbalah: string; mindfulness: string };
     };
     step3: {
       title: string;
@@ -1924,9 +1935,12 @@ export const dictionary: Record<Locale, Dictionary> = {
           types: {
             wellness: "Wellness",
             spiritual: "Spiritual",
-            corporate: "Corporate",
-            adventure: "Adventure",
-            medical: "Medical",
+            liderazgo_mujeres: "Women's Leadership",
+            constelaciones_familiares: "Family Constellations",
+            breathwork: "Breathwork",
+            neurociencia: "Neuroscience",
+            kabbalah: "Kabbalah",
+            mindfulness: "Mindfulness",
           },
           info: {
             title: "Basic information",
@@ -2433,20 +2447,28 @@ export const dictionary: Record<Locale, Dictionary> = {
       experiencesSingular: "1 experience",
       experiencesPlural: (n) => `${n} experiences`,
       countries: {
+        spain: "Spain",
+        colombia: "Colombia",
+        ecuador: "Ecuador",
+        peru: "Peru",
+        brazil: "Brazil",
+        paraguay: "Paraguay",
+        chile: "Chile",
+        argentina: "Argentina",
+        uruguay: "Uruguay",
+        "costa-rica": "Costa Rica",
+        "el-salvador": "El Salvador",
+        panama: "Panama",
+        "dominican-republic": "Dominican Rep.",
         usa: "United States",
         mexico: "Mexico",
-        argentina: "Argentina",
-        brazil: "Brazil",
-        spain: "Spain",
-        india: "India",
-        indonesia: "Indonesia",
       },
     },
     retreats: {
       eyebrow: "Open calendar",
       title: "Upcoming wellness retreats",
       count: "8 certified experiences available this season across Mexico.",
-      filters: { all: "All", retreat: "Retreat", masterclass: "Masterclass", meditation: "Meditation" },
+      filters: { all: "All", wellness: "Wellness", spiritual: "Spiritual", breathwork: "Breathwork", mindfulness: "Mindfulness" },
       seeAll: "See full calendar →",
       items: [
         {
@@ -2732,7 +2754,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         capacity: "Max. capacity",
         language: "Language",
         description: "Description",
-        types: { retreat: "Retreat", masterclass: "Masterclass", meditation: "Meditation" },
+        types: { wellness: "Wellness", spiritual: "Spiritual", liderazgo_mujeres: "Women's Leadership", constelaciones_familiares: "Family Constellations", breathwork: "Breathwork", neurociencia: "Neuroscience", kabbalah: "Kabbalah", mindfulness: "Mindfulness" },
       },
       step3: {
         title: "Program",
@@ -3773,9 +3795,12 @@ export const dictionary: Record<Locale, Dictionary> = {
           types: {
             wellness: "Bienestar",
             spiritual: "Espiritual",
-            corporate: "Corporativo",
-            adventure: "Aventura",
-            medical: "Médico",
+            liderazgo_mujeres: "Liderazgo Mujeres",
+            constelaciones_familiares: "Constelaciones Familiares",
+            breathwork: "Breathwork",
+            neurociencia: "Neurociencia",
+            kabbalah: "Kabbalah",
+            mindfulness: "Mindfulness",
           },
           info: {
             title: "Información básica",
@@ -4282,20 +4307,28 @@ export const dictionary: Record<Locale, Dictionary> = {
       experiencesSingular: "1 experiencia",
       experiencesPlural: (n) => `${n} experiencias`,
       countries: {
+        spain: "España",
+        colombia: "Colombia",
+        ecuador: "Ecuador",
+        peru: "Perú",
+        brazil: "Brasil",
+        paraguay: "Paraguay",
+        chile: "Chile",
+        argentina: "Argentina",
+        uruguay: "Uruguay",
+        "costa-rica": "Costa Rica",
+        "el-salvador": "El Salvador",
+        panama: "Panamá",
+        "dominican-republic": "Rep. Dominicana",
         usa: "Estados Unidos",
         mexico: "México",
-        argentina: "Argentina",
-        brazil: "Brasil",
-        spain: "España",
-        india: "India",
-        indonesia: "Indonesia",
       },
     },
     retreats: {
       eyebrow: "Calendario abierto",
       title: "Próximos retiros wellness",
       count: "8 experiencias certificadas disponibles esta temporada en México.",
-      filters: { all: "Todos", retreat: "Retiro", masterclass: "Masterclass", meditation: "Meditación" },
+      filters: { all: "Todos", wellness: "Bienestar", spiritual: "Espiritual", breathwork: "Breathwork", mindfulness: "Mindfulness" },
       seeAll: "Ver calendario completo →",
       items: [
         {
@@ -4581,7 +4614,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         capacity: "Capacidad máxima",
         language: "Idioma",
         description: "Descripción",
-        types: { retreat: "Retiro", masterclass: "Masterclass", meditation: "Meditación" },
+        types: { wellness: "Bienestar", spiritual: "Espiritual", liderazgo_mujeres: "Liderazgo Mujeres", constelaciones_familiares: "Constelaciones Familiares", breathwork: "Breathwork", neurociencia: "Neurociencia", kabbalah: "Kabbalah", mindfulness: "Mindfulness" },
       },
       step3: {
         title: "Programa",
@@ -5622,9 +5655,12 @@ export const dictionary: Record<Locale, Dictionary> = {
           types: {
             wellness: "Bem-estar",
             spiritual: "Espiritual",
-            corporate: "Corporativo",
-            adventure: "Aventura",
-            medical: "Médico",
+            liderazgo_mujeres: "Liderança Feminina",
+            constelaciones_familiares: "Constelações Familiares",
+            breathwork: "Breathwork",
+            neurociencia: "Neurociência",
+            kabbalah: "Kabbalah",
+            mindfulness: "Mindfulness",
           },
           info: {
             title: "Informações básicas",
@@ -6132,20 +6168,28 @@ export const dictionary: Record<Locale, Dictionary> = {
       experiencesSingular: "1 experiência",
       experiencesPlural: (n) => `${n} experiências`,
       countries: {
+        spain: "Espanha",
+        colombia: "Colômbia",
+        ecuador: "Equador",
+        peru: "Peru",
+        brazil: "Brasil",
+        paraguay: "Paraguai",
+        chile: "Chile",
+        argentina: "Argentina",
+        uruguay: "Uruguai",
+        "costa-rica": "Costa Rica",
+        "el-salvador": "El Salvador",
+        panama: "Panamá",
+        "dominican-republic": "Rep. Dominicana",
         usa: "Estados Unidos",
         mexico: "México",
-        argentina: "Argentina",
-        brazil: "Brasil",
-        spain: "Espanha",
-        india: "Índia",
-        indonesia: "Indonésia",
       },
     },
     retreats: {
       eyebrow: "Calendário aberto",
       title: "Próximos retiros wellness",
       count: "8 experiências certificadas disponíveis nesta temporada no México.",
-      filters: { all: "Todos", retreat: "Retiro", masterclass: "Masterclass", meditation: "Meditación" },
+      filters: { all: "Todos", wellness: "Bem-estar", spiritual: "Espiritual", breathwork: "Breathwork", mindfulness: "Mindfulness" },
       seeAll: "Ver calendário completo →",
       items: [
         {
@@ -6431,7 +6475,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         capacity: "Capacidade máxima",
         language: "Idioma",
         description: "Descrição",
-        types: { retreat: "Retiro", masterclass: "Masterclass", meditation: "Meditación" },
+        types: { wellness: "Bem-estar", spiritual: "Espiritual", liderazgo_mujeres: "Liderança Feminina", constelaciones_familiares: "Constelações Familiares", breathwork: "Breathwork", neurociencia: "Neurociência", kabbalah: "Kabbalah", mindfulness: "Mindfulness" },
       },
       step3: {
         title: "Programa",
