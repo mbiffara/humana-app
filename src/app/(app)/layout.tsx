@@ -60,6 +60,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, router, isOnboarding, isOffice, pathname]);
 
+  // Agency paywall: show plan-selection modal when no active subscription
+  const isAgencyPaywallExempt = pathname.startsWith("/agency/settings") || isOnboarding;
+  const hasActiveSubscription =
+    subscription != null &&
+    (subscription.status === "active" || subscription.status === "trialing");
+  const showAgencyPaywall =
+    isAgency &&
+    !!user?.organization?.onboarding_completed &&
+    !hasActiveSubscription &&
+    !isAgencyPaywallExempt;
+
+  // Lock body scroll while agency paywall is visible
+  useEffect(() => {
+    if (showAgencyPaywall) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [showAgencyPaywall]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-humana-stone">
@@ -75,27 +96,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
   if (user.status === "suspended") return null;
-
-  // Agency paywall: show plan-selection modal when no active subscription
-  const isAgencyPaywallExempt = pathname.startsWith("/agency/settings") || isOnboarding;
-  const hasActiveSubscription =
-    subscription != null &&
-    (subscription.status === "active" || subscription.status === "trialing");
-  const showAgencyPaywall =
-    isAgency &&
-    user.organization?.onboarding_completed &&
-    !hasActiveSubscription &&
-    !isAgencyPaywallExempt;
-
-  // Lock body scroll while agency paywall is visible
-  useEffect(() => {
-    if (showAgencyPaywall) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [showAgencyPaywall]);
 
   return (
     <BookingProvider>
