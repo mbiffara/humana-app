@@ -30,14 +30,16 @@ export default function DashboardPage() {
   }, [isAdmin, router]);
 
   return (
-    <div className="flex flex-col">
-      <BannerSection />
-      <DashboardKpis />
-      <Hero />
-      <MapCoverage />
-      <RetreatsSection />
+    <>
+      <div className="mx-auto flex max-w-[1400px] flex-col">
+        <BannerSection />
+        <DashboardKpis />
+        <Hero />
+        <MapCoverage />
+        <RetreatsSection />
+      </div>
       <Footer />
-    </div>
+    </>
   );
 }
 
@@ -94,7 +96,7 @@ function Hero() {
         <div className="flex items-center gap-3.5">
           <span className="h-px w-7 bg-humana-gold" />
           <span className="text-[11px] font-medium uppercase tracking-[0.28em] text-humana-gold">
-            {t.hero.eyebrow}
+            {t.hero.eyebrow(new Date().getFullYear())}
           </span>
         </div>
         <h1 className="text-[42px] font-light leading-[50px] tracking-[-0.02em] text-humana-ink">
@@ -613,6 +615,7 @@ function RetreatsSection() {
 
 function CreateRetreatBanner() {
   const { t } = useLocale();
+  const { user } = useAuth();
   return (
     <div className="relative overflow-hidden bg-humana-ink">
       {/* Decorative isotipo */}
@@ -632,7 +635,7 @@ function CreateRetreatBanner() {
             <div className="flex items-center gap-3.5">
               <span className="h-px w-7 bg-humana-gold" />
               <span className="text-[12px] font-medium uppercase tracking-[0.28em] text-humana-gold">
-                Bienvenido {t.nav.agencyName}
+                {t.dashboard.welcome(user?.organization?.name ?? "")}
               </span>
             </div>
             <h3 className="text-[28px] font-light tracking-[-0.01em] text-white">

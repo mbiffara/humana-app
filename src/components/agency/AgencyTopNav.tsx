@@ -17,7 +17,6 @@ export function AgencyTopNav() {
     { label: t.agencyWs.nav.clients, href: "/agency/clients" },
     { label: t.agencyWs.nav.bookings, href: "/agency/bookings" },
     { label: t.agencyWs.nav.myRetreats, href: "/agency/my-retreats" },
-    { label: t.agencyWs.nav.settings, href: "/agency/settings" },
   ];
 
   const initials = user?.name
@@ -50,7 +49,7 @@ export function AgencyTopNav() {
             className="h-[34px] w-auto"
             priority
           />
-          <span className="ml-1 rounded bg-amber-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+          <span className="ml-1 rounded bg-humana-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-humana-gold">
             {t.agencyWs.badge}
           </span>
         </Link>
@@ -84,8 +83,8 @@ export function AgencyTopNav() {
           <LanguageSwitcher />
           <span className="h-3.5 w-px bg-[#D8D4C8]" />
 
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-600">
+          <Link href="/agency/settings" className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 transition-all duration-150 hover:bg-humana-stone/70">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-humana-gold">
               <span className="text-[12px] font-semibold text-white">
                 {initials}
               </span>
@@ -98,18 +97,18 @@ export function AgencyTopNav() {
                 {user?.organization?.name}
               </span>
             </div>
-            <button
-              onClick={logout}
-              className="ml-3 cursor-pointer text-[12px] text-humana-muted transition-colors hover:text-red-600"
-              title="Logout"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </button>
-          </div>
+          </Link>
+          <button
+            onClick={logout}
+            className="ml-3 cursor-pointer text-[12px] text-humana-muted transition-colors hover:text-red-600"
+            title="Logout"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </div>
     </nav>

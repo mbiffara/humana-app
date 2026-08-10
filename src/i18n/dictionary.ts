@@ -491,12 +491,25 @@ type Dictionary = {
         title: string;
         subtitle: string;
         perMonth: string;
+        perYear: string;
         commission: string;
         currentPlan: string;
         selectPlan: string;
         selecting: string;
         sponsoredTitle: string;
         sponsoredBody: string;
+        activePlan: string;
+        startDate: string;
+        nextBilling: string;
+        autoDebit: string;
+        cancelTitle: string;
+        cancelHint: string;
+        cancelAction: string;
+        cancelModalTitle: string;
+        cancelModalBody: string;
+        cancelModalKeep: string;
+        cancelModalConfirm: string;
+        cancelModalCancelling: string;
         features: Record<string, string>;
       };
       payments: {
@@ -525,6 +538,7 @@ type Dictionary = {
       myRetreats: string;
       settings: string;
     };
+    paywall: { eyebrow: string; title: string; body: string; cta: string };
     clients: {
       eyebrow: string;
       title: string;
@@ -605,13 +619,41 @@ type Dictionary = {
         title: string;
         subtitle: string;
         perMonth: string;
+        perYear: string;
         commission: string;
         currentPlan: string;
         selectPlan: string;
         selecting: string;
+        activePlan: string;
+        startDate: string;
+        nextBilling: string;
+        autoDebit: string;
+        cancelTitle: string;
+        cancelHint: string;
+        cancelAction: string;
+        cancelModalTitle: string;
+        cancelModalBody: string;
+        cancelModalKeep: string;
+        cancelModalConfirm: string;
+        cancelModalCancelling: string;
         features: Record<string, string>;
       };
-      payments: { eyebrow: string; title: string; subtitle: string; comingSoon: string };
+      payments: {
+        eyebrow: string;
+        title: string;
+        subtitle: string;
+        accountHolder: string;
+        iban: string;
+        swift: string;
+        currency: string;
+        country: string;
+        save: string;
+        saving: string;
+        statusConfigured: string;
+        statusPending: string;
+        paymentsReceived: string;
+        noPayments: string;
+      };
     };
     myRetreats: {
       eyebrow: string;
@@ -685,7 +727,7 @@ type Dictionary = {
     signOut: string;
   };
   hero: {
-    eyebrow: string;
+    eyebrow: (year: number) => string;
     headline: [string, string];
     subhead: string;
   };
@@ -735,6 +777,7 @@ type Dictionary = {
     items: Retreat[];
   };
   dashboard: {
+    welcome: (name: string) => string;
     createRetreatTitle: string;
     createRetreatDesc: string;
     createRetreatCta: string;
@@ -2088,10 +2131,23 @@ export const dictionary: Record<Locale, Dictionary> = {
           sponsoredTitle: "Sponsored Access",
           sponsoredBody: "Your hotel has full access to the platform, sponsored by HUMANA. An active subscription plan is optional.",
           perMonth: "/month",
+          perYear: "/year",
           commission: "commission",
           currentPlan: "Current Plan",
           selectPlan: "Select Plan",
           selecting: "Selecting…",
+          activePlan: "Active Plan",
+          startDate: "Start date",
+          nextBilling: "Next billing",
+          autoDebit: "Your subscription will be automatically renewed and debited from your account.",
+          cancelTitle: "Cancel Subscription",
+          cancelHint: "Your plan will remain active until the end of the current billing period.",
+          cancelAction: "Cancel",
+          cancelModalTitle: "Cancel Subscription?",
+          cancelModalBody: "Are you sure you want to cancel your subscription? You will continue to have access until the end of your current billing period.",
+          cancelModalKeep: "Keep Plan",
+          cancelModalConfirm: "Yes, Cancel",
+          cancelModalCancelling: "Cancelling…",
           features: {
             basic_listing: "Basic listing",
             email_support: "Email support",
@@ -2126,13 +2182,19 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
     },
     agencyWs: {
-      badge: "Agency Partner",
+      badge: "Agency",
       nav: {
         discover: "Discover",
         clients: "Clients",
         bookings: "Bookings",
         myRetreats: "My Retreats",
         settings: "Settings",
+      },
+      paywall: {
+        eyebrow: "SUBSCRIPTION REQUIRED",
+        title: "Choose a plan to continue",
+        body: "Select a subscription plan to unlock your agency workspace and start booking retreats, managing clients, and more.",
+        cta: "SELECT A PLAN",
       },
       clients: {
         eyebrow: "CLIENT MANAGEMENT",
@@ -2214,10 +2276,23 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Choose Your Plan",
           subtitle: "Select the plan that best fits your agency's needs.",
           perMonth: "/month",
+          perYear: "/year",
           commission: "commission",
           currentPlan: "Current Plan",
           selectPlan: "Select Plan",
           selecting: "Selecting…",
+          activePlan: "Active Plan",
+          startDate: "Start date",
+          nextBilling: "Next billing",
+          autoDebit: "Your subscription will be automatically renewed and debited from your account.",
+          cancelTitle: "Cancel Subscription",
+          cancelHint: "Your plan will remain active until the end of the current billing period.",
+          cancelAction: "Cancel",
+          cancelModalTitle: "Cancel Subscription?",
+          cancelModalBody: "Are you sure you want to cancel your subscription? You will continue to have access until the end of your current billing period.",
+          cancelModalKeep: "Keep Plan",
+          cancelModalConfirm: "Yes, Cancel",
+          cancelModalCancelling: "Cancelling…",
           features: {
             max_bookings: "Up to 10 bookings/month",
             max_bookings_unlimited: "Unlimited bookings",
@@ -2235,7 +2310,22 @@ export const dictionary: Record<Locale, Dictionary> = {
             sla: "99.9% SLA",
           },
         },
-        payments: { eyebrow: "PAYMENTS", title: "Payment Settings", subtitle: "Configure how you receive commission payments.", comingSoon: "Payment settings coming soon." },
+        payments: {
+          eyebrow: "COMMISSION PAYMENTS",
+          title: "Bank Account",
+          subtitle: "Configure the account where you will receive your 16% commission.",
+          accountHolder: "Account Holder",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Currency",
+          country: "Country",
+          save: "Save Bank Details",
+          saving: "Saving…",
+          statusConfigured: "Configured",
+          statusPending: "Pending",
+          paymentsReceived: "Payments Received",
+          noPayments: "No commission payments received yet.",
+        },
       },
       myRetreats: {
         eyebrow: "MY RETREATS",
@@ -2310,7 +2400,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       signOut: "Sign out",
     },
     hero: {
-      eyebrow: "Global network · 2026 Season",
+      eyebrow: (year: number) => `Global network · ${year} Season`,
       headline: ["Design your client's next", "transformative journey."],
       subhead:
         "Curated access to certified wellness hotels, purpose-driven retreats and international masterclasses. Transparent commission on every booking.",
@@ -2490,6 +2580,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       ],
     },
     dashboard: {
+      welcome: (name: string) => `Welcome ${name}`,
       createRetreatTitle: "Design your own retreat at any hotel in the network",
       createRetreatDesc: "Create personalized experiences for your clients at +300 certified wellness hotels. Publish and manage your retreats from your agency panel.",
       createRetreatCta: "Create retreat",
@@ -3889,10 +3980,23 @@ export const dictionary: Record<Locale, Dictionary> = {
           sponsoredTitle: "Acceso Patrocinado",
           sponsoredBody: "Tu hotel cuenta con acceso completo a la plataforma, patrocinado por HUMANA. Un plan de suscripción activo es opcional.",
           perMonth: "/mes",
+          perYear: "/año",
           commission: "comisión",
           currentPlan: "Plan Actual",
           selectPlan: "Seleccionar Plan",
           selecting: "Seleccionando…",
+          activePlan: "Plan Activo",
+          startDate: "Fecha de inicio",
+          nextBilling: "Próximo cobro",
+          autoDebit: "Tu suscripción se renovará y debitará automáticamente de tu cuenta.",
+          cancelTitle: "Cancelar Suscripción",
+          cancelHint: "Tu plan seguirá activo hasta el final del período de facturación actual.",
+          cancelAction: "Cancelar",
+          cancelModalTitle: "¿Cancelar Suscripción?",
+          cancelModalBody: "¿Estás seguro de que deseas cancelar tu suscripción? Seguirás teniendo acceso hasta el final de tu período de facturación actual.",
+          cancelModalKeep: "Mantener Plan",
+          cancelModalConfirm: "Sí, Cancelar",
+          cancelModalCancelling: "Cancelando…",
           features: {
             basic_listing: "Listado básico",
             email_support: "Soporte por email",
@@ -3927,13 +4031,19 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
     },
     agencyWs: {
-      badge: "Socio Agencia",
+      badge: "Agencia",
       nav: {
         discover: "Descubrir",
         clients: "Clientes",
         bookings: "Reservas",
         myRetreats: "Mis Retiros",
         settings: "Configuración",
+      },
+      paywall: {
+        eyebrow: "SUSCRIPCIÓN REQUERIDA",
+        title: "Elige un plan para continuar",
+        body: "Selecciona un plan de suscripción para desbloquear tu espacio de agencia y comenzar a reservar retiros, gestionar clientes y más.",
+        cta: "SELECCIONAR UN PLAN",
       },
       clients: {
         eyebrow: "GESTIÓN DE CLIENTES",
@@ -4015,10 +4125,23 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Elige Tu Plan",
           subtitle: "Selecciona el plan que mejor se adapte a las necesidades de tu agencia.",
           perMonth: "/mes",
+          perYear: "/año",
           commission: "comisión",
           currentPlan: "Plan Actual",
           selectPlan: "Seleccionar Plan",
           selecting: "Seleccionando…",
+          activePlan: "Plan Activo",
+          startDate: "Fecha de inicio",
+          nextBilling: "Próximo cobro",
+          autoDebit: "Tu suscripción se renovará y debitará automáticamente de tu cuenta.",
+          cancelTitle: "Cancelar Suscripción",
+          cancelHint: "Tu plan seguirá activo hasta el final del período de facturación actual.",
+          cancelAction: "Cancelar",
+          cancelModalTitle: "¿Cancelar Suscripción?",
+          cancelModalBody: "¿Estás seguro de que deseas cancelar tu suscripción? Seguirás teniendo acceso hasta el final de tu período de facturación actual.",
+          cancelModalKeep: "Mantener Plan",
+          cancelModalConfirm: "Sí, Cancelar",
+          cancelModalCancelling: "Cancelando…",
           features: {
             max_bookings: "Hasta 10 reservas/mes",
             max_bookings_unlimited: "Reservas ilimitadas",
@@ -4036,7 +4159,22 @@ export const dictionary: Record<Locale, Dictionary> = {
             sla: "SLA 99.9%",
           },
         },
-        payments: { eyebrow: "PAGOS", title: "Configuración de Pagos", subtitle: "Configura cómo recibes los pagos de comisiones.", comingSoon: "Configuración de pagos próximamente." },
+        payments: {
+          eyebrow: "PAGOS DE COMISIÓN",
+          title: "Cuenta Bancaria",
+          subtitle: "Configura la cuenta donde recibirás tu 16% de comisión.",
+          accountHolder: "Nombre del Titular",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Moneda",
+          country: "País",
+          save: "Guardar Datos Bancarios",
+          saving: "Guardando…",
+          statusConfigured: "Configurado",
+          statusPending: "Pendiente",
+          paymentsReceived: "Pagos Recibidos",
+          noPayments: "Aún no se han recibido pagos de comisión.",
+        },
       },
       myRetreats: {
         eyebrow: "MIS RETIROS",
@@ -4111,7 +4249,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       signOut: "Cerrar sesión",
     },
     hero: {
-      eyebrow: "Red global · Temporada 2026",
+      eyebrow: (year: number) => `Red global · Temporada ${year}`,
       headline: ["Diseña el próximo viaje", "transformador de tu cliente."],
       subhead:
         "Acceso curado a hoteles wellness certificados, retiros con propósito y masterclasses internacionales. Comisión transparente en cada reserva.",
@@ -4291,6 +4429,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       ],
     },
     dashboard: {
+      welcome: (name: string) => `Bienvenido ${name}`,
       createRetreatTitle: "Diseña tu propio retiro en cualquier hotel de la red",
       createRetreatDesc: "Crea experiencias personalizadas para tus clientes en +300 hoteles wellness certificados. Publica y gestiona tus retiros desde tu panel de agencia.",
       createRetreatCta: "Crear retiro",
@@ -5690,10 +5829,23 @@ export const dictionary: Record<Locale, Dictionary> = {
           sponsoredTitle: "Acesso Patrocinado",
           sponsoredBody: "Seu hotel conta com acesso completo à plataforma, patrocinado pela HUMANA. Um plano de assinatura ativo é opcional.",
           perMonth: "/mês",
+          perYear: "/ano",
           commission: "comissão",
           currentPlan: "Plano Atual",
           selectPlan: "Selecionar Plano",
           selecting: "Selecionando…",
+          activePlan: "Plano Ativo",
+          startDate: "Data de início",
+          nextBilling: "Próxima cobrança",
+          autoDebit: "Sua assinatura será renovada e debitada automaticamente da sua conta.",
+          cancelTitle: "Cancelar Assinatura",
+          cancelHint: "Seu plano continuará ativo até o final do período de faturamento atual.",
+          cancelAction: "Cancelar",
+          cancelModalTitle: "Cancelar Assinatura?",
+          cancelModalBody: "Tem certeza de que deseja cancelar sua assinatura? Você continuará tendo acesso até o final do período de faturamento atual.",
+          cancelModalKeep: "Manter Plano",
+          cancelModalConfirm: "Sim, Cancelar",
+          cancelModalCancelling: "Cancelando…",
           features: {
             basic_listing: "Listagem básica",
             email_support: "Suporte por email",
@@ -5728,13 +5880,19 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
     },
     agencyWs: {
-      badge: "Parceiro Agência",
+      badge: "Agência",
       nav: {
         discover: "Descobrir",
         clients: "Clientes",
         bookings: "Reservas",
         myRetreats: "Meus Retiros",
         settings: "Configurações",
+      },
+      paywall: {
+        eyebrow: "ASSINATURA NECESSÁRIA",
+        title: "Escolha um plano para continuar",
+        body: "Selecione um plano de assinatura para desbloquear seu espaço de agência e começar a reservar retiros, gerenciar clientes e mais.",
+        cta: "SELECIONAR UM PLANO",
       },
       clients: {
         eyebrow: "GESTÃO DE CLIENTES",
@@ -5816,10 +5974,23 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Escolha Seu Plano",
           subtitle: "Selecione o plano que melhor atende às necessidades da sua agência.",
           perMonth: "/mês",
+          perYear: "/ano",
           commission: "comissão",
           currentPlan: "Plano Atual",
           selectPlan: "Selecionar Plano",
           selecting: "Selecionando…",
+          activePlan: "Plano Ativo",
+          startDate: "Data de início",
+          nextBilling: "Próxima cobrança",
+          autoDebit: "Sua assinatura será renovada e debitada automaticamente da sua conta.",
+          cancelTitle: "Cancelar Assinatura",
+          cancelHint: "Seu plano continuará ativo até o final do período de faturamento atual.",
+          cancelAction: "Cancelar",
+          cancelModalTitle: "Cancelar Assinatura?",
+          cancelModalBody: "Tem certeza de que deseja cancelar sua assinatura? Você continuará tendo acesso até o final do período de faturamento atual.",
+          cancelModalKeep: "Manter Plano",
+          cancelModalConfirm: "Sim, Cancelar",
+          cancelModalCancelling: "Cancelando…",
           features: {
             max_bookings: "Até 10 reservas/mês",
             max_bookings_unlimited: "Reservas ilimitadas",
@@ -5837,7 +6008,22 @@ export const dictionary: Record<Locale, Dictionary> = {
             sla: "SLA 99.9%",
           },
         },
-        payments: { eyebrow: "PAGAMENTOS", title: "Configurações de Pagamento", subtitle: "Configure como você recebe os pagamentos de comissão.", comingSoon: "Configurações de pagamento em breve." },
+        payments: {
+          eyebrow: "PAGAMENTOS DE COMISSÃO",
+          title: "Conta Bancária",
+          subtitle: "Configure a conta onde você receberá sua comissão de 16%.",
+          accountHolder: "Nome do Titular",
+          iban: "IBAN",
+          swift: "SWIFT / BIC",
+          currency: "Moeda",
+          country: "País",
+          save: "Salvar Dados Bancários",
+          saving: "Salvando…",
+          statusConfigured: "Configurado",
+          statusPending: "Pendente",
+          paymentsReceived: "Pagamentos Recebidos",
+          noPayments: "Nenhum pagamento de comissão recebido ainda.",
+        },
       },
       myRetreats: {
         eyebrow: "MEUS RETIROS",
@@ -5913,7 +6099,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       signOut: "Sair",
     },
     hero: {
-      eyebrow: "Rede global · Temporada 2026",
+      eyebrow: (year: number) => `Rede global · Temporada ${year}`,
       headline: ["Desenhe a próxima viagem", "transformadora do seu cliente."],
       subhead:
         "Acesso curado a hotéis wellness certificados, retiros com propósito e masterclasses internacionais. Comissão transparente em cada reserva.",
@@ -6093,6 +6279,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       ],
     },
     dashboard: {
+      welcome: (name: string) => `Bem-vindo ${name}`,
       createRetreatTitle: "Projete seu próprio retiro em qualquer hotel da rede",
       createRetreatDesc: "Crie experiências personalizadas para seus clientes em +300 hotéis wellness certificados. Publique e gerencie seus retiros a partir do seu painel de agência.",
       createRetreatCta: "Criar retiro",

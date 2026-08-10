@@ -3,7 +3,7 @@
  *  Follows the same pattern as hotel settings, simplified for agency context. */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
@@ -244,7 +244,7 @@ type AgencyProfileResponse = Awaited<ReturnType<typeof agencyApi.getProfile>>["o
 type AgencyOrg = AgencyProfileResponse & { legal_name?: string | null };
 
 export default function AgencySettingsPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { user, logout, refreshAuth } = useAuth();
   const ts = t.agencyWs.settings;
   const searchParams = useSearchParams();
@@ -283,6 +283,18 @@ export default function AgencySettingsPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
+  // Guard against duplicate verify calls (React Strict Mode / effect re-runs)
+  const verifyAttempted = useRef(false);
+
+  // Payments (bank details — frontend-only for now)
+  const [bankHolder, setBankHolder] = useState("");
+  const [bankIban, setBankIban] = useState("");
+  const [bankSwift, setBankSwift] = useState("");
+  const [bankCurrency, setBankCurrency] = useState("USD");
+  const [bankCountry, setBankCountry] = useState("");
+  const [bankStatus, setBankStatus] = useState<"pending" | "configured">("pending");
+  const [bankSaving, setBankSaving] = useState(false);
+
   const loadProfile = useCallback(async () => {
     setLoading(true);
     try {
@@ -292,7 +304,7 @@ export default function AgencySettingsPage() {
         setOrg(o);
         setName(o.name ?? "");
         setLegalName(o.legal_name ?? "");
-        setContactEmail(o.contact_email ?? "");
+        setContactEmail(o.contact_email || user?.email || "");
         setPhone(o.phone ?? "");
         const raw = o as unknown as Record<string, string | null>;
         setLogoUrl(raw.logo_url ?? null);
@@ -336,10 +348,27 @@ export default function AgencySettingsPage() {
     }
   }, [tab, plans.length, loadSubscription]);
 
-  // Detect return from Stripe Checkout
+  // Detect return from Stripe Checkout — verify session and activate subscription
   useEffect(() => {
     const stripeStatus = searchParams.get("stripe");
-    if (stripeStatus === "success") {
+    const sessionId = searchParams.get("session_id");
+    if (stripeStatus === "success" && sessionId && !verifyAttempted.current) {
+      verifyAttempted.current = true;
+      setTab("subscription");
+      setSubLoading(true);
+      agencyApi.verifyCheckout(sessionId).then((res) => {
+        if (res.subscription) setCurrentSub(res.subscription);
+        refreshAuth();
+      }).catch(() => {
+        // ignore — loadSubscription below will fetch latest state
+      }).finally(() => {
+        loadSubscription();
+      });
+      const url = new URL(window.location.href);
+      url.searchParams.delete("stripe");
+      url.searchParams.delete("session_id");
+      window.history.replaceState({}, "", url.toString());
+    } else if (stripeStatus === "success") {
       setTab("subscription");
       loadSubscription();
       refreshAuth();
@@ -614,31 +643,6 @@ export default function AgencySettingsPage() {
                       />
                     </div>
                   </div>
-                  <div className="flex gap-5">
-                    <div className="flex flex-1 flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
-                        {ts.profile.taxId}
-                      </label>
-                      <input
-                        type="text"
-                        value={taxId}
-                        onChange={(e) => setTaxId(e.target.value)}
-                        className="w-full border border-humana-line px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
-                      />
-                    </div>
-                    <div className="flex flex-1 flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
-                        {ts.profile.website}
-                      </label>
-                      <input
-                        type="url"
-                        value={website}
-                        onChange={(e) => setWebsite(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full border border-humana-line px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -737,114 +741,196 @@ export default function AgencySettingsPage() {
                 <div className="mt-8 flex justify-center py-10">
                   <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
                 </div>
+              ) : currentSub && currentSub.status === "active" ? (
+                /* ── Active subscription details ── */
+                <div className="mt-8">
+                  {/* Active plan card */}
+                  <div className="border border-humana-gold bg-humana-gold-light/20 p-6">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                          {ts.subscription.activePlan}
+                        </p>
+                        <h3 className="mt-1 text-[20px] font-semibold text-humana-ink">
+                          {currentSub.plan.name}
+                        </h3>
+                        <div className="mt-2 flex items-baseline gap-1">
+                          <span className="text-[28px] font-light text-humana-ink">
+                            ${(currentSub.plan.price_cents / 100).toLocaleString()}
+                          </span>
+                          <span className="text-[13px] text-humana-muted">
+                            {currentSub.plan.billing_interval === "yearly" ? ts.subscription.perYear : ts.subscription.perMonth}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+                        {ts.subscription.currentPlan}
+                      </span>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div className="border border-humana-line bg-white p-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-humana-muted">
+                          {ts.subscription.startDate}
+                        </p>
+                        <p className="mt-1 text-[15px] font-medium text-humana-ink">
+                          {currentSub.current_period_start
+                            ? new Date(currentSub.current_period_start).toLocaleDateString(locale === "es" ? "es-ES" : locale === "pt" ? "pt-BR" : "en-US", { year: "numeric", month: "long", day: "numeric" })
+                            : "—"}
+                        </p>
+                      </div>
+                      <div className="border border-humana-line bg-white p-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-humana-muted">
+                          {ts.subscription.nextBilling}
+                        </p>
+                        <p className="mt-1 text-[15px] font-medium text-humana-ink">
+                          {currentSub.current_period_end
+                            ? new Date(currentSub.current_period_end).toLocaleDateString(locale === "es" ? "es-ES" : locale === "pt" ? "pt-BR" : "en-US", { year: "numeric", month: "long", day: "numeric" })
+                            : "—"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Auto-debit notice */}
+                    <div className="mt-4 flex items-start gap-2.5 rounded bg-white border border-humana-line p-3.5">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                      </svg>
+                      <p className="text-[13px] leading-[18px] text-humana-muted">
+                        {ts.subscription.autoDebit}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Cancel subscription */}
+                  {currentSub.plan.price_cents > 0 && (
+                    <div className="mt-6 border border-humana-line bg-humana-stone/30 p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-[14px] text-humana-ink font-medium">
+                            {ts.subscription.cancelTitle}
+                          </p>
+                          <p className="text-[13px] text-humana-muted mt-0.5">
+                            {ts.subscription.cancelHint}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowCancelModal(true)}
+                          className="cursor-pointer border border-red-300 bg-white px-5 py-2 text-[13px] font-semibold uppercase tracking-[0.16em] text-red-600 transition-colors hover:bg-red-50"
+                        >
+                          {ts.subscription.cancelAction}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Plan comparison below */}
+                  <div className="mt-8 border-t border-humana-line pt-6">
+                    <p className="text-[13px] font-medium text-humana-muted mb-4">{ts.subscription.title}</p>
+                    <div className="grid grid-cols-2 gap-5">
+                      {plans.map((plan) => {
+                        const isCurrent = currentSub?.plan?.id === plan.id;
+                        const isSelecting = selectingPlanId === plan.id;
+                        const featureEntries = Object.entries(plan.features).filter(([, v]) => v);
+                        const featureLabels = featureEntries.map(([key, value]) => {
+                          if (typeof value === "number") {
+                            const lookupKey = value === -1 ? `${key}_unlimited` : key;
+                            return ts.subscription.features[lookupKey] ?? key.replace(/_/g, " ");
+                          }
+                          if (typeof value === "string") {
+                            const lookupKey = `${key}_${value}`;
+                            return ts.subscription.features[lookupKey] ?? ts.subscription.features[key] ?? value;
+                          }
+                          return ts.subscription.features[key] ?? key.replace(/_/g, " ");
+                        });
+
+                        return (
+                          <div key={plan.id} className={`flex flex-col border p-5 transition-all ${isCurrent ? "border-humana-gold bg-humana-gold-light/30" : "border-humana-line bg-humana-stone/30 hover:shadow-md hover:-translate-y-0.5"}`}>
+                            <div className="flex items-start justify-between">
+                              <h3 className="text-[15px] font-semibold text-humana-ink">{plan.name}</h3>
+                              {isCurrent && (
+                                <span className="rounded-full bg-humana-gold px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                                  {ts.subscription.currentPlan}
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-2 flex items-baseline gap-1">
+                              <span className="text-[24px] font-light text-humana-ink">${(plan.price_cents / 100).toLocaleString()}</span>
+                              <span className="text-[12px] text-humana-muted">{plan.billing_interval === "yearly" ? ts.subscription.perYear : ts.subscription.perMonth}</span>
+                            </div>
+                            <ul className="mt-4 flex flex-1 flex-col gap-2">
+                              {featureLabels.map((label, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><polyline points="20 6 9 17 4 12" /></svg>
+                                  <span className="text-[12px] text-humana-ink">{label}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="mt-4">
+                              {isCurrent ? (
+                                <div className="flex items-center justify-center py-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-humana-gold">
+                                  {ts.subscription.currentPlan}
+                                </div>
+                              ) : (
+                                <button onClick={() => handleSelectPlan(plan.id)} disabled={isSelecting} className="w-full cursor-pointer bg-humana-gold px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40">
+                                  {isSelecting ? ts.subscription.selecting : ts.subscription.selectPlan}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               ) : (
-                <div className="mt-8 grid grid-cols-3 gap-5">
+                /* ── No subscription — show plan picker ── */
+                <div className="mt-8 grid grid-cols-2 gap-5">
                   {plans.map((plan) => {
-                    const isCurrent = currentSub?.plan?.id === plan.id;
                     const isSelecting = selectingPlanId === plan.id;
 
-                    // Build feature display keys from mixed-type features
                     const featureEntries = Object.entries(plan.features).filter(([, v]) => v);
                     const featureLabels = featureEntries.map(([key, value]) => {
-                      // For numeric values: -1 means unlimited
                       if (typeof value === "number") {
                         const lookupKey = value === -1 ? `${key}_unlimited` : key;
                         return ts.subscription.features[lookupKey] ?? key.replace(/_/g, " ");
                       }
-                      // For string values: combine key + value as lookup
                       if (typeof value === "string") {
                         const lookupKey = `${key}_${value}`;
                         return ts.subscription.features[lookupKey] ?? ts.subscription.features[key] ?? value;
                       }
-                      // Boolean true
                       return ts.subscription.features[key] ?? key.replace(/_/g, " ");
                     });
 
                     return (
-                      <div
-                        key={plan.id}
-                        className={`flex flex-col border p-6 transition-all ${
-                          isCurrent
-                            ? "border-humana-gold bg-humana-gold-light/30 shadow-sm"
-                            : "border-humana-line bg-humana-stone/30 hover:shadow-md hover:-translate-y-0.5"
-                        }`}
-                      >
-                        {/* Plan name + badge */}
-                        <div className="flex items-start justify-between">
-                          <h3 className="text-[16px] font-semibold text-humana-ink">{plan.name}</h3>
-                          {isCurrent && (
-                            <span className="rounded-full bg-humana-gold px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
-                              {ts.subscription.currentPlan}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Price */}
+                      <div key={plan.id} className="flex flex-col border border-humana-line bg-humana-stone/30 p-6 transition-all hover:shadow-md hover:-translate-y-0.5">
+                        <h3 className="text-[16px] font-semibold text-humana-ink">{plan.name}</h3>
                         <div className="mt-3 flex items-baseline gap-1">
-                          <span className="text-[28px] font-light text-humana-ink">
-                            ${(plan.price_cents / 100).toFixed(0)}
-                          </span>
-                          <span className="text-[13px] text-humana-muted">{ts.subscription.perMonth}</span>
+                          <span className="text-[28px] font-light text-humana-ink">${(plan.price_cents / 100).toLocaleString()}</span>
+                          <span className="text-[13px] text-humana-muted">{plan.billing_interval === "yearly" ? ts.subscription.perYear : ts.subscription.perMonth}</span>
                         </div>
-
-                        {/* Commission */}
                         <p className="mt-1 text-[12px] text-humana-subtle">
                           {(plan.commission_rate * 100).toFixed(0)}% {ts.subscription.commission}
                         </p>
-
-                        {/* Features */}
                         <ul className="mt-5 flex flex-1 flex-col gap-2.5">
                           {featureLabels.map((label, i) => (
                             <li key={i} className="flex items-start gap-2">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><polyline points="20 6 9 17 4 12" /></svg>
                               <span className="text-[13px] text-humana-ink">{label}</span>
                             </li>
                           ))}
                         </ul>
-
-                        {/* Action button */}
                         <div className="mt-6">
-                          {isCurrent ? (
-                            <div className="flex items-center justify-center py-2.5 text-[13px] font-semibold uppercase tracking-[0.16em] text-humana-gold">
-                              {ts.subscription.currentPlan}
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => handleSelectPlan(plan.id)}
-                              disabled={isSelecting}
-                              className="w-full cursor-pointer bg-humana-gold px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
-                            >
-                              {isSelecting ? ts.subscription.selecting : ts.subscription.selectPlan}
-                            </button>
-                          )}
+                          <button onClick={() => handleSelectPlan(plan.id)} disabled={isSelecting} className="w-full cursor-pointer bg-humana-gold px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40">
+                            {isSelecting ? ts.subscription.selecting : ts.subscription.selectPlan}
+                          </button>
                         </div>
                       </div>
                     );
                   })}
-                </div>
-              )}
-
-              {/* Cancel subscription */}
-              {currentSub && currentSub.status === "active" && currentSub.plan.price_cents > 0 && (
-                <div className="mt-8 border-t border-humana-line pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[14px] text-humana-ink font-medium">
-                        Cancel Subscription
-                      </p>
-                      <p className="text-[13px] text-humana-muted mt-0.5">
-                        Your plan will remain active until the end of the current billing period.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowCancelModal(true)}
-                      className="cursor-pointer border border-red-300 bg-white px-5 py-2 text-[13px] font-semibold uppercase tracking-[0.16em] text-red-600 transition-colors hover:bg-red-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
@@ -855,24 +941,24 @@ export default function AgencySettingsPage() {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
               <div className="w-full max-w-md bg-white p-8 shadow-xl animate-fade-in-scale">
                 <h3 className="text-[18px] font-semibold text-humana-ink">
-                  Cancel Subscription?
+                  {ts.subscription.cancelModalTitle}
                 </h3>
                 <p className="mt-3 text-[14px] text-humana-muted leading-relaxed">
-                  Are you sure you want to cancel your subscription? You&apos;ll continue to have access until the end of your current billing period.
+                  {ts.subscription.cancelModalBody}
                 </p>
                 <div className="mt-6 flex justify-end gap-3">
                   <button
                     onClick={() => setShowCancelModal(false)}
                     className="cursor-pointer border border-humana-line px-5 py-2 text-[13px] font-semibold uppercase tracking-[0.16em] text-humana-muted transition-colors hover:bg-humana-stone"
                   >
-                    Keep Plan
+                    {ts.subscription.cancelModalKeep}
                   </button>
                   <button
                     onClick={handleCancelSubscription}
                     disabled={cancelling}
                     className="cursor-pointer bg-red-600 px-5 py-2 text-[13px] font-semibold uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
                   >
-                    {cancelling ? "..." : "Yes, Cancel"}
+                    {cancelling ? ts.subscription.cancelModalCancelling : ts.subscription.cancelModalConfirm}
                   </button>
                 </div>
               </div>
@@ -882,22 +968,127 @@ export default function AgencySettingsPage() {
           {/* ─── Payments tab ─── */}
           {tab === "payments" && (
             <div className="border border-humana-line bg-white p-7 animate-fade-in-up">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-                {ts.payments.eyebrow}
-              </p>
-              <h2 className="mt-2 text-[22px] font-light tracking-[-0.01em] text-humana-ink">
-                {ts.payments.title}
-              </h2>
-              <p className="mt-1 text-[14px] text-humana-muted">{ts.payments.subtitle}</p>
-
-              <div className="mt-8 flex flex-col items-center py-8 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-humana-gold-light">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="1" x2="12" y2="23" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  </svg>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                    {ts.payments.eyebrow}
+                  </p>
+                  <h2 className="mt-2 text-[22px] font-light tracking-[-0.01em] text-humana-ink">
+                    {ts.payments.title}
+                  </h2>
+                  <p className="mt-1 text-[14px] text-humana-muted">{ts.payments.subtitle}</p>
                 </div>
-                <p className="mt-3 text-[13px] text-humana-muted">{ts.payments.comingSoon}</p>
+                <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] ${
+                  bankStatus === "configured"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-amber-100 text-amber-700"
+                }`}>
+                  {bankStatus === "configured" ? ts.payments.statusConfigured : ts.payments.statusPending}
+                </span>
+              </div>
+
+              {/* Bank Account Form */}
+              <div className="mt-6 flex flex-col gap-5">
+                <div className="flex gap-5">
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                      {ts.payments.accountHolder}
+                    </label>
+                    <input
+                      type="text"
+                      value={bankHolder}
+                      onChange={(e) => setBankHolder(e.target.value)}
+                      className="w-full border border-humana-line px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                      {ts.payments.iban}
+                    </label>
+                    <input
+                      type="text"
+                      value={bankIban}
+                      onChange={(e) => setBankIban(e.target.value)}
+                      className="w-full border border-humana-line px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-5">
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                      {ts.payments.swift}
+                    </label>
+                    <input
+                      type="text"
+                      value={bankSwift}
+                      onChange={(e) => setBankSwift(e.target.value)}
+                      className="w-full border border-humana-line px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                      {ts.payments.currency}
+                    </label>
+                    <select
+                      value={bankCurrency}
+                      onChange={(e) => setBankCurrency(e.target.value)}
+                      className="w-full border border-humana-line bg-white px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
+                    >
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="ARS">ARS</option>
+                      <option value="MXN">MXN</option>
+                      <option value="BRL">BRL</option>
+                      <option value="COP">COP</option>
+                      <option value="PEN">PEN</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                      {ts.payments.country}
+                    </label>
+                    <input
+                      type="text"
+                      value={bankCountry}
+                      onChange={(e) => setBankCountry(e.target.value)}
+                      className="w-full border border-humana-line px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Save */}
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => {
+                    setBankSaving(true);
+                    setTimeout(() => {
+                      setBankStatus("configured");
+                      setBankSaving(false);
+                      showSaved();
+                    }, 600);
+                  }}
+                  disabled={bankSaving}
+                  className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+                >
+                  {bankSaving ? ts.payments.saving : ts.payments.save}
+                </button>
+              </div>
+
+              {/* Payments Received */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <h3 className="text-[15px] font-semibold text-humana-ink">{ts.payments.paymentsReceived}</h3>
+                <div className="mt-4 flex flex-col items-center py-8 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-humana-gold-light">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="1" x2="12" y2="23" />
+                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                  </div>
+                  <p className="mt-3 text-[13px] text-humana-muted">{ts.payments.noPayments}</p>
+                </div>
               </div>
             </div>
           )}
