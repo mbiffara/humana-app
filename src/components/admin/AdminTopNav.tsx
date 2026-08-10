@@ -83,8 +83,8 @@ export function AdminTopNav() {
         <span className="h-3.5 w-px bg-[#D8D4C8]" />
 
         <div className="flex items-center gap-2.5">
-          <Link href="/admin/settings" className="flex items-center gap-2.5 cursor-pointer transition-opacity hover:opacity-80">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-humana-gold transition-transform hover:scale-105">
+          <Link href="/admin/settings" className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 transition-all duration-150 hover:bg-humana-stone/70">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-humana-gold">
               <span className="text-[12px] font-semibold text-white">
                 {initials}
               </span>

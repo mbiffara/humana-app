@@ -389,6 +389,8 @@ export const agencyApi = {
     api.post<{ subscription?: import("@/lib/types").Subscription; checkout_url?: string }>("/agency/subscription", { plan_id: planId }),
   cancelSubscription: () =>
     api.delete<{ subscription: import("@/lib/types").Subscription }>("/agency/subscription"),
+  verifyCheckout: (sessionId: string) =>
+    api.post<{ subscription: import("@/lib/types").Subscription }>("/agency/subscription/verify", { session_id: sessionId }),
 };
 
 export interface AgencyProfileUpdate {

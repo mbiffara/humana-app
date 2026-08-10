@@ -5,11 +5,13 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 export default function AgencyLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, loading, subscription } = useAuth();
+  const { t } = useLocale();
 
   useEffect(() => {
     if (!loading && user && user.organization?.kind !== "agency") {
@@ -41,19 +43,19 @@ export default function AgencyLayout({ children }: { children: React.ReactNode }
               </svg>
             </div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-              SUBSCRIPTION REQUIRED
+              {t.agencyWs.paywall.eyebrow}
             </p>
             <h2 className="mt-3 text-[22px] font-light tracking-[-0.01em] text-humana-ink">
-              Choose a plan to continue
+              {t.agencyWs.paywall.title}
             </h2>
             <p className="mt-2 text-[14px] text-humana-muted leading-relaxed">
-              Select a subscription plan to unlock your agency workspace and start booking retreats, managing clients, and more.
+              {t.agencyWs.paywall.body}
             </p>
             <button
               onClick={() => router.push("/agency/settings?tab=subscription")}
               className="mt-6 w-full cursor-pointer bg-humana-gold px-8 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85"
             >
-              SELECT A PLAN
+              {t.agencyWs.paywall.cta}
             </button>
           </div>
         </div>
