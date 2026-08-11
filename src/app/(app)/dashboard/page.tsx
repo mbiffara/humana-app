@@ -11,6 +11,7 @@ import { SearchBar } from "@/components/SearchBar";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { agencyApi, type ApiExperience, type AgencyDashboard } from "@/lib/api/agency";
+import { retreatToExperience } from "@/lib/retreat-experience";
 
 const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ssr: false,
@@ -161,9 +162,14 @@ function RetreatsSection() {
 
   useEffect(() => {
     setLoadingExp(true);
-    agencyApi
-      .listExperiences()
-      .then((res) => setExperiences(res.experiences))
+    Promise.all([
+      agencyApi.listExperiences().then((res) => res.experiences).catch(() => [] as ApiExperience[]),
+      agencyApi.listPublicRetreats().then((res) => res.retreats.map(retreatToExperience)).catch(() => [] as ApiExperience[]),
+    ])
+      .then(([exps, retreats]) => {
+        const merged = [...exps, ...retreats].sort((a, b) => (a.starts_on || "").localeCompare(b.starts_on || ""));
+        setExperiences(merged);
+      })
       .catch(() => {})
       .finally(() => setLoadingExp(false));
   }, []);

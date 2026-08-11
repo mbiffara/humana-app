@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { agencyApi, type ApiExperience } from "@/lib/api/agency";
+import { retreatToExperience } from "@/lib/retreat-experience";
 import { countryIdToSlug } from "@/data/countries";
 import { SearchBar } from "@/components/SearchBar";
 
@@ -35,9 +36,14 @@ export default function RetreatsPage() {
     if (toParam) params.to = toParam;
     if (guestsNum && guestsNum > 1) params.guests = guestsNum;
 
-    agencyApi
-      .listExperiences(params)
-      .then((res) => setExperiences(res.experiences))
+    Promise.all([
+      agencyApi.listExperiences(params).then((res) => res.experiences).catch(() => [] as ApiExperience[]),
+      agencyApi.listPublicRetreats(params).then((res) => res.retreats.map(retreatToExperience)).catch(() => [] as ApiExperience[]),
+    ])
+      .then(([exps, retreats]) => {
+        const merged = [...exps, ...retreats].sort((a, b) => (a.starts_on || "").localeCompare(b.starts_on || ""));
+        setExperiences(merged);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
