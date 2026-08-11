@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 
-const defaultRoutes = [
-  "/create-retreat/step-1",
-  "/create-retreat/step-2",
-  "/create-retreat/step-3",
-  "/create-retreat/step-4",
-  "/create-retreat/step-5",
-  "/create-retreat/step-6",
-];
+const defaultRoutes: string[] = [];
 
 export function StepIndicator({
   steps,

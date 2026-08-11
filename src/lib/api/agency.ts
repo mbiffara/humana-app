@@ -56,6 +56,14 @@ export interface PublicHotelFull extends PublicHotel {
   images: PublicHotelImage[];
 }
 
+export interface PublicRoomImage {
+  id: number;
+  image_url: string;
+  position: number;
+  alt_text: string | null;
+  is_primary: boolean;
+}
+
 export interface PublicRoomType {
   id: number;
   hotel_id: number;
@@ -73,6 +81,7 @@ export interface PublicRoomType {
   bed_type: string | null;
   view_type: string | null;
   amenities_list: string[];
+  images?: PublicRoomImage[];
 }
 
 export interface ApiExperience {
@@ -133,6 +142,34 @@ export interface ApiClient {
   phone: string | null;
   notes: string | null;
   created_at: string;
+  booking_count?: number;
+  bookings?: { id: number; reference: string; status: string; created_at: string }[];
+}
+
+export interface BillingSale {
+  id: number;
+  reference: string;
+  status: string;
+  guests: number;
+  starts_on: string;
+  ends_on: string;
+  amount_cents: number;
+  amount: number;
+  currency: string;
+  commission_cents: number;
+  commission: number;
+  retreat_name: string | null;
+  buying_agency: string | null;
+  client_name: string | null;
+  room_type: PublicRoomType | null;
+  hotel_name: string | null;
+  created_at: string;
+}
+
+export interface BillingSummary {
+  total_count: number;
+  total_revenue_cents: number;
+  total_commission_cents: number;
 }
 
 export interface ApiBooking {
@@ -151,6 +188,7 @@ export interface ApiBooking {
   client: ApiClient | null;
   room_type: PublicRoomType | null;
   experience?: ApiExperience;
+  hotel?: PublicHotel;
   created_at: string;
 }
 
@@ -272,6 +310,34 @@ export interface ApiRetreat {
   images?: ApiRetreatImage[];
 }
 
+export interface ApiInventoryBlock {
+  id: number;
+  organization_id: number;
+  hotel_id: number;
+  room_type_id: number;
+  room_type: PublicRoomType;
+  hotel: PublicHotel;
+  total_rooms: number;
+  available_rooms: number;
+  starts_on: string;
+  ends_on: string;
+  cost_per_night_cents: number;
+  cost_per_night: number;
+  currency: string;
+  status: string;
+}
+
+export interface CoverageMarker {
+  country_code: string;
+  country: string;
+  experiences: number;
+  active: number;
+  upcoming: number;
+  hotels: number;
+  latitude: number | null;
+  longitude: number | null;
+}
+
 /* ─── API Client ─── */
 
 export const agencyApi = {
@@ -303,11 +369,12 @@ export const agencyApi = {
     api.delete(`/clients/${id}`),
 
   // Bookings
-  listBookings: (params?: { page?: number; per_page?: number; status?: string }) => {
+  listBookings: (params?: { page?: number; per_page?: number; status?: string; client_id?: number }) => {
     const qs = new URLSearchParams();
     if (params?.page) qs.set("page", String(params.page));
     if (params?.per_page) qs.set("per_page", String(params.per_page));
     if (params?.status) qs.set("status", params.status);
+    if (params?.client_id) qs.set("client_id", String(params.client_id));
     const q = qs.toString();
     return api.get<{ bookings: ApiBooking[]; meta: PaginationMeta; summary?: { total: number; confirmed: number; commission_cents: number; volume_cents: number } }>(`/bookings${q ? `?${q}` : ""}`);
   },
@@ -318,17 +385,35 @@ export const agencyApi = {
     hotel_id?: number;
     client_id?: number;
     room_type_id?: number;
+    retreat_id?: number;
     guests?: number;
     notes?: string;
     starts_on?: string;
     ends_on?: string;
   }) =>
-    api.post<{ booking: ApiBooking }>("/bookings", { booking: data }),
+    api.post<{ booking: ApiBooking; checkout_url?: string }>("/bookings", { booking: data }),
+  verifyBookingCheckout: (bookingId: number, sessionId: string) =>
+    api.post<{ booking: ApiBooking }>(`/bookings/${bookingId}/verify_checkout`, { session_id: sessionId }),
+
+  // Coverage (map markers)
+  getCoverage: () =>
+    api.get<{ markers: CoverageMarker[]; totals: { countries: number; experiences: number } }>("/coverage"),
 
   // Experiences (authenticated)
-  listExperiences: (params?: { country_code?: string }) => {
+  listExperiences: (params?: { country_code?: string | string[]; kind?: string | string[]; from?: string; to?: string; guests?: number; hotel_id?: number }) => {
     const qs = new URLSearchParams();
-    if (params?.country_code) qs.set("country_code", params.country_code);
+    if (params?.country_code) {
+      const v = Array.isArray(params.country_code) ? params.country_code.join(",") : params.country_code;
+      if (v) qs.set("country_code", v);
+    }
+    if (params?.kind) {
+      const v = Array.isArray(params.kind) ? params.kind.join(",") : params.kind;
+      if (v) qs.set("kind", v);
+    }
+    if (params?.from) qs.set("from", params.from);
+    if (params?.to) qs.set("to", params.to);
+    if (params?.guests && params.guests > 1) qs.set("guests", String(params.guests));
+    if (params?.hotel_id) qs.set("hotel_id", String(params.hotel_id));
     const q = qs.toString();
     return api.get<{ experiences: ApiExperience[] }>(`/experiences${q ? `?${q}` : ""}`);
   },
@@ -336,10 +421,16 @@ export const agencyApi = {
     api.get<{ experience: ApiExperience }>(`/experiences/${idOrSlug}`),
 
   // Public retreats (hotel-published marketplace)
-  listPublicRetreats: (params?: { country_code?: string; type?: string }) => {
+  listPublicRetreats: (params?: { country_code?: string | string[]; type?: string | string[] }) => {
     const qs = new URLSearchParams();
-    if (params?.country_code) qs.set("country_code", params.country_code);
-    if (params?.type) qs.set("type", params.type);
+    if (params?.country_code) {
+      const v = Array.isArray(params.country_code) ? params.country_code.join(",") : params.country_code;
+      if (v) qs.set("country_code", v);
+    }
+    if (params?.type) {
+      const v = Array.isArray(params.type) ? params.type.join(",") : params.type;
+      if (v) qs.set("type", v);
+    }
     const q = qs.toString();
     return api.get<{ retreats: PublicRetreat[] }>(`/public/retreats${q ? `?${q}` : ""}`);
   },
@@ -360,6 +451,15 @@ export const agencyApi = {
   getHotelAvailability: (hotelId: number, from: string, to: string) =>
     api.get<HotelAvailabilityResponse>(`/public/hotels/${hotelId}/availability?from=${from}&to=${to}`),
 
+  // Billing (sales on this agency's retreats by other agencies)
+  getBilling: (params?: { page?: number; per_page?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.per_page) qs.set("per_page", String(params.per_page));
+    const q = qs.toString();
+    return api.get<{ sales: BillingSale[]; meta: PaginationMeta; summary: BillingSummary }>(`/agency/billing${q ? `?${q}` : ""}`);
+  },
+
   // Agency retreats
   listRetreats: (params?: { status?: string }) => {
     const qs = new URLSearchParams();
@@ -379,6 +479,20 @@ export const agencyApi = {
     api.post<{ retreat: ApiRetreat }>(`/agency/retreats/${id}/submit_for_review`),
   replaceRetreatProgram: (id: number, data: Record<string, unknown>) =>
     api.put<{ retreat: ApiRetreat }>(`/agency/retreats/${id}/program`, data),
+  replaceRetreatPricings: (id: number, pricings: { room_type_id: number; price_per_guest_cents: number }[]) =>
+    api.put<{ retreat: ApiRetreat }>(`/agency/retreats/${id}/pricings`, { pricings }),
+  batchRetreatImages: (retreatId: number, images: { image_url: string; alt_text?: string }[]) =>
+    api.post<{ images: ApiRetreatImage[] }>(`/agency/retreats/${retreatId}/images/batch`, { images }),
+
+  // Inventory blocks
+  listInventoryBlocks: (params?: { hotel_id?: number; from?: string; to?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.hotel_id) qs.set("hotel_id", String(params.hotel_id));
+    if (params?.from) qs.set("from", params.from);
+    if (params?.to) qs.set("to", params.to);
+    const q = qs.toString();
+    return api.get<{ inventory_blocks: ApiInventoryBlock[] }>(`/agency/inventory_blocks${q ? `?${q}` : ""}`);
+  },
 
   // Subscription
   getSubscriptionPlans: () =>

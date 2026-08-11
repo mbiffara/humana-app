@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { TopNav } from "@/components/TopNav";
 import { AgencyTopNav } from "@/components/agency/AgencyTopNav";
 import { BookingProvider } from "@/contexts/BookingContext";
-import { WizardProvider } from "@/contexts/WizardContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { SubscriptionPaywall } from "@/components/agency/SubscriptionPaywall";
 
@@ -99,14 +98,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <BookingProvider>
-      <WizardProvider>
-        {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && isAgency && <AgencyTopNav />}
-        {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && !isAgency && !isOffice && <TopNav />}
-        <div className="relative flex-1">
-          <main>{children}</main>
-          {showAgencyPaywall && <SubscriptionPaywall />}
-        </div>
-      </WizardProvider>
+      {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && isAgency && <AgencyTopNav />}
+      {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && !isAgency && !isOffice && <TopNav />}
+      <div className="relative flex-1">
+        <main>{children}</main>
+        {showAgencyPaywall && <SubscriptionPaywall />}
+      </div>
     </BookingProvider>
   );
 }

@@ -2,44 +2,17 @@
 
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi } from "@/lib/api/agency";
-
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
-  const day = d.getDate();
-  const monthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-  return `${day} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T12:00:00");
-  d.setDate(d.getDate() + days);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-
-function diffDays(start: string, end: string): number {
-  const s = new Date(start + "T12:00:00");
-  const e = new Date(end + "T12:00:00");
-  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
-}
+import { formatDateShort, addDays, diffDays } from "@/lib/calendar-utils";
 
 export default function CheckoutPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);
   const { t } = useLocale();
-  const router = useRouter();
-  const { state, set } = useBooking();
+  const { state } = useBooking();
 
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardName, setCardName] = useState("");
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,9 +38,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
   const displayHotelImage = state.display?.hotelImage ?? "/images/retreat-tulum.jpg";
   const displayHotelLocation = state.display?.hotelLocation ?? "";
   const displayRoomName = state.display?.roomTypeName ?? "Suite";
-
-  function formatCardNumber(value: string) { const digits = value.replace(/\D/g, "").slice(0, 16); return digits.replace(/(.{4})/g, "$1 ").trim(); }
-  function formatExpiry(value: string) { const digits = value.replace(/\D/g, "").slice(0, 4); if (digits.length >= 3) return digits.slice(0, 2) + " / " + digits.slice(2); return digits; }
+  const isHotelDirect = state.flowType === "hotels" && !!state.roomTypeApiId;
 
   async function handleSubmit() {
     if (processing || (!state.experienceId && !state.hotelApiId)) return;
@@ -80,15 +51,16 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
         hotel_id: !state.experienceId ? (state.hotelApiId ?? undefined) : undefined,
         client_id: state.clientApiId ?? undefined,
         room_type_id: state.roomTypeApiId ?? undefined,
+        retreat_id: state.retreatApiId ?? undefined,
         guests: state.guests,
         starts_on: computedCheckIn,
         ends_on: computedCheckOut,
       });
-      set({
-        bookingId: result.booking.id,
-        bookingReference: result.booking.reference,
-      });
-      router.push(`/select-country/${country}/step-5-confirmation`);
+
+      if (result.checkout_url) {
+        window.location.href = result.checkout_url;
+        return;
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error creating booking";
       if (message.toLowerCase().includes("availability")) {
@@ -110,7 +82,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
       ]} />
 
       <div className="flex flex-col gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">PASO 4 DE 5</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">{isHotelDirect ? "PASO 3 DE 4" : "PASO 4 DE 5"}</span>
         <h1 className="text-[36px] font-light leading-[44px] tracking-[-0.02em] text-humana-ink">Checkout y pago</h1>
       </div>
 
@@ -160,18 +132,18 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
               <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">PAGO SEGURO</span>
             </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-muted">NUMERO DE TARJETA</label>
-              <div className="flex items-center gap-3 border-b border-humana-line py-3">
-                <input type="text" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} placeholder="4242 4242 4242 4242" className="flex-1 bg-transparent text-[16px] tracking-[0.08em] text-humana-ink outline-none placeholder:text-humana-subtle" />
-                <span className="rounded bg-[#1a1f71] px-2 py-0.5 text-[11px] font-bold text-white">VISA</span>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-humana-line pb-4">
+                <span className="text-[14px] text-humana-muted">Total</span>
+                <span className="text-[22px] font-semibold text-humana-ink">U$D {total.toLocaleString()}.00</span>
               </div>
+
+              <p className="text-[13px] leading-relaxed text-humana-muted">
+                Al hacer clic en &ldquo;Pagar&rdquo;, seras redirigido a Stripe para completar el pago de forma segura. Una vez confirmado, la reserva se activara automaticamente.
+              </p>
             </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="flex flex-col gap-2"><label className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-muted">VENCIMIENTO</label><input type="text" value={expiry} onChange={(e) => setExpiry(formatExpiry(e.target.value))} placeholder="12 / 26" className="border-b border-humana-line bg-transparent py-3 text-[15px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle focus:border-humana-gold" /></div>
-              <div className="flex flex-col gap-2"><label className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-muted">CVC</label><input type="text" value={cvv} onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="&bull;&bull;&bull;" className="border-b border-humana-line bg-transparent py-3 text-[15px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle focus:border-humana-gold" /></div>
-            </div>
-            <div className="flex flex-col gap-2"><label className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-muted">TITULAR DE LA TARJETA</label><input type="text" value={cardName} onChange={(e) => setCardName(e.target.value)} placeholder="NOMBRE APELLIDO" className="border-b border-humana-line bg-transparent py-3 text-[15px] uppercase text-humana-ink outline-none transition-colors placeholder:text-humana-subtle focus:border-humana-gold" /></div>
+
             <div className="flex items-center gap-2 text-[12px] text-humana-subtle">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
               <span>Procesado de forma segura por Stripe</span>

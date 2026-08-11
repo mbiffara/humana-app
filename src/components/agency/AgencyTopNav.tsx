@@ -14,9 +14,10 @@ export function AgencyTopNav() {
 
   const links = [
     { label: t.agencyWs.nav.discover, href: "/dashboard", match: ["/dashboard", "/map", "/select-country"] },
-    { label: t.agencyWs.nav.clients, href: "/agency/clients" },
     { label: t.agencyWs.nav.bookings, href: "/agency/bookings" },
     { label: t.agencyWs.nav.myRetreats, href: "/agency/my-retreats" },
+    { label: t.agencyWs.nav.clients, href: "/agency/clients" },
+    { label: t.agencyWs.nav.billing, href: "/agency/billing" },
   ];
 
   const initials = user?.name

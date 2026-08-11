@@ -18,8 +18,7 @@ import {
 } from "react-simple-maps";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { countries } from "@/data/countries";
-import { retreats } from "@/data/retreats";
-import { hotels } from "@/data/hotels";
+import { agencyApi, type CoverageMarker } from "@/lib/api/agency";
 
 const GEO_URL =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -46,11 +45,11 @@ const markerCoords: Record<MarkerKey, [number, number]> = {
   colombia: [-74, 4.5],
   ecuador: [-78.5, -1.8],
   peru: [-76, -10],
-  brazil: [-51, -14],
-  paraguay: [-58, -23],
-  chile: [-71, -33],
-  argentina: [-64, -34],
-  uruguay: [-56, -33],
+  brazil: [-47, -12],
+  paraguay: [-58, -22],
+  chile: [-75, -38],
+  argentina: [-62, -30],
+  uruguay: [-54, -34],
   "costa-rica": [-84, 10],
   "el-salvador": [-89, 13.7],
   panama: [-80, 9],
@@ -173,7 +172,15 @@ export default function WorldMap({
   const router = useRouter();
   const [selectedCountry, setSelectedCountry] = useState<MarkerKey | null>(null);
   const [hoveredMarker, setHoveredMarker] = useState<MarkerKey | null>(null);
+  const [zoomScale, setZoomScale] = useState(mode === "inline" ? 1.25 : 1);
   const transformRef = useRef<ReactZoomPanPinchRef>(null);
+  const [coverage, setCoverage] = useState<CoverageMarker[]>([]);
+
+  useEffect(() => {
+    agencyApi.getCoverage()
+      .then((res) => setCoverage(res.markers))
+      .catch(() => {});
+  }, []);
 
   const closeSidebar = useCallback(() => {
     setSelectedCountry(null);
@@ -209,7 +216,11 @@ export default function WorldMap({
     return () => window.removeEventListener("keydown", handleKey);
   }, [mode, selectedCountry]);
 
-  function renderMap(scale: number, center: [number, number], mapHeight: number) {
+  const handleTransform = useCallback((_ref: ReactZoomPanPinchRef, state: { scale: number }) => {
+    setZoomScale(state.scale);
+  }, []);
+
+  function renderMap(scale: number, center: [number, number], mapHeight: number, badgeScale = 1) {
     return (
       <ComposableMap
         projection="geoNaturalEarth1"
@@ -262,86 +273,86 @@ export default function WorldMap({
         {markerKeys.map((key) => {
           const label = t.map.countries[key];
           const flagCode = markerFlagCodes[key];
-          const cardWidth = Math.max(72, label.length * 6.5 + 44);
-          const cardHeight = 24;
+          // Inverse scale: badges shrink as user zooms in
+          const invScale = badgeScale / zoomScale;
+          const baseFontSize = 8.5;
+          const baseFlagSize = 12;
+          const cardWidth = Math.max(60, label.length * (baseFontSize * 0.65) + 36);
+          const cardHeight = 20;
           const totalHeight = cardHeight + 6;
 
           return (
             <Marker
               key={key}
               coordinates={markerCoords[key]}
-              onClick={() => handleMarkerClick(key)}
             >
               <g
                 id={`marker-${key}`}
-                style={{ cursor: "pointer" }}
-                onMouseEnter={() => setHoveredMarker(key)}
-                onMouseLeave={() => setHoveredMarker(null)}
+                style={{ cursor: "pointer", pointerEvents: "none" }}
               >
-                {/* Invisible hit area for hover detection */}
-                <rect
-                  x={-cardWidth / 2}
-                  y={-totalHeight}
-                  width={cardWidth}
-                  height={totalHeight}
-                  fill="transparent"
-                />
-                <foreignObject
-                  x={-cardWidth / 2}
-                  y={-totalHeight}
-                  width={cardWidth}
-                  height={totalHeight}
-                  style={{ overflow: "visible" }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "1px",
-                    }}
+                <g transform={`scale(${invScale})`}>
+                  <foreignObject
+                    x={-cardWidth / 2}
+                    y={-totalHeight}
+                    width={cardWidth}
+                    height={totalHeight}
+                    style={{ overflow: "visible", pointerEvents: "none" }}
                   >
-                    {/* Card */}
                     <div
-                      className="map-marker-card"
                       style={{
                         display: "flex",
+                        flexDirection: "column",
                         alignItems: "center",
-                        gap: "5px",
-                        border: "1px solid #111",
-                        background: "#fff",
-                        padding: "3px 7px",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                        whiteSpace: "nowrap",
-                        transition: "box-shadow 0.2s ease, transform 0.2s ease",
+                        gap: "1px",
                       }}
                     >
-                      <img
-                        src={`https://hatscripts.github.io/circle-flags/flags/${flagCode}.svg`}
-                        alt={label}
-                        width={14}
-                        height={14}
-                        style={{ borderRadius: "50%", display: "block", flexShrink: 0 }}
-                      />
-                      <span
+                      {/* Card */}
+                      <div
+                        className="map-marker-card"
+                        onClick={() => handleMarkerClick(key)}
+                        onMouseEnter={() => setHoveredMarker(key)}
+                        onMouseLeave={() => setHoveredMarker(null)}
                         style={{
-                          fontSize: "10px",
-                          fontWeight: 600,
-                          letterSpacing: "0.12em",
-                          textTransform: "uppercase",
-                          color: "#111",
-                          fontFamily: "var(--font-inter), system-ui, sans-serif",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          border: "1px solid #111",
+                          background: "#fff",
+                          padding: "2px 6px",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                          whiteSpace: "nowrap",
+                          transition: "box-shadow 0.2s ease",
+                          cursor: "pointer",
+                          pointerEvents: "auto",
                         }}
                       >
-                        {label}
-                      </span>
+                        <img
+                          src={`https://hatscripts.github.io/circle-flags/flags/${flagCode}.svg`}
+                          alt={label}
+                          width={baseFlagSize}
+                          height={baseFlagSize}
+                          style={{ borderRadius: "50%", display: "block", flexShrink: 0 }}
+                        />
+                        <span
+                          style={{
+                            fontSize: `${baseFontSize}px`,
+                            fontWeight: 600,
+                            letterSpacing: "0.1em",
+                            textTransform: "uppercase",
+                            color: "#111",
+                            fontFamily: "var(--font-inter), system-ui, sans-serif",
+                          }}
+                        >
+                          {label}
+                        </span>
+                      </div>
+                      {/* Triangle arrow */}
+                      <svg width="6" height="5" viewBox="0 0 10 8" fill="#111">
+                        <path d="M5 8L0 0h10z" />
+                      </svg>
                     </div>
-                    {/* Triangle arrow */}
-                    <svg width="8" height="6" viewBox="0 0 10 8" fill="#111">
-                      <path d="M5 8L0 0h10z" />
-                    </svg>
-                  </div>
-                </foreignObject>
+                  </foreignObject>
+                </g>
               </g>
             </Marker>
           );
@@ -363,6 +374,7 @@ export default function WorldMap({
           pinch={{ disabled: true }}
           doubleClick={{ disabled: true }}
           panning={{ velocityDisabled: true }}
+          onTransform={handleTransform}
         >
           <TransformComponent
             wrapperStyle={{ width: "100%", height: "100%", overflow: "hidden" }}
@@ -374,7 +386,7 @@ export default function WorldMap({
         </TransformWrapper>
 
         {selectedCountry && (
-          <CountrySidebar markerKey={selectedCountry} onClose={closeSidebar} />
+          <CountrySidebar markerKey={selectedCountry} onClose={closeSidebar} coverage={coverage} />
         )}
       </div>
     );
@@ -391,12 +403,13 @@ export default function WorldMap({
         pinch={{ disabled: true }}
         doubleClick={{ disabled: true }}
         panning={{ velocityDisabled: true }}
+        onTransform={handleTransform}
       >
         <TransformComponent
           wrapperStyle={{ width: "100%", height: "100%" }}
           contentStyle={{ width: "100%", height: "100%" }}
         >
-          {renderMap(185, [-40, 5], 480)}
+          {renderMap(185, [-40, 5], 480, 1.15)}
         </TransformComponent>
         <ZoomControls />
       </TransformWrapper>
@@ -408,17 +421,20 @@ export default function WorldMap({
 function CountrySidebar({
   markerKey,
   onClose,
+  coverage,
 }: {
   markerKey: MarkerKey;
   onClose: () => void;
+  coverage: CoverageMarker[];
 }) {
   const { t } = useLocale();
   const countryId = markerCountryIds[markerKey];
   const flagCode = markerFlagCodes[markerKey];
   const countryName = t.map.countries[markerKey];
 
-  const retreatCount = retreats.filter((r) => r.country === countryId).length;
-  const hotelCount = hotels.filter((h) => h.country === countryId).length;
+  const marker = coverage.find((m) => m.country_code.toLowerCase() === countryId);
+  const retreatCount = marker?.experiences ?? 0;
+  const hotelCount = marker?.hotels ?? 0;
 
   return (
     <>
