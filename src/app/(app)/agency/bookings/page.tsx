@@ -1,22 +1,14 @@
 /** Agency workspace — booking history (AG-02).
- *  Reservations list view with KPIs, filters & pagination. */
+ *  Split into Retreat & Lodging tables with tooltips on every column header. */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { agencyApi, type ApiBooking } from "@/lib/api/agency";
 
 const LOCALE_TAGS: Record<string, string> = { en: "en-US", es: "es-ES", pt: "pt-PT" };
 
-type BookingStatus = "inquiry" | "confirmed" | "completed" | "cancelled";
-type FilterStatus = "all" | BookingStatus;
-
-const STATUS_COLORS: Record<string, string> = {
-  inquiry: "border-humana-gold text-humana-gold",
-  confirmed: "border-emerald-400 text-emerald-600",
-  completed: "border-humana-ink text-humana-ink",
-  cancelled: "border-humana-line text-humana-subtle",
-};
 
 function money(cents: number, currency: string, locale: string): string {
   return new Intl.NumberFormat(locale, {
@@ -24,6 +16,11 @@ function money(cents: number, currency: string, locale: string): string {
     currency,
     minimumFractionDigits: 0,
   }).format(cents / 100);
+}
+
+function formatDate(dateStr: string, tag: string): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return new Intl.DateTimeFormat(tag, { day: "numeric", month: "short", year: "2-digit" }).format(d);
 }
 
 function formatDateRange(start: string, end: string, tag: string): string {
@@ -34,9 +31,35 @@ function formatDateRange(start: string, end: string, tag: string): string {
   return `${fmtStart} – ${fmtEnd}`;
 }
 
+function diffNights(start: string, end: string): number {
+  const s = new Date(`${start}T00:00:00`);
+  const e = new Date(`${end}T00:00:00`);
+  return Math.max(0, Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+/* ─── Tooltip header cell ─── */
+function Th({ children, tooltip, align = "left" }: { children: React.ReactNode; tooltip: string; align?: "left" | "center" | "right" }) {
+  const alignCls = align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
+  return (
+    <th className={`group relative px-4 py-3 ${alignCls} text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle`}>
+      <span className="inline-flex items-center gap-1">
+        {children}
+        <svg className="h-3 w-3 shrink-0 text-humana-line group-hover:text-humana-subtle transition-colors" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11ZM8 5a.75.75 0 1 1 0-1.5A.75.75 0 0 1 8 5Zm-.75 1.75a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-1.5 0v-3.5Z" />
+        </svg>
+      </span>
+      <span className="pointer-events-none absolute left-1/2 top-full z-50 -translate-x-1/2 whitespace-nowrap rounded bg-humana-ink px-2.5 py-1.5 text-[11px] font-normal normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+        {tooltip}
+      </span>
+    </th>
+  );
+}
+
 interface BookingSummary {
   total: number;
   confirmed: number;
+  retreat_count: number;
+  lodging_count: number;
   commission_cents: number;
   volume_cents: number;
 }
@@ -45,34 +68,41 @@ export default function AgencyBookingsPage() {
   const { t, locale } = useLocale();
   const tb = t.agencyWs.bookings;
   const tag = LOCALE_TAGS[locale] ?? "en-US";
+  const searchParams = useSearchParams();
 
   const [bookings, setBookings] = useState<ApiBooking[]>([]);
   const [summary, setSummary] = useState<BookingSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<FilterStatus>("all");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [stripeSuccess, setStripeSuccess] = useState(false);
+  const [stripeSuccessHasClient, setStripeSuccessHasClient] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const verifyAttempted = useRef(false);
 
-  const fetchBookings = useCallback(async (statusFilter: FilterStatus, pg: number) => {
+  const fetchBookings = useCallback(async (pg: number) => {
     setLoading(true);
     try {
-      const params: { page: number; per_page: number; status?: string } = {
-        page: pg,
-        per_page: 25,
-      };
-      if (statusFilter !== "all") params.status = statusFilter;
-      const res = await agencyApi.listBookings(params);
+      const res = await agencyApi.listBookings({ page: pg, per_page: 25 });
       setBookings(res.bookings);
       setTotalPages(res.meta?.total_pages ?? 1);
       if (res.summary) {
-        setSummary(res.summary);
+        setSummary({
+          total: res.summary.total,
+          confirmed: res.summary.confirmed,
+          retreat_count: (res.summary as BookingSummary).retreat_count ?? 0,
+          lodging_count: (res.summary as BookingSummary).lodging_count ?? 0,
+          commission_cents: res.summary.commission_cents,
+          volume_cents: res.summary.volume_cents,
+        });
       } else {
-        // Compute summary from bookings if backend doesn't provide it
         const total = res.meta?.total ?? res.bookings.length;
         const confirmed = res.bookings.filter((b) => b.status === "confirmed").length;
+        const retreat_count = res.bookings.filter((b) => !!b.experience).length;
+        const lodging_count = res.bookings.filter((b) => !b.experience).length;
         const commission_cents = res.bookings.reduce((acc, b) => acc + (b.commission_cents ?? 0), 0);
         const volume_cents = res.bookings.reduce((acc, b) => acc + (b.amount_cents ?? 0), 0);
-        setSummary({ total, confirmed, commission_cents, volume_cents });
+        setSummary({ total, confirmed, retreat_count, lodging_count, commission_cents, volume_cents });
       }
     } catch {
       // ignore
@@ -82,32 +112,78 @@ export default function AgencyBookingsPage() {
   }, []);
 
   useEffect(() => {
-    setPage(1);
-  }, [filter]);
+    fetchBookings(page);
+  }, [fetchBookings, page]);
 
+  // Detect return from Stripe Checkout — verify session and confirm booking
   useEffect(() => {
-    fetchBookings(filter, page);
-  }, [fetchBookings, filter, page]);
+    const stripeStatus = searchParams.get("stripe");
+    const sessionId = searchParams.get("session_id");
+    const bookingId = searchParams.get("booking_id");
 
-  /* ─── Filter counts (computed from current bookings set) ─── */
-  const statusCounts: Record<FilterStatus, number> = {
-    all: summary?.total ?? bookings.length,
-    inquiry: bookings.filter((b) => b.status === "inquiry").length,
-    confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    completed: bookings.filter((b) => b.status === "completed").length,
-    cancelled: bookings.filter((b) => b.status === "cancelled").length,
-  };
+    if (stripeStatus === "success" && sessionId && bookingId && !verifyAttempted.current) {
+      verifyAttempted.current = true;
+      setVerifying(true);
+      agencyApi
+        .verifyBookingCheckout(Number(bookingId), sessionId)
+        .then((res) => {
+          setStripeSuccessHasClient(!!res.booking.client);
+          setStripeSuccess(true);
+          fetchBookings(1);
+        })
+        .catch(() => {
+          // Fetch latest state anyway
+          fetchBookings(1);
+        })
+        .finally(() => setVerifying(false));
 
-  const filters: { key: FilterStatus; label: string }[] = [
-    { key: "all", label: tb.filters.all },
-    { key: "inquiry", label: tb.filters.inquiry },
-    { key: "confirmed", label: tb.filters.confirmed },
-    { key: "completed", label: tb.filters.completed },
-    { key: "cancelled", label: tb.filters.cancelled },
-  ];
+      // Clean URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete("stripe");
+      url.searchParams.delete("session_id");
+      url.searchParams.delete("booking_id");
+      window.history.replaceState({}, "", url.toString());
+    } else if (stripeStatus === "cancelled") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("stripe");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [searchParams, fetchBookings]);
+
+  const col = tb.columns;
+  const tip = tb.tooltips;
+
+  // Split bookings by type
+  const retreatBookings = bookings.filter((b) => !!b.experience);
+  const hotelBookings = bookings.filter((b) => !b.experience);
 
   return (
     <div className="mx-auto max-w-[1400px] px-10 py-10">
+      {/* Verifying overlay */}
+      {verifying && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+            <p className="text-[14px] font-medium text-humana-ink">Verificando pago...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Stripe success banner */}
+      {stripeSuccess && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-6 py-4 animate-fade-in-up">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+          <span className="flex-1 text-[14px] font-medium text-emerald-800">
+            {stripeSuccessHasClient
+              ? "Reserva confirmada. Se ha enviado un email de confirmacion al cliente."
+              : "Reserva confirmada. Se ha enviado un email de confirmacion a tu cuenta."}
+          </span>
+          <button onClick={() => setStripeSuccess(false)} className="cursor-pointer text-emerald-400 transition-colors hover:text-emerald-600">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6 flex items-start justify-between animate-fade-in-up">
         <div>
@@ -126,7 +202,7 @@ export default function AgencyBookingsPage() {
 
       {/* KPI Cards */}
       {summary && (
-        <div className="mb-6 grid grid-cols-4 gap-5 stagger-children">
+        <div className="mb-6 grid grid-cols-5 gap-5 stagger-children">
           <div className="rounded-xl border border-humana-line bg-white p-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
               {tb.kpis.total}
@@ -135,9 +211,15 @@ export default function AgencyBookingsPage() {
           </div>
           <div className="rounded-xl border border-humana-line bg-white p-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-              {tb.kpis.confirmed}
+              {tb.kpis.retreats}
             </p>
-            <p className="mt-2 text-[30px] font-bold text-humana-gold">{summary.confirmed}</p>
+            <p className="mt-2 text-[30px] font-bold text-humana-gold">{summary.retreat_count}</p>
+          </div>
+          <div className="rounded-xl border border-humana-line bg-white p-6">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              {tb.kpis.lodging}
+            </p>
+            <p className="mt-2 text-[30px] font-bold text-humana-gold">{summary.lodging_count}</p>
           </div>
           <div className="rounded-xl border border-humana-line bg-white p-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
@@ -158,28 +240,7 @@ export default function AgencyBookingsPage() {
         </div>
       )}
 
-      {/* Status Filter Pills */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        {filters.map((f) => {
-          const count = statusCounts[f.key];
-          const isActive = filter === f.key;
-          return (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`cursor-pointer rounded-full px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.14em] transition-all ${
-                isActive
-                  ? "bg-humana-ink text-white"
-                  : "border border-humana-line text-humana-muted hover:border-humana-ink hover:text-humana-ink"
-              }`}
-            >
-              {f.label} ({count})
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Booking rows */}
+      {/* Content */}
       {loading ? (
         <div className="flex h-64 items-center justify-center rounded-xl border border-humana-line bg-white">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
@@ -190,73 +251,219 @@ export default function AgencyBookingsPage() {
           <p className="mt-2 max-w-md text-[14px] text-humana-muted">{tb.emptyHint}</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3 stagger-children">
-          {bookings.map((booking) => {
-            const isCancelled = booking.status === "cancelled";
-            return (
-              <article
-                key={booking.id}
-                className={`flex items-center rounded-xl border border-humana-line bg-white px-6 py-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md ${
-                  isCancelled ? "opacity-50" : ""
-                }`}
-              >
-                {/* Reference */}
-                <div className="w-[120px] shrink-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">
-                    {tb.columns.reference}
-                  </p>
-                  <p className="mt-0.5 text-[14px] font-medium text-humana-ink">
-                    {booking.reference}
-                  </p>
-                </div>
+        <div className="space-y-10">
+          {/* ── Retreat Bookings ── */}
+          <section>
+            <div className="mb-3 flex items-center gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                {tb.retreatSection}
+              </p>
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-humana-gold/10 px-1.5 text-[10px] font-bold text-humana-gold">
+                {retreatBookings.length}
+              </span>
+            </div>
 
-                {/* Client */}
-                <div className="min-w-0 flex-1 px-3">
-                  <p className="truncate text-[14px] font-medium text-humana-ink">
-                    {booking.client?.name ?? "—"}
-                  </p>
-                  <p className="mt-0.5 truncate text-[13px] text-humana-muted">
-                    {booking.client?.email ?? "—"}
-                  </p>
+            {retreatBookings.length === 0 ? (
+              <div className="rounded-xl border border-humana-line bg-white px-6 py-12 text-center">
+                <p className="text-[14px] text-humana-muted">{tb.emptyRetreats}</p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-humana-line bg-white animate-fade-in-up">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[1100px]">
+                    <thead>
+                      <tr className="border-b border-humana-line bg-[#fafaf7]">
+                        <Th tooltip={tip.reference}>{col.reference}</Th>
+                        <Th tooltip={tip.client}>{col.client}</Th>
+                        <Th tooltip={tip.experience}>{col.experience}</Th>
+                        <Th tooltip={tip.type}>{col.type}</Th>
+                        <Th tooltip={tip.hotel}>{col.hotel}</Th>
+                        <Th tooltip={tip.guests} align="center">{col.guests}</Th>
+                        <Th tooltip={tip.dates}>{col.dates}</Th>
+                        <Th tooltip={tip.amount} align="right">{col.amount}</Th>
+                        <Th tooltip={tip.commission} align="right">{col.commission}</Th>
+                        <Th tooltip={tip.created}>{col.created}</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {retreatBookings.map((booking, idx) => {
+                        return (
+                          <tr
+                            key={booking.id}
+                            className={`border-b border-humana-line/60 transition-colors hover:bg-humana-stone/40 ${idx % 2 === 1 ? "bg-[#fdfdfb]" : ""}`}
+                          >
+                            <td className="px-4 py-3">
+                              <span className="text-[13px] font-semibold text-humana-ink tracking-wide">
+                                {booking.reference}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="min-w-0">
+                                <p className="truncate text-[13px] font-medium text-humana-ink">
+                                  {booking.client?.name ?? "\u2014"}
+                                </p>
+                                <p className="truncate text-[11px] text-humana-subtle">
+                                  {booking.client?.email ?? ""}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 max-w-[160px]">
+                              <p className="truncate text-[13px] text-humana-ink">
+                                {booking.experience?.title ?? "\u2014"}
+                              </p>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-[12px] capitalize text-humana-muted">
+                                {booking.experience?.kind ?? "\u2014"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 max-w-[140px]">
+                              <p className="truncate text-[13px] text-humana-muted">
+                                {booking.experience?.hotel?.name ?? "\u2014"}
+                              </p>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="text-[13px] text-humana-ink">{booking.guests}</span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="text-[13px] text-humana-ink">
+                                {booking.starts_on && booking.ends_on
+                                  ? formatDateRange(booking.starts_on, booking.ends_on, tag)
+                                  : "\u2014"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                              <span className="text-[13px] font-semibold text-humana-ink">
+                                {money(booking.amount_cents, booking.currency, tag)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                              <span className="text-[13px] font-semibold text-humana-gold">
+                                {money(booking.commission_cents, booking.currency, tag)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="text-[12px] text-humana-subtle">
+                                {booking.created_at ? formatDate(booking.created_at.slice(0, 10), tag) : "\u2014"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
+              </div>
+            )}
+          </section>
 
-                {/* Experience */}
-                <div className="w-[180px] shrink-0 px-3">
-                  <p className="truncate text-[14px] text-humana-ink">
-                    {booking.experience?.title ?? "—"}
-                  </p>
-                </div>
+          {/* ── Lodging Bookings ── */}
+          <section>
+            <div className="mb-3 flex items-center gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                {tb.lodgingSection}
+              </p>
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-humana-gold/10 px-1.5 text-[10px] font-bold text-humana-gold">
+                {hotelBookings.length}
+              </span>
+            </div>
 
-                {/* Dates */}
-                <div className="w-[140px] shrink-0 text-[14px] text-humana-ink">
-                  {booking.starts_on && booking.ends_on
-                    ? formatDateRange(booking.starts_on, booking.ends_on, tag)
-                    : "—"}
+            {hotelBookings.length === 0 ? (
+              <div className="rounded-xl border border-humana-line bg-white px-6 py-12 text-center">
+                <p className="text-[14px] text-humana-muted">{tb.emptyLodging}</p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-humana-line bg-white animate-fade-in-up">
+                <div>
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-humana-line bg-[#fafaf7]">
+                        <Th tooltip={tip.reference}>{col.reference}</Th>
+                        <Th tooltip={tip.client}>{col.client}</Th>
+                        <Th tooltip={tip.hotel}>{col.hotel}</Th>
+                        <Th tooltip={tip.room}>{col.room}</Th>
+                        <Th tooltip={tip.guests} align="center">{col.guests}</Th>
+                        <Th tooltip={tip.checkIn}>{col.checkIn}</Th>
+                        <Th tooltip={tip.checkOut}>{col.checkOut}</Th>
+                        <Th tooltip={tip.nights} align="center">{col.nights}</Th>
+                        <Th tooltip={tip.amount} align="right">{col.amount}</Th>
+                        <Th tooltip={tip.commission} align="right">{col.commission}</Th>
+                        <Th tooltip={tip.created}>{col.created}</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {hotelBookings.map((booking, idx) => {
+                        const nights = booking.starts_on && booking.ends_on ? diffNights(booking.starts_on, booking.ends_on) : 0;
+                        return (
+                          <tr
+                            key={booking.id}
+                            className={`border-b border-humana-line/60 transition-colors hover:bg-humana-stone/40 ${idx % 2 === 1 ? "bg-[#fdfdfb]" : ""}`}
+                          >
+                            <td className="px-4 py-3">
+                              <span className="text-[13px] font-semibold text-humana-ink tracking-wide">
+                                {booking.reference}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="min-w-0">
+                                <p className="truncate text-[13px] font-medium text-humana-ink">
+                                  {booking.client?.name ?? "\u2014"}
+                                </p>
+                                <p className="truncate text-[11px] text-humana-subtle">
+                                  {booking.client?.email ?? ""}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 max-w-[140px]">
+                              <p className="truncate text-[13px] text-humana-ink">
+                                {booking.hotel?.name ?? "\u2014"}
+                              </p>
+                            </td>
+                            <td className="px-4 py-3 max-w-[120px]">
+                              <p className="truncate text-[13px] text-humana-muted">
+                                {booking.room_type?.name ?? "\u2014"}
+                              </p>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="text-[13px] text-humana-ink">{booking.room_type?.capacity ?? booking.guests}</span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="text-[13px] text-humana-ink">
+                                {booking.starts_on ? formatDate(booking.starts_on, tag) : "\u2014"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="text-[13px] text-humana-ink">
+                                {booking.ends_on ? formatDate(booking.ends_on, tag) : "\u2014"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="text-[13px] text-humana-ink">{nights}</span>
+                            </td>
+                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                              <span className="text-[13px] font-semibold text-humana-ink">
+                                {money(booking.amount_cents, booking.currency, tag)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                              <span className="text-[13px] font-semibold text-humana-gold">
+                                {money(booking.commission_cents, booking.currency, tag)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="text-[12px] text-humana-subtle">
+                                {booking.created_at ? formatDate(booking.created_at.slice(0, 10), tag) : "\u2014"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-
-                {/* Amount */}
-                <div className="w-[90px] shrink-0 text-right text-[14px] font-medium text-humana-ink">
-                  {money(booking.amount_cents, booking.currency, tag)}
-                </div>
-
-                {/* Commission */}
-                <div className="w-[100px] shrink-0 text-right text-[14px] font-medium text-humana-gold">
-                  {money(booking.commission_cents, booking.currency, tag)}
-                </div>
-
-                {/* Status Badge */}
-                <div className="w-[110px] shrink-0 flex items-center justify-end">
-                  <span
-                    className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${
-                      STATUS_COLORS[booking.status] ?? STATUS_COLORS.inquiry
-                    }`}
-                  >
-                    {tb.statusLabels[booking.status as BookingStatus] ?? booking.status}
-                  </span>
-                </div>
-              </article>
-            );
-          })}
+              </div>
+            )}
+          </section>
         </div>
       )}
 

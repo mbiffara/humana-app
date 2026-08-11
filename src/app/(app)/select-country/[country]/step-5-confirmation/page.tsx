@@ -4,28 +4,7 @@ import React, { useMemo } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useBooking } from "@/contexts/BookingContext";
-
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
-  const day = d.getDate();
-  const monthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-  return `${day} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T12:00:00");
-  d.setDate(d.getDate() + days);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-
-function diffDays(start: string, end: string): number {
-  const s = new Date(start + "T12:00:00");
-  const e = new Date(end + "T12:00:00");
-  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
-}
+import { formatDateShort, addDays, diffDays } from "@/lib/calendar-utils";
 
 export default function ConfirmationPage({ params }: { params: Promise<{ country: string }> }) {
   React.use(params);
@@ -49,6 +28,7 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
   const displayHotelName = state.display?.hotelName ?? "Hotel";
   const displayHotelLocation = state.display?.hotelLocation ?? "";
   const displayRoomName = state.display?.roomTypeName ?? "Suite";
+  const isHotelDirect = state.flowType === "hotels" && !!state.roomTypeApiId;
 
   return (
     <div className="flex flex-col items-center gap-10 bg-humana-stone min-h-screen px-16 py-20">
@@ -58,7 +38,7 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
       </svg>
 
       <div className="animate-fade-in-up flex flex-col items-center gap-3 text-center">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">{state.inventoryMode ? "PASO 5 DE 5 \u00B7 PLAZAS ADQUIRIDAS" : "PASO 5 DE 5 \u00B7 RESERVA CONFIRMADA"}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">{state.inventoryMode ? `${isHotelDirect ? "PASO 4 DE 4" : "PASO 5 DE 5"} \u00B7 PLAZAS ADQUIRIDAS` : `${isHotelDirect ? "PASO 4 DE 4" : "PASO 5 DE 5"} \u00B7 RESERVA CONFIRMADA`}</span>
         <h1 className="text-[36px] font-light leading-[44px] tracking-[-0.02em] text-humana-ink">{state.inventoryMode ? "Plazas guardadas en inventario" : "Reserva creada exitosamente"}</h1>
         <p className="text-[15px] leading-[22px] text-humana-muted">{state.inventoryMode ? "Las plazas estan disponibles en tu inventario para asignar un cliente en el futuro." : `Se ha enviado un email de confirmacion con la referencia ${reservationId}.`}</p>
       </div>

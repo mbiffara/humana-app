@@ -124,7 +124,7 @@ export default function AgencyMyRetreatsPage() {
           <p className="mt-1 text-[14px] text-humana-muted">{tr.subtitle}</p>
         </div>
         <Link
-          href="/create-retreat/step-1"
+          href="/agency/retreats/create/step-1"
           className="rounded-lg bg-humana-gold px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-85"
         >
           {tr.createRetreat}
@@ -189,7 +189,7 @@ export default function AgencyMyRetreatsPage() {
           <p className="text-[18px] font-medium text-humana-ink">{tr.empty}</p>
           <p className="mt-2 max-w-md text-[14px] text-humana-muted">{tr.emptyHint}</p>
           <Link
-            href="/create-retreat/step-1"
+            href="/agency/retreats/create/step-1"
             className="mt-6 rounded-lg bg-humana-gold px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-85"
           >
             {tr.createRetreat}

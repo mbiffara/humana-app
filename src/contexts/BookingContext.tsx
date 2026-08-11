@@ -36,6 +36,7 @@ export type BookingState = {
   experienceId: number | null;
   hotelApiId: number | null;
   roomTypeApiId: number | null;
+  retreatApiId: number | null;
   clientApiId: number | null;
   // Booking result
   bookingId: number | null;
@@ -59,6 +60,7 @@ const initial: BookingState = {
   experienceId: null,
   hotelApiId: null,
   roomTypeApiId: null,
+  retreatApiId: null,
   clientApiId: null,
   bookingId: null,
   bookingReference: null,

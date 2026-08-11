@@ -7,66 +7,13 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type ApiExperience, type PublicRoomType } from "@/lib/api/agency";
 import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
-
-const MONTH_NAMES = [
-  ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-  ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
-  ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
-];
-
-const WEEKDAY_NAMES = [
-  ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-  ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"],
-  ["Se", "Te", "Qu", "Qu", "Se", "Sá", "Do"],
-];
+import {
+  MONTH_NAMES, WEEKDAY_NAMES, daysInMonth, firstDayOfMonth, toDateStr,
+  formatDateShort, addDays, getDayName, diffDays,
+} from "@/lib/calendar-utils";
 
 const CHECK_IN_TIME = "15:00";
 const CHECK_OUT_TIME = "11:00";
-
-function daysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function firstDayOfMonth(year: number, month: number) {
-  const d = new Date(year, month, 1).getDay();
-  return d === 0 ? 6 : d - 1;
-}
-
-function toDateStr(y: number, m: number, d: number) {
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
-  const day = d.getDate();
-  const monthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-  return `${day} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T12:00:00");
-  d.setDate(d.getDate() + days);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-
-function getDayName(dateStr: string, localeIdx: number): string {
-  const dayNames = [
-    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
-    ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"],
-  ];
-  const d = new Date(dateStr + "T12:00:00");
-  return dayNames[localeIdx][d.getDay()];
-}
-
-function diffDays(start: string, end: string): number {
-  const s = new Date(start + "T12:00:00");
-  const e = new Date(end + "T12:00:00");
-  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
-}
 
 export default function SelectDatesPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);

@@ -27,7 +27,7 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
   }, [countryId]);
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 px-20 py-14">
+    <div className="animate-fade-in-up mx-auto flex max-w-[1400px] flex-col gap-10 px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },

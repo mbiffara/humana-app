@@ -7,28 +7,7 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type PublicRoomType, type HotelAvailabilityRoomType } from "@/lib/api/agency";
-
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
-  const day = d.getDate();
-  const monthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-  return `${day} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T12:00:00");
-  d.setDate(d.getDate() + days);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-
-function diffDays(start: string, end: string): number {
-  const s = new Date(start + "T12:00:00");
-  const e = new Date(end + "T12:00:00");
-  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
-}
+import { formatDateShort, addDays, diffDays } from "@/lib/calendar-utils";
 
 export default function SelectAccommodationPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);

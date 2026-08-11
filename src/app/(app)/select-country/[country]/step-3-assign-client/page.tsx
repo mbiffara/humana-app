@@ -6,28 +6,7 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type ApiClient } from "@/lib/api/agency";
-
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
-  const day = d.getDate();
-  const monthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-  return `${day} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T12:00:00");
-  d.setDate(d.getDate() + days);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-
-function diffDays(start: string, end: string): number {
-  const s = new Date(start + "T12:00:00");
-  const e = new Date(end + "T12:00:00");
-  return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
-}
+import { formatDateShort, addDays, diffDays } from "@/lib/calendar-utils";
 
 function getInitials(name: string): string {
   return name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
@@ -100,6 +79,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
   const displayHotelName = state.display?.hotelName ?? "Hotel";
   const displayRoomName = state.display?.roomTypeName ?? "Suite";
   const displayHotelLocation = state.display?.hotelLocation ?? "";
+  const isHotelDirect = state.flowType === "hotels" && !!state.roomTypeApiId;
 
   async function handleCreateClient() {
     if (creatingClient) return;
@@ -123,7 +103,11 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
   return (
     <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
-        items={[
+        items={isHotelDirect ? [
+          { label: t.breadcrumb.home, href: "/dashboard" },
+          { label: displayHotelName, href: `/select-country/${country}/hotels/${state.hotelSlug ?? state.hotelApiId}` },
+          { label: "Asignar cliente" },
+        ] : [
           { label: t.breadcrumb.home, href: "/dashboard" },
           { label: displayHotelName, href: `/select-country/${country}` },
           { label: "Alojamiento", href: `/select-country/${country}/step-2-select-accommodation` },
@@ -132,7 +116,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
       />
 
       <div className="flex flex-col gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">PASO 3 DE 5</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">{isHotelDirect ? "PASO 2 DE 4" : "PASO 3 DE 5"}</span>
         <h1 className="text-[36px] font-light leading-[44px] tracking-[-0.02em] text-humana-ink">Asignar cliente</h1>
         <p className="text-[15px] leading-[22px] text-humana-muted">Asigna un cliente a esta reserva o guarda las plazas en tu inventario para reventa.</p>
       </div>

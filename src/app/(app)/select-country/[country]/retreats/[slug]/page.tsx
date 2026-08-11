@@ -85,7 +85,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
     ),
   );
   const days = nights + 1;
-  const commissionRate = experience.commission_rate ?? 0;
+  const commissionRate = experience.commission_rate ?? 0.16;
   const commissionPct = Math.round(commissionRate * 100);
   const commissionAmount = Math.round(experience.price * commissionRate);
   const startFormatted = formatDate(experience.starts_on);

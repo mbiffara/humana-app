@@ -1,10 +1,10 @@
 /** Agency workspace — client management.
- *  Client list with search, add/edit modal, and delete confirmation. */
+ *  Client list with search, expandable booking history, add/edit modal, and delete confirmation. */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "@/i18n/LocaleProvider";
-import { agencyApi, type ApiClient } from "@/lib/api/agency";
+import { agencyApi, type ApiClient, type ApiBooking, type BillingSale } from "@/lib/api/agency";
 
 export default function AgencyClientsPage() {
   const { t, locale } = useLocale();
@@ -17,6 +17,10 @@ export default function AgencyClientsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingClient, setEditingClient] = useState<ApiClient | null>(null);
   const [deletingClient, setDeletingClient] = useState<ApiClient | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [bookingsCache, setBookingsCache] = useState<Record<number, ApiBooking[]>>({});
+  const [bookingsLoading, setBookingsLoading] = useState<Record<number, boolean>>({});
+  const [buyingAgencies, setBuyingAgencies] = useState<{ name: string; bookings: number; revenue: number }[]>([]);
 
   const fetchClients = useCallback(async () => {
     setLoading(true);
@@ -32,6 +36,23 @@ export default function AgencyClientsPage() {
 
   useEffect(() => {
     fetchClients();
+    // Fetch buying agencies (other agencies that purchased our retreats)
+    agencyApi.getBilling({ per_page: 100 }).then((res) => {
+      const agencyMap = new Map<string, { bookings: number; revenue: number }>();
+      for (const sale of res.sales) {
+        if (!sale.buying_agency) continue;
+        const existing = agencyMap.get(sale.buying_agency);
+        if (existing) {
+          existing.bookings++;
+          existing.revenue += sale.amount_cents;
+        } else {
+          agencyMap.set(sale.buying_agency, { bookings: 1, revenue: sale.amount_cents });
+        }
+      }
+      setBuyingAgencies(
+        Array.from(agencyMap.entries()).map(([name, data]) => ({ name, ...data }))
+      );
+    }).catch(() => {});
   }, [fetchClients]);
 
   const filtered = clients.filter((c) => {
@@ -52,6 +73,14 @@ export default function AgencyClientsPage() {
     }).format(d);
   }
 
+  function formatShort(iso: string): string {
+    const d = new Date(iso + "T00:00:00");
+    return new Intl.DateTimeFormat(localeTag, { day: "numeric", month: "short" }).format(d);
+  }
+
+  const fmt = (cents: number) =>
+    new Intl.NumberFormat(localeTag, { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(cents / 100);
+
   async function handleDelete() {
     if (!deletingClient) return;
     try {
@@ -60,6 +89,27 @@ export default function AgencyClientsPage() {
       fetchClients();
     } catch {
       // ignore
+    }
+  }
+
+  async function toggleExpand(clientId: number) {
+    if (expandedId === clientId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(clientId);
+
+    // Load bookings if not cached
+    if (!bookingsCache[clientId]) {
+      setBookingsLoading((prev) => ({ ...prev, [clientId]: true }));
+      try {
+        const res = await agencyApi.listBookings({ client_id: clientId, per_page: 50 });
+        setBookingsCache((prev) => ({ ...prev, [clientId]: res.bookings }));
+      } catch {
+        setBookingsCache((prev) => ({ ...prev, [clientId]: [] }));
+      } finally {
+        setBookingsLoading((prev) => ({ ...prev, [clientId]: false }));
+      }
     }
   }
 
@@ -122,105 +172,255 @@ export default function AgencyClientsPage() {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {filtered.map((client) => (
-            <article
-              key={client.id}
-              className="flex items-center rounded-xl border border-humana-line bg-white px-6 py-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md"
-            >
-              {/* Name */}
-              <div className="w-[180px] shrink-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">
-                  {tc.columns.name}
-                </p>
-                <p className="mt-0.5 truncate text-[14px] font-medium text-humana-ink">
-                  {client.name}
-                </p>
-              </div>
+        <div className="flex flex-col gap-1.5">
+          {/* Column headers */}
+          <div className="flex items-center px-5 py-1.5">
+            <div className="mr-2.5 w-4 shrink-0" />
+            <div className="w-[180px] shrink-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.name}</p>
+            </div>
+            <div className="min-w-0 flex-1 px-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.email}</p>
+            </div>
+            <div className="w-[140px] shrink-0 px-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.phone}</p>
+            </div>
+            <div className="w-[80px] shrink-0 px-3 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.bookings}</p>
+            </div>
+            <div className="w-[160px] shrink-0 px-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.notes}</p>
+            </div>
+            <div className="w-[100px] shrink-0 px-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.created}</p>
+            </div>
+            <div className="w-[64px] shrink-0" />
+          </div>
 
-              {/* Email */}
-              <div className="min-w-0 flex-1 px-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">
-                  {tc.columns.email}
-                </p>
-                <p className="mt-0.5 truncate text-[14px] text-humana-ink">
-                  {client.email}
-                </p>
-              </div>
+          {filtered.map((client) => {
+            const isExpanded = expandedId === client.id;
+            const clientBookings = bookingsCache[client.id];
+            const isLoadingBookings = bookingsLoading[client.id];
 
-              {/* Phone */}
-              <div className="w-[150px] shrink-0 px-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">
-                  {tc.columns.phone}
-                </p>
-                <p className="mt-0.5 truncate text-[14px] text-humana-ink">
-                  {client.phone ?? "—"}
-                </p>
-              </div>
-
-              {/* Notes */}
-              <div className="w-[180px] shrink-0 px-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">
-                  {tc.columns.notes}
-                </p>
-                <p className="mt-0.5 truncate text-[13px] text-humana-muted">
-                  {client.notes ?? "—"}
-                </p>
-              </div>
-
-              {/* Created */}
-              <div className="w-[120px] shrink-0 px-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">
-                  {tc.columns.created}
-                </p>
-                <p className="mt-0.5 text-[14px] text-humana-ink">
-                  {formatDate(client.created_at)}
-                </p>
-              </div>
-
-              {/* Actions */}
-              <div className="flex w-[80px] shrink-0 items-center justify-end gap-1">
-                <button
-                  onClick={() => setEditingClient(client)}
-                  title={tc.columns.actions}
-                  className="cursor-pointer flex h-7 w-7 items-center justify-center rounded-full border border-humana-line text-humana-subtle transition-colors hover:border-humana-ink hover:text-humana-ink"
+            return (
+              <article
+                key={client.id}
+                className="overflow-hidden rounded-xl border border-humana-line bg-white transition-all duration-200 hover:shadow-md"
+              >
+                {/* Collapsed row */}
+                <div
+                  className="flex cursor-pointer items-center px-5 py-2.5 transition-colors hover:bg-humana-stone/30"
+                  onClick={() => toggleExpand(client.id)}
                 >
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                    <path d="m15 5 4 4" />
+                  {/* Chevron */}
+                  <div className="mr-2.5 flex w-4 shrink-0 items-center justify-center">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`text-humana-subtle transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </div>
+
+                  {/* Name */}
+                  <div className="w-[180px] shrink-0">
+                    <p className="truncate text-[14px] font-medium text-humana-ink">
+                      {client.name}
+                    </p>
+                  </div>
+
+                  {/* Email */}
+                  <div className="min-w-0 flex-1 px-3">
+                    <p className="truncate text-[13px] text-humana-muted">
+                      {client.email}
+                    </p>
+                  </div>
+
+                  {/* Phone */}
+                  <div className="w-[140px] shrink-0 px-3">
+                    <p className="truncate text-[13px] text-humana-ink">
+                      {client.phone ?? "\u2014"}
+                    </p>
+                  </div>
+
+                  {/* Bookings */}
+                  <div className="w-[80px] shrink-0 px-3 text-center">
+                    <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${(client.booking_count ?? 0) > 0 ? "bg-humana-gold/10 text-humana-gold" : "text-humana-muted"}`}>
+                      {client.booking_count ?? 0}
+                    </span>
+                  </div>
+
+                  {/* Notes */}
+                  <div className="w-[160px] shrink-0 px-3">
+                    <p className="truncate text-[13px] text-humana-muted">
+                      {client.notes ?? "\u2014"}
+                    </p>
+                  </div>
+
+                  {/* Created */}
+                  <div className="w-[100px] shrink-0 px-3">
+                    <p className="text-[13px] text-humana-muted">
+                      {formatDate(client.created_at)}
+                    </p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex w-[64px] shrink-0 items-center justify-end gap-1">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditingClient(client); }}
+                      title={tc.columns.actions}
+                      className="cursor-pointer flex h-7 w-7 items-center justify-center rounded-full border border-humana-line text-humana-subtle transition-colors hover:border-humana-ink hover:text-humana-ink"
+                    >
+                      <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                        <path d="m15 5 4 4" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeletingClient(client); }}
+                      title={tc.deleteTitle}
+                      className="cursor-pointer flex h-7 w-7 items-center justify-center rounded-full border border-humana-line text-humana-subtle transition-colors hover:border-red-400 hover:text-red-400"
+                    >
+                      <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expanded booking details */}
+                {isExpanded && (
+                  <div className="border-t border-humana-line bg-[#fafaf7] px-6 py-5 animate-[fade-in-up_0.2s_ease]">
+                    {isLoadingBookings ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+                      </div>
+                    ) : !clientBookings || clientBookings.length === 0 ? (
+                      <p className="py-6 text-center text-[14px] text-humana-muted">
+                        {tc.noBookings}
+                      </p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[900px]">
+                          <thead>
+                            <tr className="border-b border-humana-line/60">
+                              <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle">{t.agencyWs.bookings.columns.type}</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle">{t.agencyWs.bookings.columns.reference}</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle">{t.agencyWs.bookings.columns.hotel}</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle">{t.agencyWs.bookings.columns.experience}</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle">{t.agencyWs.bookings.columns.dates}</th>
+                              <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle">{t.agencyWs.bookings.columns.guests}</th>
+                              <th className="px-3 py-2 text-right text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle">{t.agencyWs.bookings.columns.amount}</th>
+                              <th className="px-3 py-2 text-right text-[10px] font-bold uppercase tracking-[0.18em] text-humana-subtle">{t.agencyWs.bookings.columns.commission}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {clientBookings.map((booking, idx) => {
+                              const isRetreat = !!booking.experience;
+                              return (
+                                <tr
+                                  key={booking.id}
+                                  className={`border-b border-humana-line/40 ${idx % 2 === 1 ? "bg-white/50" : ""}`}
+                                >
+                                  <td className="px-3 py-2.5">
+                                    <span className={`inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${isRetreat ? "border-indigo-200 bg-indigo-50 text-indigo-600" : "border-teal-200 bg-teal-50 text-teal-600"}`}>
+                                      {isRetreat ? tc.bookingType.retreat : tc.bookingType.lodging}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2.5">
+                                    <span className="text-[12px] font-semibold tracking-wide text-humana-ink">{booking.reference}</span>
+                                  </td>
+                                  <td className="px-3 py-2.5">
+                                    <span className="text-[12px] text-humana-ink">{booking.hotel?.name ?? booking.experience?.hotel?.name ?? "\u2014"}</span>
+                                  </td>
+                                  <td className="px-3 py-2.5">
+                                    <span className="text-[12px] text-humana-ink">
+                                      {isRetreat ? (booking.experience?.title ?? "\u2014") : (booking.room_type?.name ?? "\u2014")}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2.5">
+                                    <span className="whitespace-nowrap text-[12px] text-humana-ink">
+                                      {formatShort(booking.starts_on)} &ndash; {formatShort(booking.ends_on)}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2.5">
+                                    <span className="text-[12px] text-humana-ink">{booking.guests}</span>
+                                  </td>
+                                  <td className="px-3 py-2.5 text-right">
+                                    <span className="whitespace-nowrap text-[12px] font-semibold text-humana-ink">{fmt(booking.amount_cents)}</span>
+                                  </td>
+                                  <td className="px-3 py-2.5 text-right">
+                                    <span className="whitespace-nowrap text-[12px] font-semibold text-humana-gold">{fmt(booking.commission_cents)}</span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Buying agencies section */}
+      {buyingAgencies.length > 0 && (
+        <div className="mt-10">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+            {tc.buyingAgencies}
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {buyingAgencies.map((agency) => (
+              <div key={agency.name} className="flex items-center rounded-xl border border-humana-line bg-white px-5 py-2.5">
+                <div className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-humana-gold/10">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 21h18M5 21V7l8-4v18M13 21V3l6 3v15" />
                   </svg>
-                </button>
-                <button
-                  onClick={() => setDeletingClient(client)}
-                  title={tc.deleteTitle}
-                  className="cursor-pointer flex h-7 w-7 items-center justify-center rounded-full border border-humana-line text-humana-subtle transition-colors hover:border-red-400 hover:text-red-400"
-                >
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                </button>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-medium text-humana-ink">{agency.name}</p>
+                </div>
+                <div className="px-3 text-center">
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-humana-gold/10 px-1.5 text-[11px] font-bold text-humana-gold">
+                    {agency.bookings}
+                  </span>
+                </div>
+                <div className="w-[120px] shrink-0 text-right">
+                  <span className="text-[13px] font-semibold text-humana-ink">{fmt(agency.revenue)}</span>
+                </div>
               </div>
-            </article>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
@@ -290,7 +490,7 @@ export default function AgencyClientsPage() {
   );
 }
 
-/* ─── Add / Edit Client Modal ─── */
+/* --- Add / Edit Client Modal --- */
 
 function ClientModal({
   client,

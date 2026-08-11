@@ -25,6 +25,8 @@ export function retreatToExperience(r: PublicRetreat): ApiExperience {
     currency: r.currency,
     capacity: r.capacity ?? 0,
     image_url: r.cover_image_url,
+    commission_rate: 0.16,
+    commission_percent: "16%",
     hotel: r.hotel,
     is_retreat: true,
   };
