@@ -6,12 +6,11 @@ import { TopNav } from "@/components/TopNav";
 import { AgencyTopNav } from "@/components/agency/AgencyTopNav";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { SubscriptionPaywall } from "@/components/agency/SubscriptionPaywall";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, isAdmin, isOffice, subscription } = useAuth();
+  const { user, loading, isAdmin, isOffice } = useAuth();
   const isOnboarding = pathname.startsWith("/onboarding/");
   const isHotelWorkspace = pathname.startsWith("/hotel/");
   const isOfficeWorkspace = pathname.startsWith("/office/");
@@ -59,26 +58,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, router, isOnboarding, isOffice, pathname]);
 
-  // Agency paywall: show plan-selection modal when no active subscription
-  const isAgencyPaywallExempt = pathname.startsWith("/agency/settings") || isOnboarding;
-  const hasActiveSubscription =
-    subscription != null &&
-    (subscription.status === "active" || subscription.status === "trialing");
-  const showAgencyPaywall =
-    isAgency &&
-    !!user?.organization?.onboarding_completed &&
-    !hasActiveSubscription &&
-    !isAgencyPaywallExempt;
-
-  // Lock body scroll while agency paywall is visible
-  useEffect(() => {
-    if (showAgencyPaywall) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [showAgencyPaywall]);
+  // Paywall temporarily disabled — subscription selection is available
+  // from agency settings without blocking the entire workspace.
 
   if (loading) {
     return (
@@ -102,7 +83,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {!isAdmin && !isOnboarding && !isHotelWorkspace && !isOfficeWorkspace && !isAgency && !isOffice && <TopNav />}
       <div className="relative flex-1">
         <main>{children}</main>
-        {showAgencyPaywall && <SubscriptionPaywall />}
       </div>
     </BookingProvider>
   );

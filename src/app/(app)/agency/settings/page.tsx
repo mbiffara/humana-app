@@ -390,8 +390,9 @@ export default function AgencySettingsPage() {
         setCurrentSub(res.subscription);
         refreshAuth();
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("[Subscription] Failed to select plan:", err);
+      setSavedMsg("Error selecting plan. Please try again.");
     } finally {
       setSelectingPlanId(null);
     }
