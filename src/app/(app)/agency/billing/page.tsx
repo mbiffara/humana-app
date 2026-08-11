@@ -185,6 +185,7 @@ function CommissionsTab({
   setPage: (p: number | ((p: number) => number)) => void;
   tb: {
     columns: { reference: string; client: string; type: string; hotel: string; guests: string; dates: string; amount: string; commission: string; status: string; created: string };
+    bookingType: { retreat: string; lodging: string };
     commissionsEmpty: string;
     commissionsEmptyHint: string;
   };
@@ -242,7 +243,7 @@ function CommissionsTab({
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${isRetreat ? "border-indigo-200 bg-indigo-50 text-indigo-600" : "border-teal-200 bg-teal-50 text-teal-600"}`}>
-                      {isRetreat ? "Retreat" : "Lodging"}
+                      {isRetreat ? tb.bookingType.retreat : tb.bookingType.lodging}
                     </span>
                   </td>
                   <td className="px-4 py-3">

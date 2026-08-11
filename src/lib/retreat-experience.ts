@@ -5,7 +5,7 @@
  * `is_retreat: true` — bookings for them use the direct hotel path
  * (hotel_id) instead of experience_id.
  */
-import { agencyApi, type ApiExperience, type PublicRetreat } from "@/lib/api/agency";
+import { agencyApi, type ApiExperience, type ApiRetreatPricing, type PublicRetreat } from "@/lib/api/agency";
 
 export function retreatToExperience(r: PublicRetreat): ApiExperience {
   return {
@@ -29,6 +29,8 @@ export function retreatToExperience(r: PublicRetreat): ApiExperience {
     commission_percent: "16%",
     hotel: r.hotel,
     is_retreat: true,
+    created_by_organization_id: r.created_by_organization_id,
+    pricing: r.pricing,
   };
 }
 

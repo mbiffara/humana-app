@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -9,7 +9,7 @@ import { agencyApi, type ApiExperience, type PublicRoomType } from "@/lib/api/ag
 import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
 import {
   MONTH_NAMES, WEEKDAY_NAMES, daysInMonth, firstDayOfMonth, toDateStr,
-  formatDateShort, addDays, getDayName, diffDays,
+  formatDateShort, getDayName, diffDays,
 } from "@/lib/calendar-utils";
 
 const CHECK_IN_TIME = "15:00";
@@ -27,8 +27,6 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   const [firstRoom, setFirstRoom] = useState<PublicRoomType | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [preNights, setPreNights] = useState(state.preNights);
-  const [postNights, setPostNights] = useState(state.postNights);
   const [viewYear, setViewYear] = useState(2026);
   const [viewMonth, setViewMonth] = useState(0);
 
@@ -65,7 +63,9 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
           setHotelLocation(`${h.city}, ${h.country}`);
           const coverImg = h.images?.find((img) => img.is_cover);
           setHotelImage(coverImg?.image_url ?? h.images?.[0]?.image_url ?? "/images/retreat-tulum.jpg");
-          if (h.room_types?.length > 0) setFirstRoom(h.room_types[0]);
+          const selectedRt = state.roomTypeApiId && h.room_types?.find((rt) => rt.id === state.roomTypeApiId);
+          if (selectedRt) setFirstRoom(selectedRt);
+          else if (h.room_types?.length > 0) setFirstRoom(h.room_types[0]);
         }
       } catch {
         // Silently handle — will show fallback data
@@ -76,7 +76,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
 
     fetchData();
     return () => { cancelled = true; };
-  }, [hydrated, country, state.retreatSlug]);
+  }, [hydrated, country, state.retreatSlug, state.roomTypeApiId]);
 
   const localeIdx = locale === "es" ? 1 : locale === "pt" ? 2 : 0;
   const months = MONTH_NAMES[localeIdx];
@@ -88,15 +88,9 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   const retreatNights = diffDays(retreatStart, retreatEnd);
 
   const pricePerNight = firstRoom ? firstRoom.price_per_night_cents / 100 : 280;
-  const retreatCost = retreatNights * pricePerNight;
-  const preCost = preNights * pricePerNight;
-  const postCost = postNights * pricePerNight;
-  const totalPrice = retreatCost + preCost + postCost;
+  const totalPrice = retreatNights * pricePerNight;
   const commissionRate = experience?.commission_rate ?? 0.16;
   const commission = Math.round(totalPrice * commissionRate);
-
-  const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
-  const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
 
   if (!hydrated || loading) {
     return (
@@ -133,8 +127,6 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
       const isRetreatStart = dateStr === retreatStart;
       const isRetreatEnd = dateStr === retreatEnd;
       const isInRetreat = dateStr > retreatStart && dateStr < retreatEnd;
-      const isPreDay = computedCheckIn && dateStr >= computedCheckIn && dateStr < retreatStart;
-      const isPostDay = computedCheckOut && dateStr > retreatEnd && dateStr <= computedCheckOut;
       const isToday = dateStr === "2026-04-29";
 
       let cls = "flex h-11 w-11 items-center justify-center text-[14px] transition-all duration-150 ";
@@ -145,8 +137,6 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
         cls += "calendar-day-range-end font-semibold rounded-r-full";
       } else if (isInRetreat) {
         cls += "calendar-day-in-range";
-      } else if (isPreDay || isPostDay) {
-        cls += "border border-humana-gold/40 bg-humana-gold/8 text-humana-gold font-medium";
       } else {
         cls += "text-humana-muted";
         if (isToday) cls += " ring-1 ring-humana-gold/40 rounded-full";
@@ -179,8 +169,8 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   function handleContinue() {
     set({
       dates: { start: retreatStart, end: retreatEnd },
-      preNights,
-      postNights,
+      preNights: 0,
+      postNights: 0,
       // Adapted retreats book through the direct hotel path — no experience_id
       experienceId: experience && !experience.is_retreat ? experience.id : null,
       hotelApiId: experience?.hotel?.id ?? null,
@@ -215,7 +205,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
           Fechas del retiro
         </h1>
         <p className="text-[15px] leading-[22px] text-humana-muted">
-          Las fechas del retiro son fijas. Podes agregar noches adicionales antes o despues para tu cliente.
+          Las fechas del retiro son fijas y no pueden modificarse.
         </p>
       </div>
 
@@ -226,12 +216,12 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
           <div className="flex items-stretch gap-0 border border-humana-line bg-white">
             <div className="flex flex-1 flex-col gap-1.5 border-r border-humana-line p-6">
               <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">CHECK-IN</span>
-              <span className="text-[18px] font-medium text-humana-ink">{getDayName(computedCheckIn, localeIdx)}, {formatDateShort(computedCheckIn)}</span>
+              <span className="text-[18px] font-medium text-humana-ink">{getDayName(retreatStart, localeIdx)}, {formatDateShort(retreatStart)}</span>
               <span className="text-[13px] text-humana-muted">A partir de las {CHECK_IN_TIME} hs</span>
             </div>
             <div className="flex flex-1 flex-col gap-1.5 p-6">
               <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">CHECK-OUT</span>
-              <span className="text-[18px] font-medium text-humana-ink">{getDayName(computedCheckOut, localeIdx)}, {formatDateShort(computedCheckOut)}</span>
+              <span className="text-[18px] font-medium text-humana-ink">{getDayName(retreatEnd, localeIdx)}, {formatDateShort(retreatEnd)}</span>
               <span className="text-[13px] text-humana-muted">Antes de las {CHECK_OUT_TIME} hs</span>
             </div>
           </div>
@@ -260,12 +250,6 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
                 <div className="h-3 w-3 rounded-full bg-humana-gold" />
                 <span className="text-[12px] text-humana-muted">Fechas del retiro</span>
               </div>
-              {(preNights > 0 || postNights > 0) && (
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full border-2 border-humana-gold/30 bg-humana-gold/8" />
-                  <span className="text-[12px] text-humana-muted">Dias adicionales</span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -306,51 +290,15 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
                   <span className="text-[14px] text-humana-ink">Check-in</span>
                   <span className="text-[12px] text-humana-subtle">A partir de las {CHECK_IN_TIME}</span>
                 </div>
-                <span className="text-[13px] font-medium text-humana-ink">{formatDateShort(computedCheckIn)}</span>
+                <span className="text-[13px] font-medium text-humana-ink">{formatDateShort(retreatStart)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[14px] text-humana-ink">Check-out</span>
                   <span className="text-[12px] text-humana-subtle">Antes de las {CHECK_OUT_TIME}</span>
                 </div>
-                <span className="text-[13px] font-medium text-humana-ink">{formatDateShort(computedCheckOut)}</span>
+                <span className="text-[13px] font-medium text-humana-ink">{formatDateShort(retreatEnd)}</span>
               </div>
-            </div>
-
-            <div className="h-px bg-humana-line" />
-
-            {/* Pre-retreat counter */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-ink">Noches pre-retiro</span>
-                <div className="flex items-center gap-3">
-                  <button type="button" disabled={preNights <= 0} onClick={() => setPreNights(Math.max(0, preNights - 1))}
-                    className="flex h-7 w-7 items-center justify-center border border-humana-line text-[14px] text-humana-ink transition-all hover:border-humana-ink disabled:opacity-30">–</button>
-                  <span className="w-5 text-center text-[15px] font-medium text-humana-ink">{preNights}</span>
-                  <button type="button" disabled={preNights >= 5} onClick={() => setPreNights(Math.min(5, preNights + 1))}
-                    className="flex h-7 w-7 items-center justify-center border border-humana-line text-[14px] text-humana-ink transition-all hover:border-humana-ink disabled:opacity-30">+</button>
-                </div>
-              </div>
-              {preNights > 0 && (
-                <span className="text-[12px] text-humana-subtle">Check-in anticipado: {formatDateShort(computedCheckIn)} · {CHECK_IN_TIME}</span>
-              )}
-            </div>
-
-            {/* Post-retreat counter */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-ink">Noches post-retiro</span>
-                <div className="flex items-center gap-3">
-                  <button type="button" disabled={postNights <= 0} onClick={() => setPostNights(Math.max(0, postNights - 1))}
-                    className="flex h-7 w-7 items-center justify-center border border-humana-line text-[14px] text-humana-ink transition-all hover:border-humana-ink disabled:opacity-30">–</button>
-                  <span className="w-5 text-center text-[15px] font-medium text-humana-ink">{postNights}</span>
-                  <button type="button" disabled={postNights >= 5} onClick={() => setPostNights(Math.min(5, postNights + 1))}
-                    className="flex h-7 w-7 items-center justify-center border border-humana-line text-[14px] text-humana-ink transition-all hover:border-humana-ink disabled:opacity-30">+</button>
-                </div>
-              </div>
-              {postNights > 0 && (
-                <span className="text-[12px] text-humana-subtle">Check-out extendido: {formatDateShort(computedCheckOut)} · {CHECK_OUT_TIME}</span>
-              )}
             </div>
 
             <div className="h-px bg-humana-line" />
@@ -358,21 +306,9 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
             {/* Price breakdown */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">Retiro ({retreatNights} noches x U$D {pricePerNight})</span>
-                <span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString("en-US")}</span>
+                <span className="text-[14px] text-humana-muted">{retreatNights} noches x U$D {pricePerNight}</span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {totalPrice.toLocaleString("en-US")}</span>
               </div>
-              {preNights > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Pre-retiro ({preNights} noches x U$D {pricePerNight})</span>
-                  <span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString("en-US")}</span>
-                </div>
-              )}
-              {postNights > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] text-humana-muted">Post-retiro ({postNights} noches x U$D {pricePerNight})</span>
-                  <span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString("en-US")}</span>
-                </div>
-              )}
             </div>
 
             <div className="h-px bg-humana-line" />

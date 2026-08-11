@@ -193,8 +193,11 @@ function WizardShell({ children }: { children: ReactNode }) {
         );
       case 1: // Hotel selection
         return state.hotelId !== null && state.hotelId > 0;
-      case 2: // Rooms / pricing — require at least one priced room (capacity coverage is advisory)
-        return state.pricing.some((p) => p.included !== false && toCents(p.price) > 0);
+      case 2: // Rooms / pricing — require at least one priced room AND full capacity coverage
+        return (
+          state.pricing.some((p) => p.included !== false && toCents(p.price) > 0) &&
+          (state.capacityCovered ?? 0) >= state.capacity
+        );
       case 3: // Program
         return state.days.length > 0 && state.days.every((d) =>
           d.title.trim() && d.activities.length > 0 && d.activities.every((a) => a.name.trim())

@@ -7,19 +7,23 @@ import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { countries, countrySlugToId } from "@/data/countries";
-import { agencyApi, type ApiExperience, type PublicHotelFull, type PublicRoomType } from "@/lib/api/agency";
+import { agencyApi, type ApiExperience, type ApiRetreatPricing, type PublicHotelFull, type PublicRoomType } from "@/lib/api/agency";
 import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
 
 export default function RetreatDetailPage({ params }: { params: Promise<{ country: string; slug: string }> }) {
   const { country, slug } = React.use(params);
   const { t } = useLocale();
   const { set } = useBooking();
+  const { user } = useAuth();
   const [experience, setExperience] = useState<ApiExperience | null>(null);
   const [hotel, setHotel] = useState<PublicHotelFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<PublicRoomType | null>(null);
+  const [selectedPricing, setSelectedPricing] = useState<ApiRetreatPricing | null>(null);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [showSelfPurchaseModal, setShowSelfPurchaseModal] = useState(false);
 
   const countryId = countrySlugToId[country] ?? country;
   const countryData = countries.find((c) => c.id === countryId);
@@ -49,15 +53,19 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
     }
   }, [selectedRoom]);
 
-  // Escape closes room modal
+  // Escape closes room modal or self-purchase modal
   useEffect(() => {
-    if (!selectedRoom) return;
+    if (!selectedRoom && !showSelfPurchaseModal) return;
     function handler(e: KeyboardEvent) {
-      if (e.key === "Escape") setSelectedRoom(null);
+      if (e.key === "Escape") {
+        setSelectedRoom(null);
+        setSelectedPricing(null);
+        setShowSelfPurchaseModal(false);
+      }
     }
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [selectedRoom]);
+  }, [selectedRoom, showSelfPurchaseModal]);
 
   if (loading) {
     return (
@@ -105,6 +113,9 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
   while (gallery.length > 0 && gallery.length < 3) {
     gallery.push(gallery[0]);
   }
+
+  const isOwnRetreat = !!(experience.created_by_organization_id && user?.organization?.id && experience.created_by_organization_id === user.organization.id);
+  const retreatPricings = experience.pricing && experience.pricing.length > 0 ? experience.pricing : null;
 
   const hotelName = experience.hotel?.name ?? hotel?.name ?? "";
   const location = experience.location ?? "";
@@ -188,8 +199,61 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
             </div>
           )}
 
-          {/* Room types from the linked hotel */}
-          {hotel && hotel.room_types && hotel.room_types.length > 0 && (
+          {/* Room types — from retreat pricing when available, else hotel catalog */}
+          {retreatPricings ? (
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                  ALOJAMIENTO DEL RETIRO
+                </span>
+                <span className="text-[14px] text-humana-muted">{hotelName}</span>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {retreatPricings.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => { setSelectedRoom(p.room_type); setSelectedPricing(p); }}
+                    className="flex cursor-pointer overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  >
+                    <div className="relative w-[280px] shrink-0 bg-humana-stone">
+                      {p.room_type.image_url && <Image src={p.room_type.image_url} alt={p.room_type.name} fill className="object-cover" />}
+                      <div className="absolute left-3 top-3 flex items-center gap-1.5 bg-white/90 px-2.5 py-1 backdrop-blur-sm">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        <span className="text-[11px] font-semibold text-humana-ink">{p.max_guests ?? p.room_type.capacity}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-1 flex-col justify-between gap-4 p-7">
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-[18px] font-medium tracking-[-0.01em] text-humana-ink">{p.room_type.name}</h3>
+                        {p.occupancy_label && <span className="text-[12px] font-medium text-humana-gold">{p.occupancy_label}</span>}
+                        <p className="max-w-[420px] text-[14px] leading-[22px] text-humana-muted">{p.room_type.description}</p>
+                      </div>
+                      <div className="flex items-end justify-between gap-6">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">PRECIO POR NOCHE</span>
+                          <span className="text-[22px] font-light tracking-[-0.01em] text-humana-ink">
+                            {p.currency} {Math.round(p.price_per_guest / nights).toLocaleString()}
+                            <span className="text-[13px] font-normal text-humana-muted"> / noche</span>
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setSelectedRoom(p.room_type); setSelectedPricing(p); }}
+                          className="shrink-0 cursor-pointer bg-humana-ink px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
+                        >
+                          {t.hotelDetail.viewRooms}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : hotel && hotel.room_types && hotel.room_types.length > 0 && (
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-1">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
@@ -202,7 +266,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                 {hotel.room_types.map((rt) => (
                   <div
                     key={rt.id}
-                    onClick={() => setSelectedRoom(rt)}
+                    onClick={() => { setSelectedRoom(rt); setSelectedPricing(null); }}
                     className="flex cursor-pointer overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
                   >
                     <div className="relative w-[280px] shrink-0 bg-humana-stone">
@@ -230,7 +294,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                         </div>
                         <button
                           type="button"
-                          onClick={() => setSelectedRoom(rt)}
+                          onClick={() => { setSelectedRoom(rt); setSelectedPricing(null); }}
                           className="shrink-0 cursor-pointer bg-humana-ink px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
                         >
                           {t.hotelDetail.viewRooms}
@@ -285,19 +349,32 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
               <span className="text-[15px] font-medium text-humana-gold">{experience.currency} {commissionAmount.toLocaleString()}</span>
             </div>
 
-            <Link
-              href={`/select-country/${country}/step-1-select-dates`}
-              onClick={() => set({ retreatSlug: experience.slug, flowType: "retreats" })}
-              className="group/cta flex items-center justify-center gap-3 bg-humana-ink py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
-            >
-              {t.retreatDetail.bookNow.toUpperCase()}
-              <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
-                <path d="M1 5h14M10 1l4 4-4 4" />
-              </svg>
-            </Link>
+            {isOwnRetreat ? (
+              <button
+                type="button"
+                onClick={() => setShowSelfPurchaseModal(true)}
+                className="group/cta flex w-full cursor-pointer items-center justify-center gap-3 bg-humana-ink py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
+              >
+                {t.retreatDetail.bookNow.toUpperCase()}
+                <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
+                  <path d="M1 5h14M10 1l4 4-4 4" />
+                </svg>
+              </button>
+            ) : (
+              <Link
+                href={`/select-country/${country}/step-1-select-dates`}
+                onClick={() => set({ retreatSlug: experience.slug, flowType: "retreats" })}
+                className="group/cta flex items-center justify-center gap-3 bg-humana-ink py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
+              >
+                {t.retreatDetail.bookNow.toUpperCase()}
+                <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
+                  <path d="M1 5h14M10 1l4 4-4 4" />
+                </svg>
+              </Link>
+            )}
 
             <p className="text-center text-[12px] leading-[16px] text-humana-muted">
-              {"\u0050odr\u00e1s agregar noches pre/post en el siguiente paso"}
+              Las fechas del retiro son fijas
             </p>
           </div>
         </div>
@@ -408,26 +485,80 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
 
               <div className="flex items-center justify-between gap-4 pt-8">
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
+                  <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">
+                    {selectedPricing ? "PRECIO POR NOCHE" : t.hotelDetail.priceFrom}
+                  </span>
                   <div className="flex items-baseline gap-1.5">
                     <span className="whitespace-nowrap text-[26px] font-light tracking-[-0.02em] text-humana-gold">
-                      {selectedRoom.currency} {selectedRoom.price_per_night}
+                      {selectedPricing ? `${selectedPricing.currency} ${Math.round(selectedPricing.price_per_guest / nights).toLocaleString()}` : `${selectedRoom.currency} ${selectedRoom.price_per_night}`}
                     </span>
-                    <span className="whitespace-nowrap text-[13px] text-humana-muted">/ {t.hotelDetail.perNight}</span>
+                    <span className="whitespace-nowrap text-[13px] text-humana-muted">/ {selectedPricing ? "persona" : t.hotelDetail.perNight}</span>
                   </div>
                 </div>
-                <Link
-                  href={`/select-country/${country}/step-1-select-dates`}
-                  onClick={() => set({ retreatSlug: experience.slug, flowType: "retreats" })}
-                  className="group/cta flex shrink-0 items-center gap-2.5 bg-humana-ink px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
-                >
-                  {t.hotelDetail.bookNow}
-                  <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
-                    <path d="M1 5h14M10 1l4 4-4 4" />
-                  </svg>
-                </Link>
+                {isOwnRetreat ? (
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedRoom(null); setSelectedPricing(null); setShowSelfPurchaseModal(true); }}
+                    className="group/cta flex shrink-0 cursor-pointer items-center gap-2.5 bg-humana-ink px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
+                  >
+                    {t.hotelDetail.bookNow}
+                    <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
+                      <path d="M1 5h14M10 1l4 4-4 4" />
+                    </svg>
+                  </button>
+                ) : (
+                  <Link
+                    href={`/select-country/${country}/step-1-select-dates`}
+                    onClick={() => set({ retreatSlug: experience.slug, flowType: "retreats", roomTypeApiId: selectedRoom.id, roomTypeId: String(selectedRoom.id) })}
+                    className="group/cta flex shrink-0 items-center gap-2.5 bg-humana-ink px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
+                  >
+                    {t.hotelDetail.bookNow}
+                    <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5">
+                      <path d="M1 5h14M10 1l4 4-4 4" />
+                    </svg>
+                  </Link>
+                )}
               </div>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Self-purchase block modal */}
+      {showSelfPurchaseModal && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-8"
+          onClick={() => setShowSelfPurchaseModal(false)}
+        >
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-[3px] animate-fade-in" />
+          <div
+            className="relative flex w-full max-w-[440px] flex-col items-center gap-6 bg-white p-10 shadow-2xl animate-fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-humana-gold-light">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+              ACCI&Oacute;N NO PERMITIDA
+            </span>
+            <h2 className="text-center text-[22px] font-light tracking-[-0.02em] text-humana-ink">
+              No puedes reservar tu propio retiro
+            </h2>
+            <p className="text-center text-[14px] leading-[22px] text-humana-muted">
+              Este retiro fue creado por tu agencia. No es posible comprar plazas de un retiro propio. Otras agencias de la red pueden reservar plazas para sus clientes.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowSelfPurchaseModal(false)}
+              className="w-full cursor-pointer bg-humana-ink py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
+            >
+              ENTENDIDO
+            </button>
           </div>
         </div>,
         document.body

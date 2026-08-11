@@ -197,13 +197,45 @@ export default function AgencyMyRetreatsPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3 stagger-children">
+          {/* Column headers */}
+          <div className="flex items-center gap-6 border border-transparent px-6 py-2">
+            {/* Image spacer */}
+            <div className="w-20 shrink-0" />
+            {/* Name */}
+            <div className="min-w-0 flex-1 max-w-[280px] text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              {tr.columns.name}
+            </div>
+            {/* Hotel */}
+            <div className="w-[160px] shrink-0 text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              {tr.columns.hotel}
+            </div>
+            {/* Dates */}
+            <div className="w-[160px] shrink-0 text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              {tr.columns.dates}
+            </div>
+            {/* Capacity */}
+            <div className="w-[70px] shrink-0 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              {tr.columns.capacity}
+            </div>
+            {/* Price */}
+            <div className="w-[100px] shrink-0 text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              {tr.columns.price}
+            </div>
+            {/* Status */}
+            <div className="w-[110px] shrink-0 text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              {tr.columns.status}
+            </div>
+            {/* Actions */}
+            <div className="ml-auto w-[100px] shrink-0" />
+          </div>
+
           {retreats.map((retreat) => (
             <article
               key={retreat.id}
-              className="flex items-center rounded-xl border border-humana-line bg-white px-6 py-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md"
+              className="flex items-center gap-6 rounded-xl border border-humana-line bg-white px-6 py-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md"
             >
               {/* Cover image */}
-              <div className="relative mr-4 h-14 w-20 shrink-0 overflow-hidden rounded bg-humana-stone">
+              <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded bg-humana-stone">
                 {retreat.cover_image_url ? (
                   <Image src={retreat.cover_image_url} alt={retreat.name} fill className="object-cover" />
                 ) : (
@@ -214,7 +246,7 @@ export default function AgencyMyRetreatsPage() {
               </div>
 
               {/* Name + type */}
-              <div className="min-w-0 flex-1 pr-3">
+              <div className="min-w-0 flex-1 max-w-[280px]">
                 <p className="truncate text-[14px] font-medium text-humana-ink">{retreat.name}</p>
                 <p className="mt-0.5 text-[12px] capitalize text-humana-muted">
                   {retreat.retreat_type} · {retreat.duration_nights}n
@@ -222,7 +254,7 @@ export default function AgencyMyRetreatsPage() {
               </div>
 
               {/* Hotel */}
-              <div className="w-[160px] shrink-0 px-3">
+              <div className="w-[160px] shrink-0">
                 <p className="truncate text-[14px] text-humana-ink">{retreat.hotel?.name ?? "—"}</p>
                 <p className="mt-0.5 truncate text-[12px] text-humana-muted">
                   {retreat.hotel?.city ?? ""}
@@ -259,28 +291,55 @@ export default function AgencyMyRetreatsPage() {
                 </span>
               </div>
 
-              {/* Actions */}
-              <div className="ml-4 flex shrink-0 items-center gap-2">
+              {/* Inline action buttons */}
+              <div className="ml-auto flex w-[100px] shrink-0 items-center justify-end gap-1">
+                {/* Preview */}
+                {retreat.slug && retreat.country_code && (
+                  <Link
+                    href={`/select-country/${retreat.country_code.toLowerCase()}/retreats/${retreat.slug}`}
+                    title={tr.preview}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </Link>
+                )}
+                {/* Edit */}
+                <Link
+                  href={`/agency/retreats/create/step-1?id=${retreat.id}`}
+                  title={t.agencyWs.retreats.wizard.review.edit}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </Link>
+                {/* Delete */}
+                <button
+                  onClick={() => setDeleteModal(retreat)}
+                  title={tr.deleteConfirm}
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-red-50 hover:text-red-500"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
+                {/* Submit for review (draft only) */}
                 {retreat.status === "draft" && (
-                  <>
-                    <button
-                      onClick={() => setSubmitModal(retreat)}
-                      title={tr.submitTitle}
-                      className="rounded border border-humana-gold px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-gold transition-colors hover:bg-humana-gold hover:text-white"
-                    >
-                      {tr.submitConfirm}
-                    </button>
-                    <button
-                      onClick={() => setDeleteModal(retreat)}
-                      title={tr.deleteTitle}
-                      className="rounded border border-humana-line px-2.5 py-1.5 text-[10px] text-humana-subtle transition-colors hover:border-red-300 hover:text-red-500"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
-                    </button>
-                  </>
+                  <button
+                    onClick={() => setSubmitModal(retreat)}
+                    title={tr.submitConfirm}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-gold-light hover:text-humana-gold"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                  </button>
                 )}
               </div>
             </article>
