@@ -344,6 +344,7 @@ type Dictionary = {
           coverageShort: string;
           guests: (n: number) => string;
           earningsTitle: string;
+          commission: (pct: number) => string;
           agencyCommission: (pct: number) => string;
           officeCommission: (pct: number) => string;
           creatorIncome: (pct: number) => string;
@@ -792,6 +793,7 @@ type Dictionary = {
           coverageShort: string;
           coverageShortDetail: (covered: number, needed: number) => string;
           earningsTitle: string;
+          commission: (pct: number) => string;
           agencyCommission: (pct: number) => string;
           officeCommission: (pct: number) => string;
           creatorIncome: (pct: number) => string;
@@ -1220,7 +1222,7 @@ type Dictionary = {
   };
   admin: {
     badge: string;
-    nav: { overview: string; network: string; subscriptions: string; settings: string };
+    nav: { overview: string; network: string; sales: string; subscriptions: string; settings: string };
     dashboard: {
       eyebrow: string;
       title: string;
@@ -1412,6 +1414,9 @@ type Dictionary = {
       amount: string;
       commission: string;
       status: string;
+      type: string;
+      retreat: string;
+      lodging: string;
       experience: string;
       noResults: string;
       searchPlaceholder: string;
@@ -1753,9 +1758,10 @@ type Dictionary = {
       eyebrow: string;
       title: string;
       subtitle: string;
-      filters: { all: string; active: string; draft: string; pending: string; closed: string };
-      columns: { name: string; hotel: string; type: string; dates: string; capacity: string; status: string };
+      filters: { all: string; active: string; draft: string; closed: string };
+      columns: { name: string; hotel: string; type: string; dates: string; capacity: string };
       empty: string;
+      preview: string;
     };
     bookings: {
       eyebrow: string;
@@ -1763,7 +1769,7 @@ type Dictionary = {
       subtitle: string;
       kpis: { total: string; confirmed: string; volume: string; officeRevenue: string };
       filters: { all: string; confirmed: string; inquiry: string; cancelled: string };
-      columns: { reference: string; agency: string; experience: string; guests: string; amount: string; officeFee: string; status: string };
+      columns: { reference: string; type: string; agency: string; hotel: string; experience: string; guests: string; amount: string; officeFee: string; retreat: string; lodging: string };
       empty: string;
       monthlyRevenue: string;
       monthlyVolume: string;
@@ -2190,6 +2196,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             totalPrice: "Total price",
             guests: (n: number) => `${n} guest${n === 1 ? "" : "s"}`,
             earningsTitle: "Total estimated earnings",
+            commission: (pct: number) => `Commission (${pct}%)`,
             agencyCommission: (pct: number) => `Agency commission (${pct}%)`,
             officeCommission: (pct: number) => `Office commission (${pct}%)`,
             creatorIncome: (pct: number) => `Creator income (${pct}%)`,
@@ -2671,6 +2678,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             coverageShort: "Include more rooms to reach the retreat's maximum capacity.",
             coverageShortDetail: (covered: number, needed: number) => `${covered} spots covered — ${needed - covered} more needed to reach full capacity.`,
             earningsTitle: "Total estimated earnings",
+            commission: (pct: number) => `Commission (${pct}%)`,
             agencyCommission: (pct: number) => `Agency commission (${pct}%)`,
             officeCommission: (pct: number) => `Office commission (${pct}%)`,
             creatorIncome: (pct: number) => `Creator income (${pct}%)`,
@@ -3230,7 +3238,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     admin: {
       badge: "ADMIN",
-      nav: { overview: "Overview", network: "Network", subscriptions: "Subscriptions", settings: "Settings" },
+      nav: { overview: "Overview", network: "Network", sales: "Sales", subscriptions: "Subscriptions", settings: "Settings" },
       dashboard: {
         eyebrow: "PLATFORM OVERVIEW",
         title: "Platform Overview",
@@ -3481,6 +3489,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         amount: "Amount",
         commission: "Commission",
         status: "Status",
+        type: "Type",
+        retreat: "Retreat",
+        lodging: "Lodging",
         experience: "Experience",
         noResults: "No bookings found matching your criteria.",
         searchPlaceholder: "Search by reference...",
@@ -3816,9 +3827,10 @@ export const dictionary: Record<Locale, Dictionary> = {
         eyebrow: "RETREATS",
         title: "Regional Retreats",
         subtitle: "Retreats offered by hotels in your territory.",
-        filters: { all: "All", active: "Active", draft: "Draft", pending: "Under Review", closed: "Closed" },
-        columns: { name: "Name", hotel: "Hotel", type: "Type", dates: "Dates", capacity: "Capacity", status: "Status" },
+        filters: { all: "All", active: "Active", draft: "Draft", closed: "Closed" },
+        columns: { name: "Name", hotel: "Hotel", type: "Type", dates: "Dates", capacity: "Capacity" },
         empty: "No retreats found",
+        preview: "Preview",
       },
       bookings: {
         eyebrow: "BOOKINGS",
@@ -3826,7 +3838,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         subtitle: "All bookings made by agencies in your territory.",
         kpis: { total: "Total", confirmed: "Confirmed", volume: "Volume", officeRevenue: "Office Revenue (2%)" },
         filters: { all: "All", confirmed: "Confirmed", inquiry: "Pending", cancelled: "Cancelled" },
-        columns: { reference: "Reference", agency: "Agency", experience: "Experience", guests: "Guests", amount: "Amount", officeFee: "Office Fee", status: "Status" },
+        columns: { reference: "Reference", type: "Type", agency: "Agency", hotel: "Hotel", experience: "Experience", guests: "Guests", amount: "Amount", officeFee: "Office Fee", retreat: "Retreat", lodging: "Lodging" },
         empty: "No bookings found",
         monthlyRevenue: "Monthly Revenue",
         monthlyVolume: "Volume",
@@ -4246,6 +4258,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             totalPrice: "Precio total",
             guests: (n: number) => `${n} huésped${n === 1 ? "" : "es"}`,
             earningsTitle: "Ingresos totales estimados",
+            commission: (pct: number) => `Comisión (${pct}%)`,
             agencyCommission: (pct: number) => `Comisión de agencia (${pct}%)`,
             officeCommission: (pct: number) => `Comisión de oficina (${pct}%)`,
             creatorIncome: (pct: number) => `Ingreso del creador (${pct}%)`,
@@ -4727,6 +4740,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             coverageShort: "Incluye más habitaciones para alcanzar la capacidad máxima del retiro.",
             coverageShortDetail: (covered: number, needed: number) => `${covered} plazas cubiertas — faltan ${needed - covered} para capacidad completa.`,
             earningsTitle: "Ingresos estimados totales",
+            commission: (pct: number) => `Comisión (${pct}%)`,
             agencyCommission: (pct: number) => `Comisión agencia (${pct}%)`,
             officeCommission: (pct: number) => `Comisión oficina (${pct}%)`,
             creatorIncome: (pct: number) => `Ingreso creador (${pct}%)`,
@@ -5286,7 +5300,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     admin: {
       badge: "ADMIN",
-      nav: { overview: "Dashboard", network: "Red", subscriptions: "Suscripciones", settings: "Configuración" },
+      nav: { overview: "Dashboard", network: "Red", sales: "Ventas", subscriptions: "Suscripciones", settings: "Configuración" },
       dashboard: {
         eyebrow: "RESUMEN DE PLATAFORMA",
         title: "Resumen de la plataforma",
@@ -5537,6 +5551,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         amount: "Monto",
         commission: "Comisión",
         status: "Estado",
+        type: "Tipo",
+        retreat: "Retiro",
+        lodging: "Alojamiento",
         experience: "Experiencia",
         noResults: "No se encontraron reservas con los criterios seleccionados.",
         searchPlaceholder: "Buscar por referencia...",
@@ -5872,9 +5889,10 @@ export const dictionary: Record<Locale, Dictionary> = {
         eyebrow: "RETIROS",
         title: "Retiros Regionales",
         subtitle: "Retiros ofrecidos por hoteles en tu territorio.",
-        filters: { all: "Todos", active: "Activos", draft: "Borrador", pending: "En Revisión", closed: "Cerrados" },
-        columns: { name: "Nombre", hotel: "Hotel", type: "Tipo", dates: "Fechas", capacity: "Capacidad", status: "Estado" },
+        filters: { all: "Todos", active: "Activos", draft: "Borrador", closed: "Cerrados" },
+        columns: { name: "Nombre", hotel: "Hotel", type: "Tipo", dates: "Fechas", capacity: "Capacidad" },
         empty: "No se encontraron retiros",
+        preview: "Vista previa",
       },
       bookings: {
         eyebrow: "RESERVAS",
@@ -5882,7 +5900,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         subtitle: "Todas las reservas de agencias en tu territorio.",
         kpis: { total: "Total", confirmed: "Confirmadas", volume: "Volumen", officeRevenue: "Ingresos Oficina (2%)" },
         filters: { all: "Todas", confirmed: "Confirmadas", inquiry: "Pendientes", cancelled: "Canceladas" },
-        columns: { reference: "Referencia", agency: "Agencia", experience: "Experiencia", guests: "Huéspedes", amount: "Monto", officeFee: "Comisión Oficina", status: "Estado" },
+        columns: { reference: "Referencia", type: "Tipo", agency: "Agencia", hotel: "Hotel", experience: "Experiencia", guests: "Huéspedes", amount: "Monto", officeFee: "Comisión Oficina", retreat: "Retiro", lodging: "Alojamiento" },
         empty: "No se encontraron reservas",
         monthlyRevenue: "Ingresos Mensuales",
         monthlyVolume: "Volumen",
@@ -6302,6 +6320,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             totalPrice: "Preço total",
             guests: (n: number) => `${n} hóspede${n === 1 ? "" : "s"}`,
             earningsTitle: "Receita total estimada",
+            commission: (pct: number) => `Comissão (${pct}%)`,
             agencyCommission: (pct: number) => `Comissão da agência (${pct}%)`,
             officeCommission: (pct: number) => `Comissão do escritório (${pct}%)`,
             creatorIncome: (pct: number) => `Receita do criador (${pct}%)`,
@@ -6783,6 +6802,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             coverageShort: "Inclua mais quartos para atingir a capacidade máxima do retiro.",
             coverageShortDetail: (covered: number, needed: number) => `${covered} vagas cobertas — faltam ${needed - covered} para capacidade completa.`,
             earningsTitle: "Receita estimada total",
+            commission: (pct: number) => `Comissão (${pct}%)`,
             agencyCommission: (pct: number) => `Comissão agência (${pct}%)`,
             officeCommission: (pct: number) => `Comissão escritório (${pct}%)`,
             creatorIncome: (pct: number) => `Receita criador (${pct}%)`,
@@ -7343,7 +7363,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     admin: {
       badge: "ADMIN",
-      nav: { overview: "Visão geral", network: "Rede", subscriptions: "Assinaturas", settings: "Configurações" },
+      nav: { overview: "Visão geral", network: "Rede", sales: "Vendas", subscriptions: "Assinaturas", settings: "Configurações" },
       dashboard: {
         eyebrow: "VISÃO DA PLATAFORMA",
         title: "Visão geral da plataforma",
@@ -7594,6 +7614,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         amount: "Valor",
         commission: "Comissão",
         status: "Status",
+        type: "Tipo",
+        retreat: "Retiro",
+        lodging: "Hospedagem",
         experience: "Experiência",
         noResults: "Nenhuma reserva encontrada com os critérios selecionados.",
         searchPlaceholder: "Buscar por referência...",
@@ -7929,9 +7952,10 @@ export const dictionary: Record<Locale, Dictionary> = {
         eyebrow: "RETIROS",
         title: "Retiros Regionais",
         subtitle: "Retiros oferecidos por hotéis no seu território.",
-        filters: { all: "Todos", active: "Ativos", draft: "Rascunho", pending: "Em Revisão", closed: "Encerrados" },
-        columns: { name: "Nome", hotel: "Hotel", type: "Tipo", dates: "Datas", capacity: "Capacidade", status: "Status" },
+        filters: { all: "Todos", active: "Ativos", draft: "Rascunho", closed: "Encerrados" },
+        columns: { name: "Nome", hotel: "Hotel", type: "Tipo", dates: "Datas", capacity: "Capacidade" },
         empty: "Nenhum retiro encontrado",
+        preview: "Pré-visualizar",
       },
       bookings: {
         eyebrow: "RESERVAS",
@@ -7939,7 +7963,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         subtitle: "Todas as reservas de agências no seu território.",
         kpis: { total: "Total", confirmed: "Confirmadas", volume: "Volume", officeRevenue: "Receita Escritório (2%)" },
         filters: { all: "Todas", confirmed: "Confirmadas", inquiry: "Pendentes", cancelled: "Canceladas" },
-        columns: { reference: "Referência", agency: "Agência", experience: "Experiência", guests: "Hóspedes", amount: "Valor", officeFee: "Taxa Escritório", status: "Status" },
+        columns: { reference: "Referência", type: "Tipo", agency: "Agência", hotel: "Hotel", experience: "Experiência", guests: "Hóspedes", amount: "Valor", officeFee: "Taxa Escritório", retreat: "Retiro", lodging: "Hospedagem" },
         empty: "Nenhuma reserva encontrada",
         monthlyRevenue: "Receita Mensal",
         monthlyVolume: "Volume",

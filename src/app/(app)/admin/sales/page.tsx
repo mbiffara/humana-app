@@ -8,19 +8,6 @@ import { adminApi } from "@/lib/api/admin";
 import { Pagination } from "@/components/admin/Pagination";
 import type { AdminBooking, AdminBookingsSummary, PaginationMeta, Organization } from "@/lib/types";
 
-const STATUS_COLORS: Record<string, string> = {
-  inquiry: "bg-amber-50 text-amber-700 border-amber-200",
-  confirmed: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  cancelled: "bg-red-50 text-red-700 border-red-200",
-  completed: "bg-blue-50 text-blue-700 border-blue-200",
-};
-
-const STATUS_DOTS: Record<string, string> = {
-  inquiry: "bg-amber-500 animate-pulse",
-  confirmed: "bg-emerald-500",
-  cancelled: "bg-red-500",
-  completed: "bg-blue-500",
-};
 
 function formatCurrency(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(cents / 100);
@@ -43,7 +30,6 @@ export default function SalesPage() {
   const [summary, setSummary] = useState<AdminBookingsSummary>({ total_amount_cents: 0, total_commission_cents: 0, count: 0 });
 
   // Filters
-  const [status, setStatus] = useState("");
   const [countryCode, setCountryCode] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -67,7 +53,6 @@ export default function SalesPage() {
     setLoading(true);
     try {
       const res = await adminApi.listBookings({
-        status: status || undefined,
         country_code: countryCode || undefined,
         q: search || undefined,
         page: p,
@@ -81,7 +66,7 @@ export default function SalesPage() {
     } finally {
       setLoading(false);
     }
-  }, [status, countryCode, search]);
+  }, [countryCode, search]);
 
   useEffect(() => {
     setPage(1);
@@ -92,16 +77,6 @@ export default function SalesPage() {
     setPage(newPage);
     fetchBookings(newPage);
   }
-
-  const statusLabel = (st: string) => {
-    const map: Record<string, string> = {
-      inquiry: s.inquiry,
-      confirmed: s.confirmed,
-      cancelled: s.cancelled,
-      completed: s.completed,
-    };
-    return map[st] || st;
-  };
 
   if (loading && bookings.length === 0) {
     return (
@@ -139,17 +114,11 @@ export default function SalesPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="mb-8 grid grid-cols-3 gap-4 animate-[fade-in-up_0.4s_ease-out_0.1s_both]">
+      <div className="mb-8 grid grid-cols-2 gap-4 animate-[fade-in-up_0.4s_ease-out_0.1s_both]">
         <div className="rounded-xl border border-humana-line bg-white p-6">
           <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{s.totalVolume}</span>
           <p className="mt-2 text-[28px] font-light tracking-[-0.02em] text-humana-ink">
             {formatCurrency(summary.total_amount_cents)}
-          </p>
-        </div>
-        <div className="rounded-xl border border-humana-line bg-white p-6">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{s.totalCommission}</span>
-          <p className="mt-2 text-[28px] font-light tracking-[-0.02em] text-humana-gold">
-            {formatCurrency(summary.total_commission_cents)}
           </p>
         </div>
         <div className="rounded-xl border border-humana-line bg-white p-6">
@@ -176,19 +145,6 @@ export default function SalesPage() {
           />
         </div>
 
-        {/* Status filter */}
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="h-10 cursor-pointer rounded-lg border border-humana-line bg-white px-3 pr-8 text-[13px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
-        >
-          <option value="">{s.allStatuses}</option>
-          <option value="inquiry">{s.inquiry}</option>
-          <option value="confirmed">{s.confirmed}</option>
-          <option value="cancelled">{s.cancelled}</option>
-          <option value="completed">{s.completed}</option>
-        </select>
-
         {/* Country filter */}
         <select
           value={countryCode}
@@ -212,15 +168,14 @@ export default function SalesPage() {
       {/* Table */}
       <div className="rounded-xl border border-humana-line bg-white animate-[fade-in-up_0.4s_ease-out_0.2s_both]">
         {/* Table header */}
-        <div className="grid grid-cols-[120px_1fr_1fr_1fr_100px_120px_120px_110px] items-center gap-3 border-b border-humana-line px-5 py-3">
+        <div className="grid grid-cols-[120px_100px_1fr_1fr_1fr_80px_120px] items-center gap-3 border-b border-humana-line px-5 py-3">
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted">{s.reference}</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted">{s.type}</span>
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted">{s.agency}</span>
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted">{s.hotel}</span>
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted">{s.client}</span>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted">{s.guests}</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted text-center">{s.guests}</span>
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted text-right">{s.amount}</span>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted text-right">{s.commission}</span>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-humana-muted text-center">{s.status}</span>
         </div>
 
         {/* Table body */}
@@ -235,7 +190,7 @@ export default function SalesPage() {
           bookings.map((booking, i) => (
             <div
               key={booking.id}
-              className="grid grid-cols-[120px_1fr_1fr_1fr_100px_120px_120px_110px] items-center gap-3 border-b border-humana-line/50 px-5 py-4 transition-colors hover:bg-humana-stone/30 animate-[fade-in-up_0.3s_ease-out_both]"
+              className="grid grid-cols-[120px_100px_1fr_1fr_1fr_80px_120px] items-center gap-3 border-b border-humana-line/50 px-5 py-4 transition-colors hover:bg-humana-stone/30 animate-[fade-in-up_0.3s_ease-out_both]"
               style={{ animationDelay: `${i * 30}ms` }}
             >
               {/* Reference + Date */}
@@ -243,6 +198,15 @@ export default function SalesPage() {
                 <p className="text-[13px] font-medium text-humana-ink font-mono">{booking.reference}</p>
                 <p className="text-[11px] text-humana-muted">{formatDate(booking.created_at, locale)}</p>
               </div>
+
+              {/* Type */}
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                booking.booking_type === "retreat"
+                  ? "bg-violet-50 text-violet-700 border-violet-200"
+                  : "bg-sky-50 text-sky-700 border-sky-200"
+              }`}>
+                {booking.booking_type === "retreat" ? s.retreat : s.lodging}
+              </span>
 
               {/* Agency */}
               <div className="min-w-0">
@@ -273,19 +237,6 @@ export default function SalesPage() {
               <p className="text-[13px] font-medium text-humana-ink text-right">
                 {formatCurrency(booking.amount_cents, booking.currency)}
               </p>
-
-              {/* Commission */}
-              <p className="text-[13px] font-medium text-humana-gold text-right">
-                {formatCurrency(booking.commission_cents, booking.currency)}
-              </p>
-
-              {/* Status */}
-              <div className="flex justify-center">
-                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${STATUS_COLORS[booking.status] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOTS[booking.status] || "bg-gray-500"}`} />
-                  {statusLabel(booking.status)}
-                </span>
-              </div>
             </div>
           ))
         )}

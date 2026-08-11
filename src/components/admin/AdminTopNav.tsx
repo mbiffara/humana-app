@@ -15,6 +15,7 @@ export function AdminTopNav() {
   const links = [
     { label: t.admin.nav.overview, href: "/admin/dashboard" },
     { label: t.admin.nav.network, href: "/admin/network" },
+    { label: t.admin.nav.sales, href: "/admin/sales" },
     { label: t.admin.nav.subscriptions, href: "/admin/subscriptions" },
   ];
 

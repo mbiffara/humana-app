@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { officeApi } from "@/lib/api/office";
 import { KpiCard } from "@/components/admin/KpiCard";
-import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Pagination } from "@/components/admin/Pagination";
 import type { OfficeBooking, OfficeBookingSummary, OfficeRevenue, PaginationMeta } from "@/lib/types";
 
@@ -21,7 +20,6 @@ export default function OfficeBookingsPage() {
   const [summary, setSummary] = useState<OfficeBookingSummary | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
 
   // Revenue data for monthly view
@@ -31,9 +29,7 @@ export default function OfficeBookingsPage() {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, string | number> = { page, per_page: 20 };
-      if (statusFilter) params.status = statusFilter;
-      const res = await officeApi.listBookings(params);
+      const res = await officeApi.listBookings({ page, per_page: 20, status: "confirmed" });
       setBookings(res.bookings);
       setSummary(res.summary);
       setMeta(res.meta);
@@ -42,7 +38,7 @@ export default function OfficeBookingsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter]);
+  }, [page]);
 
   const fetchRevenue = useCallback(async () => {
     setRevenueLoading(true);
@@ -66,12 +62,7 @@ export default function OfficeBookingsPage() {
     }
   }, [view, revenue, fetchRevenue]);
 
-  const filters = [
-    { label: t.officeWs.bookings.filters.all, value: "" },
-    { label: t.officeWs.bookings.filters.confirmed, value: "confirmed" },
-    { label: t.officeWs.bookings.filters.inquiry, value: "inquiry" },
-    { label: t.officeWs.bookings.filters.cancelled, value: "cancelled" },
-  ];
+  const col = t.officeWs.bookings.columns;
 
   return (
     <div className="mx-auto max-w-[1200px] px-10 py-12 animate-[fade-in-up_0.5s_ease-out]">
@@ -270,23 +261,6 @@ export default function OfficeBookingsPage() {
       {/* ─── Bookings List View ─── */}
       {view === "bookings" && (
         <div className="animate-[fade-in-up_0.3s_ease-out]">
-          {/* Filter pills */}
-          <div className="mb-6 flex gap-2">
-            {filters.map((f) => (
-              <button
-                key={f.value}
-                onClick={() => { setStatusFilter(f.value); setPage(1); }}
-                className={`cursor-pointer rounded-full px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.14em] transition-all ${
-                  statusFilter === f.value
-                    ? "bg-humana-ink text-white"
-                    : "border border-humana-line text-humana-muted hover:border-humana-ink hover:text-humana-ink"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
           {/* Table */}
           {loading ? (
             <div className="flex justify-center py-20">
@@ -300,13 +274,13 @@ export default function OfficeBookingsPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-humana-line">
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.bookings.columns.reference}</th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.bookings.columns.agency}</th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.bookings.columns.experience}</th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.bookings.columns.guests}</th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.bookings.columns.amount}</th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.bookings.columns.officeFee}</th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.bookings.columns.status}</th>
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{col.reference}</th>
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{col.type}</th>
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{col.agency}</th>
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{col.hotel}</th>
+                      <th className="px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{col.guests}</th>
+                      <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{col.amount}</th>
+                      <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{col.officeFee}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -319,21 +293,27 @@ export default function OfficeBookingsPage() {
                         <td className="px-5 py-4">
                           <span className="font-mono text-[13px] font-medium text-humana-ink">{b.reference}</span>
                         </td>
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                            b.booking_type === "retreat"
+                              ? "bg-violet-50 text-violet-700 border-violet-200"
+                              : "bg-sky-50 text-sky-700 border-sky-200"
+                          }`}>
+                            {b.booking_type === "retreat" ? col.retreat : col.lodging}
+                          </span>
+                        </td>
                         <td className="px-5 py-4 text-[14px] text-humana-muted">
                           {b.agency?.name || "—"}
                         </td>
                         <td className="px-5 py-4 text-[14px] text-humana-muted">
-                          {b.experience?.title || "Direct Booking"}
+                          {b.hotel?.name || "—"}
                         </td>
-                        <td className="px-5 py-4 text-[14px] text-humana-ink">{b.guests}</td>
-                        <td className="px-5 py-4 text-[14px] font-medium text-humana-ink">
+                        <td className="px-5 py-4 text-[14px] text-humana-ink text-center">{b.guests}</td>
+                        <td className="px-5 py-4 text-[14px] font-medium text-humana-ink text-right">
                           {fmt(b.amount_cents)}
                         </td>
-                        <td className="px-5 py-4 text-[14px] font-medium text-humana-gold">
+                        <td className="px-5 py-4 text-[14px] font-medium text-humana-gold text-right">
                           {fmt(b.office_fee_cents)}
-                        </td>
-                        <td className="px-5 py-4">
-                          <StatusBadge status={b.status} />
                         </td>
                       </tr>
                     ))}
