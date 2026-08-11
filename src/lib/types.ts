@@ -216,6 +216,7 @@ export interface OfficeBooking {
   id: number;
   reference: string;
   status: string;
+  booking_type: "retreat" | "lodging";
   guests: number;
   starts_on: string | null;
   ends_on: string | null;
@@ -350,6 +351,7 @@ export interface AdminBooking {
   id: number;
   reference: string;
   status: string;
+  booking_type: "retreat" | "lodging";
   guests: number;
   starts_on: string | null;
   ends_on: string | null;

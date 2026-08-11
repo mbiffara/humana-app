@@ -13,9 +13,7 @@ import {
 } from "@/contexts/AgencyRetreatWizardContext";
 import { agencyApi, type ApiInventoryBlock } from "@/lib/api/agency";
 
-const AGENCY_PCT = 16;
-const OFFICE_PCT = 2;
-const CREATOR_PCT = 82;
+const COMMISSION_PCT = 18;
 
 function toCents(price: string): number {
   const parsed = parseFloat(price);
@@ -242,7 +240,7 @@ export default function AgencyRetreatRoomsStep() {
         )}
       </section>
 
-      {/* Commission breakdown */}
+      {/* Commission */}
       {blocks.length > 0 && totalCents > 0 && (
         <section className="rounded-xl border border-humana-line bg-white p-8 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
@@ -251,26 +249,10 @@ export default function AgencyRetreatRoomsStep() {
           <div className="mt-4 flex flex-col divide-y divide-humana-line">
             <div className="flex items-center justify-between py-2.5">
               <span className="text-[13px] text-humana-muted">
-                {tw.rooms.agencyCommission(AGENCY_PCT)}
+                {tw.rooms.commission(COMMISSION_PCT)}
               </span>
               <span className="text-[13px] font-medium text-humana-gold">
-                {formatMoney((totalCents * AGENCY_PCT) / 100)} USD
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-2.5">
-              <span className="text-[13px] text-humana-muted">
-                {tw.rooms.officeCommission(OFFICE_PCT)}
-              </span>
-              <span className="text-[13px] font-medium text-humana-ink">
-                {formatMoney((totalCents * OFFICE_PCT) / 100)} USD
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-2.5">
-              <span className="text-[13px] text-humana-muted">
-                {tw.rooms.creatorIncome(CREATOR_PCT)}
-              </span>
-              <span className="text-[13px] font-medium text-humana-ink">
-                {formatMoney((totalCents * CREATOR_PCT) / 100)} USD
+                {formatMoney((totalCents * COMMISSION_PCT) / 100)} USD
               </span>
             </div>
             <div className="flex items-center justify-between py-3">

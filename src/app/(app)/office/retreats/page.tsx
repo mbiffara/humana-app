@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { officeApi } from "@/lib/api/office";
-import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Pagination } from "@/components/admin/Pagination";
 import type { OfficeRetreatSummary, PaginationMeta } from "@/lib/types";
 
@@ -38,7 +38,6 @@ export default function OfficeRetreatsPage() {
     { label: t.officeWs.retreats.filters.all, value: "" },
     { label: t.officeWs.retreats.filters.active, value: "active" },
     { label: t.officeWs.retreats.filters.draft, value: "draft" },
-    { label: t.officeWs.retreats.filters.pending, value: "pending_review" },
     { label: t.officeWs.retreats.filters.closed, value: "closed" },
   ];
 
@@ -92,11 +91,16 @@ export default function OfficeRetreatsPage() {
                   <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.retreats.columns.type}</th>
                   <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.retreats.columns.dates}</th>
                   <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.retreats.columns.capacity}</th>
-                  <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{t.officeWs.retreats.columns.status}</th>
+                  <th className="px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted" />
                 </tr>
               </thead>
               <tbody>
-                {retreats.map((r, i) => (
+                {retreats.map((r, i) => {
+                  const countryCode = r.hotel?.country_code?.toLowerCase();
+                  const previewHref = countryCode && r.slug
+                    ? `/select-country/${countryCode}/retreats/${r.slug}`
+                    : null;
+                  return (
                   <tr
                     key={r.id}
                     className="border-b border-humana-line/50 transition-colors hover:bg-humana-stone/30 animate-[fade-in-up_0.3s_ease-out_both]"
@@ -115,11 +119,25 @@ export default function OfficeRetreatsPage() {
                         : "—"}
                     </td>
                     <td className="px-5 py-4 text-[14px] text-humana-ink">{r.capacity}</td>
-                    <td className="px-5 py-4">
-                      <StatusBadge status={r.status} />
+                    <td className="px-5 py-4 text-center">
+                      {previewHref ? (
+                        <Link
+                          href={previewHref}
+                          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-humana-gold transition-colors hover:text-humana-ink"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.577 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.577-3.007-9.963-7.178z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          {t.officeWs.retreats.preview}
+                        </Link>
+                      ) : (
+                        <span className="text-[12px] text-humana-subtle">—</span>
+                      )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
