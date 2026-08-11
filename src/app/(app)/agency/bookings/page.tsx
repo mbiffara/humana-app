@@ -2,7 +2,7 @@
  *  Split into Retreat & Lodging tables with tooltips on every column header. */
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { agencyApi, type ApiBooking } from "@/lib/api/agency";
@@ -79,6 +79,9 @@ export default function AgencyBookingsPage() {
   const [stripeSuccessHasClient, setStripeSuccessHasClient] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const verifyAttempted = useRef(false);
+  const [retreatHotelId, setRetreatHotelId] = useState<number | "">("");
+  const [lodgingHotelId, setLodgingHotelId] = useState<number | "">("");
+  const [onlyRetreatVenues, setOnlyRetreatVenues] = useState(false);
 
   const fetchBookings = useCallback(async (pg: number) => {
     setLoading(true);
@@ -153,9 +156,28 @@ export default function AgencyBookingsPage() {
   const col = tb.columns;
   const tip = tb.tooltips;
 
-  // Split bookings by type
-  const retreatBookings = bookings.filter((b) => !!b.experience);
-  const hotelBookings = bookings.filter((b) => !b.experience);
+  // Extract unique hotels for filter dropdown
+  const uniqueHotels = useMemo(() => {
+    const map = new Map<number, { id: number; name: string }>();
+    bookings.forEach((b) => {
+      const h = b.experience?.hotel ?? b.hotel;
+      if (h) map.set(h.id, { id: h.id, name: h.name });
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [bookings]);
+
+  // Split bookings by type, applying independent hotel filters
+  const retreatBookings = bookings.filter((b) => {
+    if (!b.experience) return false;
+    if (retreatHotelId !== "" && b.experience.hotel?.id !== retreatHotelId) return false;
+    return true;
+  });
+  const hotelBookings = bookings.filter((b) => {
+    if (b.experience) return false;
+    if (lodgingHotelId !== "" && b.hotel?.id !== lodgingHotelId) return false;
+    if (onlyRetreatVenues && b.client != null) return false;
+    return true;
+  });
 
   return (
     <div className="mx-auto max-w-[1400px] px-10 py-10">
@@ -254,13 +276,23 @@ export default function AgencyBookingsPage() {
         <div className="space-y-10">
           {/* ── Retreat Bookings ── */}
           <section>
-            <div className="mb-3 flex items-center gap-3">
+            <div className="mb-3 pb-2 flex items-center gap-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
                 {tb.retreatSection}
               </p>
               <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-humana-gold/10 px-1.5 text-[10px] font-bold text-humana-gold">
                 {retreatBookings.length}
               </span>
+              <select
+                value={retreatHotelId}
+                onChange={(e) => setRetreatHotelId(e.target.value === "" ? "" : Number(e.target.value))}
+                className="ml-auto rounded-lg border border-humana-line bg-white px-3 py-2 text-[13px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
+              >
+                <option value="">{tb.allHotels}</option>
+                {uniqueHotels.map((h) => (
+                  <option key={h.id} value={h.id}>{h.name}</option>
+                ))}
+              </select>
             </div>
 
             {retreatBookings.length === 0 ? (
@@ -269,8 +301,8 @@ export default function AgencyBookingsPage() {
               </div>
             ) : (
               <div className="rounded-xl border border-humana-line bg-white animate-fade-in-up">
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[1100px]">
+                <div>
+                  <table className="w-full">
                     <thead>
                       <tr className="border-b border-humana-line bg-[#fafaf7]">
                         <Th tooltip={tip.reference}>{col.reference}</Th>
@@ -359,13 +391,34 @@ export default function AgencyBookingsPage() {
 
           {/* ── Lodging Bookings ── */}
           <section>
-            <div className="mb-3 flex items-center gap-3">
+            <div className="mb-3 pb-2 flex items-center gap-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
                 {tb.lodgingSection}
               </p>
               <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-humana-gold/10 px-1.5 text-[10px] font-bold text-humana-gold">
                 {hotelBookings.length}
               </span>
+              <div className="ml-auto flex items-center gap-4">
+                <label className="flex cursor-pointer items-center gap-2 text-[12px] text-humana-muted select-none">
+                  <input
+                    type="checkbox"
+                    checked={onlyRetreatVenues}
+                    onChange={(e) => setOnlyRetreatVenues(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-humana-line accent-humana-gold"
+                  />
+                  {tb.onlyRetreatVenues}
+                </label>
+                <select
+                  value={lodgingHotelId}
+                  onChange={(e) => setLodgingHotelId(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="rounded-lg border border-humana-line bg-white px-3 py-2 text-[13px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
+                >
+                  <option value="">{tb.allHotels}</option>
+                  {uniqueHotels.map((h) => (
+                    <option key={h.id} value={h.id}>{h.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {hotelBookings.length === 0 ? (

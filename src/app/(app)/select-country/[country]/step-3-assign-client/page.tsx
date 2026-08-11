@@ -248,7 +248,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
                   </div>
                   <div className="flex items-start gap-3">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10" /><path d="M8 12l3 3 5-5" /></svg>
-                    <span className="text-[14px] leading-[22px] text-humana-ink">Aparecera en tu seccion de Inventario como plaza disponible para asignacion.</span>
+                    <span className="text-[14px] leading-[22px] text-humana-ink">Aparecera en tu seccion de Reservas como plaza disponible para asignacion.</span>
                   </div>
                 </div>
               </div>

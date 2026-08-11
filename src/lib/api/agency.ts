@@ -19,6 +19,8 @@ export interface PublicHotel {
   wellness_standard: string | null;
   /** Present on the public list endpoint: cover image, else first by position. */
   cover_image_url?: string | null;
+  /** True when this hotel has at least one active retreat. */
+  has_active_retreats?: boolean;
 }
 
 export interface PublicHotelImage {
@@ -107,6 +109,8 @@ export interface ApiExperience {
   /** True when this entry is an adapted hotel-published Retreat (not an Experience).
    *  Retreat bookings go through the direct hotel path (no experience_id). */
   is_retreat?: boolean;
+  created_by_organization_id?: number;
+  pricing?: ApiRetreatPricing[];
 }
 
 /** Published hotel-created retreat from the public marketplace endpoints. */
@@ -132,6 +136,9 @@ export interface PublicRetreat {
   cover_image_url: string | null;
   featured: boolean;
   certified: boolean;
+  created_by_type?: string;
+  created_by_organization_id?: number;
+  pricing?: ApiRetreatPricing[];
   hotel?: PublicHotel;
 }
 
@@ -369,12 +376,13 @@ export const agencyApi = {
     api.delete(`/clients/${id}`),
 
   // Bookings
-  listBookings: (params?: { page?: number; per_page?: number; status?: string; client_id?: number }) => {
+  listBookings: (params?: { page?: number; per_page?: number; status?: string; client_id?: number; hotel_id?: number }) => {
     const qs = new URLSearchParams();
     if (params?.page) qs.set("page", String(params.page));
     if (params?.per_page) qs.set("per_page", String(params.per_page));
     if (params?.status) qs.set("status", params.status);
     if (params?.client_id) qs.set("client_id", String(params.client_id));
+    if (params?.hotel_id) qs.set("hotel_id", String(params.hotel_id));
     const q = qs.toString();
     return api.get<{ bookings: ApiBooking[]; meta: PaginationMeta; summary?: { total: number; confirmed: number; commission_cents: number; volume_cents: number } }>(`/bookings${q ? `?${q}` : ""}`);
   },

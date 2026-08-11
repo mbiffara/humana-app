@@ -1,32 +1,58 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type PublicRoomType, type HotelAvailabilityRoomType } from "@/lib/api/agency";
-import { formatDateShort, addDays, diffDays } from "@/lib/calendar-utils";
+import { formatDateShort, diffDays } from "@/lib/calendar-utils";
+
+const AMENITY_LABELS: Record<string, Record<string, string>> = {
+  en: {
+    wifi: "Wi-Fi", minibar: "Minibar", safe: "Safe", air_conditioning: "Air Conditioning",
+    bathrobe: "Bathrobe", terrace: "Terrace", tv: "TV", balcony: "Balcony",
+    jacuzzi: "Jacuzzi", pool: "Pool", kitchen: "Kitchen", ocean_view: "Ocean View",
+    garden_view: "Garden View", mountain_view: "Mountain View", room_service: "Room Service",
+    coffee_maker: "Coffee Maker", hair_dryer: "Hair Dryer", iron: "Iron",
+  },
+  es: {
+    wifi: "Wi-Fi", minibar: "Minibar", safe: "Caja Fuerte", air_conditioning: "Aire Acondicionado",
+    bathrobe: "Albornoz", terrace: "Terraza", tv: "TV", balcony: "Balcón",
+    jacuzzi: "Jacuzzi", pool: "Piscina", kitchen: "Cocina", ocean_view: "Vista al Mar",
+    garden_view: "Vista al Jardín", mountain_view: "Vista a la Montaña", room_service: "Servicio a la Habitación",
+    coffee_maker: "Cafetera", hair_dryer: "Secador de Pelo", iron: "Plancha",
+  },
+  pt: {
+    wifi: "Wi-Fi", minibar: "Minibar", safe: "Cofre", air_conditioning: "Ar Condicionado",
+    bathrobe: "Roupão", terrace: "Terraço", tv: "TV", balcony: "Varanda",
+    jacuzzi: "Jacuzzi", pool: "Piscina", kitchen: "Cozinha", ocean_view: "Vista para o Mar",
+    garden_view: "Vista para o Jardim", mountain_view: "Vista para a Montanha", room_service: "Serviço de Quarto",
+    coffee_maker: "Cafeteira", hair_dryer: "Secador de Cabelo", iron: "Ferro de Passar",
+  },
+};
+
+function formatAmenity(key: string, locale: string): string {
+  return AMENITY_LABELS[locale]?.[key] ?? AMENITY_LABELS.en[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export default function SelectAccommodationPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { state, set } = useBooking();
 
   const [roomTypes, setRoomTypes] = useState<PublicRoomType[]>([]);
   const [availabilityData, setAvailabilityData] = useState<HotelAvailabilityRoomType[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
-  const [preNights, setPreNights] = useState(state.preNights);
-  const [postNights, setPostNights] = useState(state.postNights);
   const [loading, setLoading] = useState(true);
 
   const retreatStart = state.dates?.start ?? "2026-05-28";
   const retreatEnd = state.dates?.end ?? "2026-06-01";
   const retreatNights = diffDays(retreatStart, retreatEnd);
 
-  const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
-  const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
+  const computedCheckIn = retreatStart;
+  const computedCheckOut = retreatEnd;
 
   useEffect(() => {
     if (!state.hotelApiId) return;
@@ -41,8 +67,11 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
         if (cancelled) return;
         setRoomTypes(hotelRes.hotel.room_types ?? []);
         setAvailabilityData(availRes.room_types ?? []);
-        if (hotelRes.hotel.room_types?.length > 0) {
-          setSelectedRoom(hotelRes.hotel.room_types[0].id);
+        const rts = hotelRes.hotel.room_types ?? [];
+        if (state.roomTypeApiId && rts.find((rt) => rt.id === state.roomTypeApiId)) {
+          setSelectedRoom(state.roomTypeApiId);
+        } else if (rts.length > 0) {
+          setSelectedRoom(rts[0].id);
         }
       } catch {
         // Use fallback
@@ -58,11 +87,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
   const room = roomTypes.find((r) => r.id === selectedRoom);
   const pricePerNight = room ? room.price_per_night_cents / 100 : (state.display?.pricePerNightCents ? state.display.pricePerNightCents / 100 : 185);
 
-  const totalNights = retreatNights + preNights + postNights;
-  const retreatCost = retreatNights * pricePerNight;
-  const preCost = preNights * pricePerNight;
-  const postCost = postNights * pricePerNight;
-  const total = retreatCost + preCost + postCost;
+  const total = retreatNights * pricePerNight;
   const commissionRate = state.display?.commissionRate ?? 0.16;
   const commission = Math.round(total * commissionRate);
 
@@ -103,7 +128,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
           Seleccionar alojamiento
         </h1>
         <p className="text-[15px] leading-[22px] text-humana-muted">
-          Elegi el tipo de habitacion y agrega noches pre/post retiro si tu cliente lo necesita.
+          Elegi el tipo de habitacion para tu cliente.
         </p>
       </div>
 
@@ -191,7 +216,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
                           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">{t.hotelDetail.amenities}</span>
                           <div className="flex flex-wrap gap-2">
                             {rt.amenities_list.slice(0, 6).map((a) => (
-                              <span key={a} className="border border-humana-line px-3 py-1.5 text-[12px] text-humana-muted">{a}</span>
+                              <span key={a} className="border border-humana-line px-3 py-1.5 text-[12px] text-humana-muted">{formatAmenity(a, locale)}</span>
                             ))}
                           </div>
                         </div>
@@ -231,36 +256,12 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
               <span className="text-[14px] text-humana-muted">Retiro</span>
               <span className="text-[13px] font-medium text-humana-ink">{formatDateShort(retreatStart)} — {formatDateShort(retreatEnd)}</span>
             </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-ink">Noches pre-retiro</span>
-                <div className="flex items-center gap-3">
-                  <button type="button" disabled={preNights <= 0} onClick={() => setPreNights(Math.max(0, preNights - 1))} className="flex h-7 w-7 items-center justify-center border border-humana-line text-[14px] text-humana-ink transition-all hover:border-humana-ink disabled:opacity-30">–</button>
-                  <span className="w-5 text-center text-[15px] font-medium text-humana-ink">{preNights}</span>
-                  <button type="button" disabled={preNights >= 5} onClick={() => setPreNights(Math.min(5, preNights + 1))} className="flex h-7 w-7 items-center justify-center border border-humana-line text-[14px] text-humana-ink transition-all hover:border-humana-ink disabled:opacity-30">+</button>
-                </div>
-              </div>
-              {preNights > 0 && <span className="text-[12px] text-humana-subtle">Check-in: {formatDateShort(computedCheckIn)} · 15:00</span>}
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-ink">Noches post-retiro</span>
-                <div className="flex items-center gap-3">
-                  <button type="button" disabled={postNights <= 0} onClick={() => setPostNights(Math.max(0, postNights - 1))} className="flex h-7 w-7 items-center justify-center border border-humana-line text-[14px] text-humana-ink transition-all hover:border-humana-ink disabled:opacity-30">–</button>
-                  <span className="w-5 text-center text-[15px] font-medium text-humana-ink">{postNights}</span>
-                  <button type="button" disabled={postNights >= 5} onClick={() => setPostNights(Math.min(5, postNights + 1))} className="flex h-7 w-7 items-center justify-center border border-humana-line text-[14px] text-humana-ink transition-all hover:border-humana-ink disabled:opacity-30">+</button>
-                </div>
-              </div>
-              {postNights > 0 && <span className="text-[12px] text-humana-subtle">Check-out: {formatDateShort(computedCheckOut)} · 11:00</span>}
-            </div>
             <div className="h-px bg-humana-line" />
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">Retiro ({retreatNights} noches x U$D {pricePerNight})</span>
-                <span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}</span>
+                <span className="text-[14px] text-humana-muted">{retreatNights} noches x U$D {pricePerNight}</span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {total.toLocaleString()}</span>
               </div>
-              {preNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Pre-retiro ({preNights} noches x U$D {pricePerNight})</span><span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString()}</span></div>}
-              {postNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Post-retiro ({postNights} noches x U$D {pricePerNight})</span><span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString()}</span></div>}
             </div>
             <div className="h-px bg-humana-line" />
             <div className="flex items-center justify-between">
@@ -271,8 +272,9 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
             <Link href={`/select-country/${country}/step-3-assign-client`} onClick={() => set({
               roomTypeId: selectedRoom ? String(selectedRoom) : null,
               roomTypeApiId: selectedRoom,
-              preNights,
-              postNights,
+              guests: room?.capacity ?? 1,
+              preNights: 0,
+              postNights: 0,
               display: state.display ? { ...state.display, roomTypeName: room?.name ?? "", pricePerNightCents: room?.price_per_night_cents ?? state.display.pricePerNightCents } : null,
             })}
               className="group/cta flex items-center justify-center gap-3 bg-humana-ink py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]">

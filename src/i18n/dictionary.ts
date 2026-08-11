@@ -552,6 +552,7 @@ type Dictionary = {
       kpis: { totalSales: string; revenue: string; avgSale: string; totalCommission: string; commissionFromBookings: string; retreatSalesRevenue: string; totalVolume: string };
       tabs: { commissions: string; retreatSales: string };
       columns: { reference: string; retreat: string; agency: string; roomType: string; dates: string; guests: string; amount: string; commission: string; status: string; created: string; client: string; type: string; hotel: string };
+      bookingType: { retreat: string; lodging: string };
       commissionsEmpty: string;
       commissionsEmptyHint: string;
     };
@@ -591,6 +592,9 @@ type Dictionary = {
       emptyRetreats: string;
       emptyLodging: string;
       tooltips: { reference: string; client: string; experience: string; type: string; hotel: string; room: string; guests: string; dates: string; checkIn: string; checkOut: string; nights: string; amount: string; commission: string; status: string; created: string };
+      filterByHotel: string;
+      allHotels: string;
+      onlyRetreatVenues: string;
     };
     settings: {
       eyebrow: string;
@@ -691,6 +695,7 @@ type Dictionary = {
       statusLabels: { draft: string; pending_review: string; active: string; upcoming: string; closed: string; cancelled: string };
       kpis: { total: string; active: string; draft: string; pending: string };
       columns: { name: string; hotel: string; dates: string; capacity: string; price: string; status: string; actions: string };
+      preview: string;
       deleteTitle: string;
       deleteMessage: string;
       deleteConfirm: string;
@@ -2411,6 +2416,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         kpis: { totalSales: "Total Sales", revenue: "Revenue", avgSale: "Avg. Sale", totalCommission: "Total Commission", commissionFromBookings: "Booking Commission", retreatSalesRevenue: "Retreat Sales Revenue", totalVolume: "Total Volume" },
         tabs: { commissions: "Commissions", retreatSales: "Retreat Sales" },
         columns: { reference: "Reference", retreat: "Retreat", agency: "Agency", roomType: "Room Type", dates: "Dates", guests: "Guests", amount: "Amount", commission: "Commission", status: "Status", created: "Created", client: "Client", type: "Type", hotel: "Hotel" },
+        bookingType: { retreat: "Retreat", lodging: "Lodging" },
         commissionsEmpty: "No bookings yet",
         commissionsEmptyHint: "Your booking commissions will appear here once you make your first reservation.",
       },
@@ -2450,6 +2456,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyRetreats: "No retreat bookings yet",
         emptyLodging: "No lodging bookings yet",
         tooltips: { reference: "Unique booking identifier", client: "Client assigned to this booking", experience: "Retreat or experience booked", type: "Category of the experience", hotel: "Hotel hosting the stay", room: "Room type selected", guests: "Number of guests or participants", dates: "Experience start and end dates", checkIn: "Guest arrival date", checkOut: "Guest departure date", nights: "Number of nights booked", amount: "Total amount charged", commission: "Commission earned by your agency", status: "Current status of the booking", created: "Date the booking was placed" },
+        filterByHotel: "Hotel",
+        allHotels: "All Hotels",
+        onlyRetreatVenues: "Available for retreats",
       },
       settings: {
         eyebrow: "SETTINGS",
@@ -2565,13 +2574,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         statusLabels: { draft: "Draft", pending_review: "Under Review", active: "Active", upcoming: "Upcoming", closed: "Closed", cancelled: "Cancelled" },
         kpis: { total: "Total Retreats", active: "Active", draft: "Drafts", pending: "Under Review" },
         columns: { name: "Retreat", hotel: "Hotel", dates: "Dates", capacity: "Capacity", price: "From", status: "Status", actions: "Actions" },
+        preview: "Preview",
         deleteTitle: "Delete Retreat",
         deleteMessage: "Are you sure you want to delete this draft retreat? This action cannot be undone.",
         deleteConfirm: "Delete",
         deleteCancel: "Cancel",
-        submitTitle: "Submit for Review",
-        submitMessage: "Once submitted, the retreat will be reviewed by the HUMANA team before going live.",
-        submitConfirm: "Submit",
+        submitTitle: "Publish Retreat",
+        submitMessage: "Once published, the retreat will be visible to all agencies and available for booking.",
+        submitConfirm: "Publish",
         submitCancel: "Cancel",
       },
       retreats: {
@@ -2579,7 +2589,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           eyebrow: "Create new retreat",
           editEyebrow: "Edit retreat",
           title: "Create your retreat",
-          subtitle: "Configure the retreat details, select a hotel and rooms, set the program, upload images, and submit for review.",
+          subtitle: "Configure the retreat details, select a hotel and rooms, set the program, upload images, and publish.",
           steps: { info: "Info", hotel: "Hotel", rooms: "Rooms", program: "Program", gallery: "Gallery", review: "Review" },
           stepOf: (n: number, total: number) => `Step ${n} of ${total}`,
           back: "Back",
@@ -2598,7 +2608,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             gallery: "Gallery",
             pending: "Pending",
             progress: "Progress",
-            readyToSubmit: "Ready to submit for review",
+            readyToSubmit: "Ready to publish",
             nightsCount: (n: number) => `${n} night${n === 1 ? "" : "s"}`,
             daysCount: (n: number) => `${n} day${n === 1 ? "" : "s"}`,
             imagesCount: (n: number) => `${n} image${n === 1 ? "" : "s"}`,
@@ -2698,8 +2708,8 @@ export const dictionary: Record<Locale, Dictionary> = {
             uploadFailedHint: "Some images couldn't be uploaded. Retry or remove them to continue.",
           },
           review: {
-            title: "Review & submit",
-            subtitle: "Review all details before submitting your retreat for approval.",
+            title: "Review & publish",
+            subtitle: "Review all details before publishing your retreat.",
             edit: "Edit",
             basicInfo: "Basic information",
             hotel: "Hotel",
@@ -2717,13 +2727,13 @@ export const dictionary: Record<Locale, Dictionary> = {
             perGuest: "/guest",
             gallery: "Gallery",
             imagesCount: (n: number) => `${n} image${n === 1 ? "" : "s"}`,
-            submit: "Submit for review",
-            submitting: "Submitting...",
+            submit: "Publish retreat",
+            submitting: "Publishing...",
           },
           confirmation: {
-            eyebrow: "Retreat submitted",
-            title: (name: string) => `${name} submitted!`,
-            subtitle: "Your retreat has been submitted for review. The HUMANA team will review it shortly.",
+            eyebrow: "Retreat published",
+            title: (name: string) => `${name} published!`,
+            subtitle: "Your retreat is now live and available for booking.",
             reference: "Reference",
             retreat: "Retreat",
             startDate: "Start date",
@@ -4462,6 +4472,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         kpis: { totalSales: "Total Ventas", revenue: "Ingresos", avgSale: "Venta Promedio", totalCommission: "Comisión Total", commissionFromBookings: "Comisión de Reservas", retreatSalesRevenue: "Ingresos por Retiros", totalVolume: "Volumen Total" },
         tabs: { commissions: "Comisiones", retreatSales: "Ventas de Retiros" },
         columns: { reference: "Referencia", retreat: "Retiro", agency: "Agencia", roomType: "Habitación", dates: "Fechas", guests: "Huéspedes", amount: "Monto", commission: "Comisión", status: "Estado", created: "Creada", client: "Cliente", type: "Tipo", hotel: "Hotel" },
+        bookingType: { retreat: "Retiro", lodging: "Alojamiento" },
         commissionsEmpty: "Aún no hay reservas",
         commissionsEmptyHint: "Tus comisiones de reservas aparecerán aquí una vez que realices tu primera reservación.",
       },
@@ -4501,6 +4512,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyRetreats: "Aún no hay reservas de retiros",
         emptyLodging: "Aún no hay reservas de alojamiento",
         tooltips: { reference: "Identificador único de la reserva", client: "Cliente asignado a esta reserva", experience: "Retiro o experiencia reservada", type: "Categoría de la experiencia", hotel: "Hotel donde se realiza la estadía", room: "Tipo de habitación seleccionada", guests: "Número de huéspedes o participantes", dates: "Fechas de inicio y fin de la experiencia", checkIn: "Fecha de llegada del huésped", checkOut: "Fecha de salida del huésped", nights: "Número de noches reservadas", amount: "Monto total cobrado", commission: "Comisión ganada por tu agencia", status: "Estado actual de la reserva", created: "Fecha en que se realizó la reserva" },
+        filterByHotel: "Hotel",
+        allHotels: "Todos los Hoteles",
+        onlyRetreatVenues: "Disponibles para retiros",
       },
       settings: {
         eyebrow: "CONFIGURACIÓN",
@@ -4616,13 +4630,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         statusLabels: { draft: "Borrador", pending_review: "En Revisión", active: "Activo", upcoming: "Próximo", closed: "Cerrado", cancelled: "Cancelado" },
         kpis: { total: "Total Retiros", active: "Activos", draft: "Borradores", pending: "En Revisión" },
         columns: { name: "Retiro", hotel: "Hotel", dates: "Fechas", capacity: "Capacidad", price: "Desde", status: "Estado", actions: "Acciones" },
+        preview: "Vista previa",
         deleteTitle: "Eliminar Retiro",
         deleteMessage: "¿Estás seguro de que quieres eliminar este retiro en borrador? Esta acción no se puede deshacer.",
         deleteConfirm: "Eliminar",
         deleteCancel: "Cancelar",
-        submitTitle: "Enviar a Revisión",
-        submitMessage: "Una vez enviado, el retiro será revisado por el equipo de HUMANA antes de publicarse.",
-        submitConfirm: "Enviar",
+        submitTitle: "Publicar Retiro",
+        submitMessage: "Una vez publicado, el retiro será visible para todas las agencias y estará disponible para reservar.",
+        submitConfirm: "Publicar",
         submitCancel: "Cancelar",
       },
       retreats: {
@@ -4630,7 +4645,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           eyebrow: "Crear nuevo retiro",
           editEyebrow: "Editar retiro",
           title: "Crea tu retiro",
-          subtitle: "Configura los detalles del retiro, selecciona un hotel y habitaciones, define el programa, sube imágenes y envía a revisión.",
+          subtitle: "Configura los detalles del retiro, selecciona un hotel y habitaciones, define el programa, sube imágenes y publica.",
           steps: { info: "Info", hotel: "Hotel", rooms: "Habitaciones", program: "Programa", gallery: "Galería", review: "Revisión" },
           stepOf: (n: number, total: number) => `Paso ${n} de ${total}`,
           back: "Atrás",
@@ -4649,7 +4664,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             gallery: "Galería",
             pending: "Pendiente",
             progress: "Progreso",
-            readyToSubmit: "Listo para enviar a revisión",
+            readyToSubmit: "Listo para publicar",
             nightsCount: (n: number) => `${n} noche${n === 1 ? "" : "s"}`,
             daysCount: (n: number) => `${n} día${n === 1 ? "" : "s"}`,
             imagesCount: (n: number) => `${n} imagen${n === 1 ? "" : "es"}`,
@@ -4749,8 +4764,8 @@ export const dictionary: Record<Locale, Dictionary> = {
             uploadFailedHint: "Algunas imágenes no pudieron subirse. Reintenta o elimínalas para continuar.",
           },
           review: {
-            title: "Revisar y enviar",
-            subtitle: "Revisa todos los detalles antes de enviar tu retiro para aprobación.",
+            title: "Revisar y publicar",
+            subtitle: "Revisa todos los detalles antes de publicar tu retiro.",
             edit: "Editar",
             basicInfo: "Información básica",
             hotel: "Hotel",
@@ -4768,13 +4783,13 @@ export const dictionary: Record<Locale, Dictionary> = {
             perGuest: "/huésped",
             gallery: "Galería",
             imagesCount: (n: number) => `${n} imagen${n === 1 ? "" : "es"}`,
-            submit: "Enviar a revisión",
-            submitting: "Enviando...",
+            submit: "Publicar retiro",
+            submitting: "Publicando...",
           },
           confirmation: {
-            eyebrow: "Retiro enviado",
-            title: (name: string) => `¡${name} enviado!`,
-            subtitle: "Tu retiro ha sido enviado para revisión. El equipo de HUMANA lo revisará en breve.",
+            eyebrow: "Retiro publicado",
+            title: (name: string) => `¡${name} publicado!`,
+            subtitle: "Tu retiro ya está activo y disponible para reservar.",
             reference: "Referencia",
             retreat: "Retiro",
             startDate: "Fecha de inicio",
@@ -6513,6 +6528,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         kpis: { totalSales: "Total Vendas", revenue: "Receita", avgSale: "Venda Média", totalCommission: "Comissão Total", commissionFromBookings: "Comissão de Reservas", retreatSalesRevenue: "Receita de Retiros", totalVolume: "Volume Total" },
         tabs: { commissions: "Comissões", retreatSales: "Vendas de Retiros" },
         columns: { reference: "Referência", retreat: "Retiro", agency: "Agência", roomType: "Quarto", dates: "Datas", guests: "Hóspedes", amount: "Valor", commission: "Comissão", status: "Status", created: "Criada", client: "Cliente", type: "Tipo", hotel: "Hotel" },
+        bookingType: { retreat: "Retiro", lodging: "Hospedagem" },
         commissionsEmpty: "Nenhuma reserva ainda",
         commissionsEmptyHint: "Suas comissões de reservas aparecerão aqui assim que você fizer sua primeira reserva.",
       },
@@ -6552,6 +6568,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyRetreats: "Nenhuma reserva de retiro ainda",
         emptyLodging: "Nenhuma reserva de hospedagem ainda",
         tooltips: { reference: "Identificador único da reserva", client: "Cliente atribuído a esta reserva", experience: "Retiro ou experiência reservada", type: "Categoria da experiência", hotel: "Hotel onde a estadia acontece", room: "Tipo de quarto selecionado", guests: "Número de hóspedes ou participantes", dates: "Datas de início e fim da experiência", checkIn: "Data de chegada do hóspede", checkOut: "Data de saída do hóspede", nights: "Número de noites reservadas", amount: "Valor total cobrado", commission: "Comissão recebida pela sua agência", status: "Status atual da reserva", created: "Data em que a reserva foi feita" },
+        filterByHotel: "Hotel",
+        allHotels: "Todos os Hotéis",
+        onlyRetreatVenues: "Disponíveis para retiros",
       },
       settings: {
         eyebrow: "CONFIGURAÇÕES",
@@ -6667,13 +6686,14 @@ export const dictionary: Record<Locale, Dictionary> = {
         statusLabels: { draft: "Rascunho", pending_review: "Em Revisão", active: "Ativo", upcoming: "Próximo", closed: "Encerrado", cancelled: "Cancelado" },
         kpis: { total: "Total de Retiros", active: "Ativos", draft: "Rascunhos", pending: "Em Revisão" },
         columns: { name: "Retiro", hotel: "Hotel", dates: "Datas", capacity: "Capacidade", price: "Desde", status: "Status", actions: "Ações" },
+        preview: "Visualizar",
         deleteTitle: "Excluir Retiro",
         deleteMessage: "Tem certeza de que deseja excluir este retiro em rascunho? Esta ação não pode ser desfeita.",
         deleteConfirm: "Excluir",
         deleteCancel: "Cancelar",
-        submitTitle: "Enviar para Revisão",
-        submitMessage: "Uma vez enviado, o retiro será revisado pela equipe HUMANA antes de ser publicado.",
-        submitConfirm: "Enviar",
+        submitTitle: "Publicar Retiro",
+        submitMessage: "Uma vez publicado, o retiro será visível para todas as agências e estará disponível para reserva.",
+        submitConfirm: "Publicar",
         submitCancel: "Cancelar",
       },
       retreats: {
@@ -6681,7 +6701,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           eyebrow: "Criar novo retiro",
           editEyebrow: "Editar retiro",
           title: "Crie o seu retiro",
-          subtitle: "Configure os detalhes do retiro, selecione um hotel e quartos, defina o programa, carregue imagens e envie para revisão.",
+          subtitle: "Configure os detalhes do retiro, selecione um hotel e quartos, defina o programa, carregue imagens e publique.",
           steps: { info: "Info", hotel: "Hotel", rooms: "Quartos", program: "Programa", gallery: "Galeria", review: "Revisão" },
           stepOf: (n: number, total: number) => `Passo ${n} de ${total}`,
           back: "Voltar",
@@ -6700,7 +6720,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             gallery: "Galeria",
             pending: "Pendente",
             progress: "Progresso",
-            readyToSubmit: "Pronto para enviar para revisão",
+            readyToSubmit: "Pronto para publicar",
             nightsCount: (n: number) => `${n} noite${n === 1 ? "" : "s"}`,
             daysCount: (n: number) => `${n} dia${n === 1 ? "" : "s"}`,
             imagesCount: (n: number) => `${n} imagem${n === 1 ? "" : "ns"}`,
@@ -6800,8 +6820,8 @@ export const dictionary: Record<Locale, Dictionary> = {
             uploadFailedHint: "Algumas imagens não puderam ser carregadas. Tente novamente ou remova-as para continuar.",
           },
           review: {
-            title: "Revisar e enviar",
-            subtitle: "Revise todos os detalhes antes de enviar seu retiro para aprovação.",
+            title: "Revisar e publicar",
+            subtitle: "Revise todos os detalhes antes de publicar seu retiro.",
             edit: "Editar",
             basicInfo: "Informações básicas",
             hotel: "Hotel",
@@ -6819,13 +6839,13 @@ export const dictionary: Record<Locale, Dictionary> = {
             perGuest: "/hóspede",
             gallery: "Galeria",
             imagesCount: (n: number) => `${n} imagem${n === 1 ? "" : "ns"}`,
-            submit: "Enviar para revisão",
-            submitting: "Enviando...",
+            submit: "Publicar retiro",
+            submitting: "Publicando...",
           },
           confirmation: {
-            eyebrow: "Retiro enviado",
-            title: (name: string) => `${name} enviado!`,
-            subtitle: "Seu retiro foi enviado para revisão. A equipe HUMANA irá revisá-lo em breve.",
+            eyebrow: "Retiro publicado",
+            title: (name: string) => `${name} publicado!`,
+            subtitle: "Seu retiro está ativo e disponível para reserva.",
             reference: "Referência",
             retreat: "Retiro",
             startDate: "Data de início",
