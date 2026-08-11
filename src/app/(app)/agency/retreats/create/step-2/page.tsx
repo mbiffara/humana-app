@@ -9,9 +9,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAgencyRetreatWizard, computeEndDate } from "@/contexts/AgencyRetreatWizardContext";
-import { agencyApi, type ApiInventoryBlock, type PublicHotel } from "@/lib/api/agency";
+import { agencyApi, type PublicHotel } from "@/lib/api/agency";
 
-type EmptyReason = "no_inventory" | "dates_not_covered" | "all_committed" | null;
+type EmptyReason = "no_inventory" | "dates_not_covered" | "all_committed" | "no_dates" | "error" | null;
 
 export default function AgencyRetreatHotelStep() {
   const { t, locale } = useLocale();
@@ -27,14 +27,19 @@ export default function AgencyRetreatHotelStep() {
   useEffect(() => {
     if (!state.startDate || !endDate) {
       setLoading(false);
+      setEmptyReason("no_dates");
       return;
     }
+    let cancelled = false;
     setLoading(true);
     setEmptyReason(null);
 
-    agencyApi
-      .listInventoryBlocks({ from: state.startDate, to: endDate })
-      .then(async (res) => {
+    (async () => {
+      try {
+        const res = await agencyApi.listInventoryBlocks({ from: state.startDate, to: endDate });
+
+        if (cancelled) return;
+
         // Group blocks by hotel (only those with available rooms)
         const hotelMap = new Map<number, { hotel: PublicHotel; blockCount: number; totalRooms: number }>();
         for (const block of res.inventory_blocks) {
@@ -60,22 +65,35 @@ export default function AgencyRetreatHotelStep() {
 
         setHotels(result);
 
+        // Clear stale hotel selection if the previously chosen hotel
+        // is no longer in the available list for the current dates
+        if (state.hotelId && !result.some((h) => h.id === state.hotelId)) {
+          set({
+            hotelId: null,
+            hotelName: "",
+            hotelCity: "",
+            hotelCountry: "",
+            hotelCountryCode: "",
+            pricing: [],
+            capacityCovered: null,
+          });
+        }
+
         // If no available hotels, figure out WHY
         if (result.length === 0) {
-          try {
-            // Check if blocks exist for the dates but all rooms are committed
-            const hasBlocksForDates = res.inventory_blocks.length > 0;
-            if (hasBlocksForDates) {
-              setEmptyReason("all_committed");
-              return;
-            }
+          const hasBlocksForDates = res.inventory_blocks.length > 0;
+          if (hasBlocksForDates) {
+            setEmptyReason("all_committed");
+            return;
+          }
 
-            // No blocks for these dates — check if agency has ANY blocks at all
+          // No blocks for these dates — check if agency has ANY blocks at all
+          try {
             const allBlocks = await agencyApi.listInventoryBlocks({});
+            if (cancelled) return;
             if (allBlocks.inventory_blocks.length === 0) {
               setEmptyReason("no_inventory");
             } else {
-              // Has inventory but not for these dates — compute the range
               const starts = allBlocks.inventory_blocks.map((b) => b.starts_on).sort();
               const ends = allBlocks.inventory_blocks.map((b) => b.ends_on).sort();
               const dateFmt = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" });
@@ -86,16 +104,20 @@ export default function AgencyRetreatHotelStep() {
               setEmptyReason("dates_not_covered");
             }
           } catch {
-            // Fallback to generic message
-            setEmptyReason(null);
+            setEmptyReason("no_inventory");
           }
         }
-      })
-      .catch(() => {
+      } catch (err) {
+        if (cancelled) return;
+        console.error("[Step 2] Failed to fetch inventory blocks:", err);
         setHotels([]);
-        setEmptyReason(null);
-      })
-      .finally(() => setLoading(false));
+        setEmptyReason("error");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [state.startDate, endDate, locale]);
 
   function selectHotel(hotel: PublicHotel & { blockCount: number; totalRooms: number }) {
@@ -105,13 +127,11 @@ export default function AgencyRetreatHotelStep() {
       hotelCity: hotel.city,
       hotelCountry: hotel.country,
       hotelCountryCode: hotel.country_code,
-      // Reset pricing when hotel changes
       pricing: [],
       capacityCovered: null,
     });
   }
 
-  // Determine which empty state title/hint to show
   function getEmptyContent(): { title: string; hint: string } {
     switch (emptyReason) {
       case "no_inventory":
@@ -125,6 +145,10 @@ export default function AgencyRetreatHotelStep() {
         };
       case "all_committed":
         return { title: tw.hotel.emptyCommittedTitle, hint: tw.hotel.emptyCommittedHint };
+      case "no_dates":
+        return { title: tw.hotel.emptyTitle, hint: tw.hotel.emptyHint };
+      case "error":
+        return { title: tw.hotel.emptyTitle, hint: tw.hotel.emptyHint };
       default:
         return { title: tw.hotel.emptyTitle, hint: tw.hotel.emptyHint };
     }
@@ -146,10 +170,9 @@ export default function AgencyRetreatHotelStep() {
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
           </div>
         ) : hotels.length === 0 ? (
-          /* Contextual empty state */
           (() => {
             const { title, hint } = getEmptyContent();
-            const iconColor = emptyReason === "all_committed" ? "#d97706" : "#8a8578";
+            const iconColor = emptyReason === "all_committed" ? "#d97706" : emptyReason === "error" ? "#dc2626" : "#8a8578";
             return (
               <div className="mt-10 flex flex-col items-center rounded-lg border border-humana-line bg-humana-stone/30 py-16 text-center">
                 {emptyReason === "all_committed" ? (
@@ -163,6 +186,12 @@ export default function AgencyRetreatHotelStep() {
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                     <line x1="12" y1="22.08" x2="12" y2="12" />
                   </svg>
+                ) : emptyReason === "error" ? (
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
                 ) : (
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -173,7 +202,7 @@ export default function AgencyRetreatHotelStep() {
                 )}
                 <p className="mt-4 text-[16px] font-medium text-humana-ink">{title}</p>
                 <p className="mt-2 max-w-md text-[14px] text-humana-muted">{hint}</p>
-                {emptyReason === "dates_not_covered" && (
+                {(emptyReason === "dates_not_covered" || emptyReason === "no_dates") && (
                   <Link
                     href="/agency/retreats/create/step-1"
                     className="mt-6 border border-humana-ink bg-white px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-humana-ink transition-colors hover:bg-humana-ink hover:text-white"
@@ -181,7 +210,7 @@ export default function AgencyRetreatHotelStep() {
                     {tw.back}
                   </Link>
                 )}
-                {emptyReason !== "dates_not_covered" && (
+                {emptyReason !== "dates_not_covered" && emptyReason !== "no_dates" && (
                   <Link
                     href="/map"
                     className="mt-6 bg-humana-gold px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-85"
@@ -206,7 +235,6 @@ export default function AgencyRetreatHotelStep() {
                       : "border-humana-line bg-white hover:border-humana-gold/50 hover:shadow-sm"
                   }`}
                 >
-                  {/* Hotel cover */}
                   <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-humana-stone">
                     {hotel.cover_image_url ? (
                       <Image src={hotel.cover_image_url} alt={hotel.name} fill className="object-cover" />
@@ -220,7 +248,6 @@ export default function AgencyRetreatHotelStep() {
                     )}
                   </div>
 
-                  {/* Hotel info */}
                   <div className="min-w-0 flex-1">
                     <p className="text-[15px] font-medium text-humana-ink">{hotel.name}</p>
                     <p className="mt-0.5 text-[13px] text-humana-muted">
@@ -231,7 +258,6 @@ export default function AgencyRetreatHotelStep() {
                     </p>
                   </div>
 
-                  {/* Selection indicator */}
                   <div
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
                       isSelected ? "border-humana-gold bg-humana-gold" : "border-humana-line"

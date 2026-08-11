@@ -77,20 +77,12 @@ function WizardShell({ children }: { children: ReactNode }) {
       description: state.description,
       currency: "USD",
     };
-    // If we already picked a hotel and are creating for the first time,
-    // include hotel_id in creation
-    if (state.hotelId && !state.retreatId) {
-      payload.hotel_id = state.hotelId;
-    }
     if (state.retreatId) {
       await agencyApi.updateRetreat(state.retreatId, payload);
-    } else if (state.hotelId) {
-      payload.hotel_id = state.hotelId;
-      const res = await agencyApi.createRetreat(payload);
-      set({ retreatId: res.retreat.id });
     }
-    // If no hotel selected yet, we just persist to session — the retreat
-    // will be created when a hotel is selected in step 2
+    // If no retreatId yet, we just persist to session — the retreat
+    // will be created in step 2 when a hotel is selected and validated
+    // against the chosen dates.
   }, [state, set]);
 
   const saveHotelSelection = useCallback(async () => {
