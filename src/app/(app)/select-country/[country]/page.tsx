@@ -21,10 +21,18 @@ export default function CountryPage({ params }: { params: Promise<{ country: str
   const [hotelCount, setHotelCount] = useState(0);
 
   useEffect(() => {
-    agencyApi
-      .listExperiences({ country_code: countryId.toUpperCase() })
-      .then((res) => setRetreatCount(res.experiences.length))
-      .catch(() => {});
+    // Count both catalogs — experiences and hotel-published retreats —
+    // to match what the retreats listing shows
+    Promise.all([
+      agencyApi
+        .listExperiences({ country_code: countryId.toUpperCase() })
+        .then((res) => res.experiences.length)
+        .catch(() => 0),
+      agencyApi
+        .listPublicRetreats({ country_code: countryId.toUpperCase() })
+        .then((res) => res.retreats.length)
+        .catch(() => 0),
+    ]).then(([exps, retreats]) => setRetreatCount(exps + retreats));
     agencyApi
       .listHotels({ country: countryId.toUpperCase() })
       .then((res) => setHotelCount(res.hotels.length))
