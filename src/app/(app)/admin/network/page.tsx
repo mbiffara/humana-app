@@ -198,12 +198,13 @@ export default function NetworkPage() {
     setDeleting(true);
     try {
       await adminApi.deleteUser(deleteUser.id);
-      setDeleteUser(null);
-      handleRefresh();
     } catch (err) {
       console.error("Failed to delete user:", err);
     } finally {
       setDeleting(false);
+      setDeleteUser(null);
+      setDeleteConfirmInput("");
+      handleRefresh();
     }
   }
 
