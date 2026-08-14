@@ -204,7 +204,8 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   }
 
   return (
-    <div className="animate-fade-in-up mx-auto flex w-full max-w-[1440px] flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
+    <div className="bg-humana-stone min-h-screen">
+    <div className="animate-fade-in-up mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -352,6 +353,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
