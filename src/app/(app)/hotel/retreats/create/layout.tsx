@@ -47,7 +47,7 @@ function WizardShell({ children }: { children: ReactNode }) {
     useRetreatWizard();
   const [hotel, setHotel] = useState<HotelProfile | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState(false);
+  const [saveError, setSaveError] = useState<string | boolean>(false);
 
   const activeIndex = STEP_PATHS.findIndex((p) => pathname.startsWith(p));
   const isConfirmation = pathname.includes("/confirmation");
@@ -222,8 +222,9 @@ function WizardShell({ children }: { children: ReactNode }) {
         }
       }
       router.push(STEP_PATHS[activeIndex + 1]);
-    } catch {
-      setSaveError(true);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      setSaveError(msg || true);
     } finally {
       setSaving(false);
     }
@@ -332,7 +333,7 @@ function WizardShell({ children }: { children: ReactNode }) {
 
           {saveError && (
             <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
-              {tw.saveError}
+              {typeof saveError === "string" && saveError ? saveError : tw.saveError}
             </div>
           )}
 
