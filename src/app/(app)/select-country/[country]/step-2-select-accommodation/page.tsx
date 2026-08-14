@@ -100,7 +100,9 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
   const displayPrice = pricePerGuest ?? retreatNights * pricePerNight;
 
   const commissionRate = state.display?.commissionRate ?? 0.16;
-  const commission = Math.round(displayPrice * commissionRate);
+  const officeFeeRate = 0.02;
+  const totalCommissionRate = commissionRate + officeFeeRate;
+  const commission = Math.round(displayPrice * totalCommissionRate);
 
   // Compute min availability per room type across the date range
   function getMinAvailability(rtId: number): number {
@@ -121,7 +123,8 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <div className="animate-fade-in-up mx-auto flex w-full max-w-[1440px] flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
+    <div className="bg-humana-stone min-h-screen">
+    <div className="animate-fade-in-up mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -294,7 +297,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
               <span className="text-[15px] font-medium text-humana-ink">Total por huésped c/u</span>
               <span className="text-[18px] font-semibold text-humana-ink">U$D {displayPrice.toLocaleString()}</span>
             </div>
-            <span className="text-[14px] font-medium text-humana-gold">Tu comision estimada: U$D {commission.toLocaleString()} ({Math.round(commissionRate * 100)}%)</span>
+            <span className="text-[14px] font-medium text-humana-gold">Tu comision estimada: U$D {commission.toLocaleString()} ({Math.round(totalCommissionRate * 100)}%)</span>
             <Link href={`/select-country/${country}/step-3-assign-client`} onClick={() => set({
               roomTypeId: selectedRoom ? String(selectedRoom) : null,
               roomTypeApiId: selectedRoom,
@@ -314,6 +317,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

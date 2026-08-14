@@ -66,7 +66,15 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
   const postNights = state.postNights;
   const totalNights = retreatNights + preNights + postNights;
   const pricePerNight = state.display ? state.display.pricePerNightCents / 100 : 185;
-  const total = totalNights * pricePerNight;
+  const isRetreatFlow = state.flowType === "retreats";
+  const retreatPricePerGuest = state.display?.retreatPricePerGuestCents
+    ? state.display.retreatPricePerGuestCents / 100 : 0;
+  const retreatCost = isRetreatFlow && retreatPricePerGuest > 0
+    ? retreatPricePerGuest
+    : retreatNights * pricePerNight;
+  const preCost = preNights * pricePerNight;
+  const postCost = postNights * pricePerNight;
+  const total = retreatCost + preCost + postCost;
 
   const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
   const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
@@ -101,7 +109,8 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
   }
 
   return (
-    <div className="animate-fade-in-up mx-auto flex w-full max-w-[1440px] flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
+    <div className="bg-humana-stone min-h-screen">
+    <div className="animate-fade-in-up mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-20 py-14">
       <Breadcrumb
         items={isHotelDirect ? [
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -355,6 +364,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

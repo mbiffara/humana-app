@@ -17,9 +17,17 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
   const pricePerNight = state.display ? state.display.pricePerNightCents / 100 : 185;
   const preNights = state.preNights;
   const postNights = state.postNights;
-  const total = (retreatNights + preNights + postNights) * pricePerNight;
+  const isRetreatFlow = state.flowType === "retreats";
+  const retreatPricePerGuest = state.display?.retreatPricePerGuestCents
+    ? state.display.retreatPricePerGuestCents / 100 : 0;
+  const retreatCost = isRetreatFlow && retreatPricePerGuest > 0
+    ? retreatPricePerGuest
+    : retreatNights * pricePerNight;
+  const total = retreatCost + (preNights * pricePerNight) + (postNights * pricePerNight);
   const commissionRate = state.display?.commissionRate ?? 0.16;
-  const commission = Math.round(total * commissionRate);
+  const officeFeeRate = 0.02;
+  const totalCommissionRate = commissionRate + officeFeeRate;
+  const commission = Math.round(total * totalCommissionRate);
   const reservationId = state.bookingReference ?? "HMN-000000";
 
   const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
@@ -31,7 +39,8 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
   const isHotelDirect = state.flowType === "hotels" && !!state.roomTypeApiId;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-10 bg-humana-stone min-h-screen px-16 py-20">
+    <div className="bg-humana-stone min-h-screen">
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-10 px-16 py-20">
       <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-check-pop">
         <circle cx="40" cy="40" r="38" stroke="#d4af37" strokeWidth="2" className="animate-check-circle" />
         <path d="M24 41l11 11 21-24" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="animate-check-stroke" />
@@ -74,6 +83,7 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
           <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover/cta:translate-x-0.5"><path d="M1 5h14M10 1l4 4-4 4" /></svg>
         </Link>
       </div>
+    </div>
     </div>
   );
 }
