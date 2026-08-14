@@ -2810,7 +2810,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     hero: {
       eyebrow: (year: number) => `Global network · ${year} Season`,
-      headline: ["Design your client's next", "transformative journey."],
+      headline: ["Create your client's next", "transformative journey."],
       subhead:
         "Curated access to certified wellness hotels, purpose-driven retreats and international masterclasses. Transparent commission on every booking.",
     },
@@ -3001,7 +3001,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     dashboard: {
       welcome: (name: string) => `Welcome ${name}`,
-      createRetreatTitle: "Design your own retreat at any hotel in the network",
+      createRetreatTitle: "Create your own retreat at any hotel in the network",
       createRetreatDesc: "Create personalized experiences for your clients at +300 certified wellness hotels. Publish and manage your retreats from your agency panel.",
       createRetreatCta: "Create retreat",
     },
@@ -3158,7 +3158,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
       step3: {
         title: "Program",
-        subtitle: "Design your day-by-day retreat program",
+        subtitle: "Create your day-by-day retreat program",
         addDay: "Add day",
         addActivity: "Add activity",
         time: "Time",
@@ -4872,7 +4872,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     hero: {
       eyebrow: (year: number) => `Red global · Temporada ${year}`,
-      headline: ["Diseña el próximo viaje", "transformador de tu cliente."],
+      headline: ["Crea el próximo viaje", "transformador de tu cliente."],
       subhead:
         "Acceso curado a hoteles wellness certificados, retiros con propósito y masterclasses internacionales. Comisión transparente en cada reserva.",
     },
@@ -5063,7 +5063,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     dashboard: {
       welcome: (name: string) => `Bienvenido ${name}`,
-      createRetreatTitle: "Diseña tu propio retiro en cualquier hotel de la red",
+      createRetreatTitle: "Crea tu propio retiro en cualquier hotel de la red",
       createRetreatDesc: "Crea experiencias personalizadas para tus clientes en +300 hoteles wellness certificados. Publica y gestiona tus retiros desde tu panel de agencia.",
       createRetreatCta: "Crear retiro",
     },
@@ -5220,7 +5220,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
       step3: {
         title: "Programa",
-        subtitle: "Diseña el programa día a día de tu retiro",
+        subtitle: "Crea el programa día a día de tu retiro",
         addDay: "Agregar día",
         addActivity: "Agregar actividad",
         time: "Hora",
@@ -6935,7 +6935,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     hero: {
       eyebrow: (year: number) => `Rede global · Temporada ${year}`,
-      headline: ["Desenhe a próxima viagem", "transformadora do seu cliente."],
+      headline: ["Crie a próxima viagem", "transformadora do seu cliente."],
       subhead:
         "Acesso curado a hotéis wellness certificados, retiros com propósito e masterclasses internacionais. Comissão transparente em cada reserva.",
     },
@@ -7126,7 +7126,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     },
     dashboard: {
       welcome: (name: string) => `Bem-vindo ${name}`,
-      createRetreatTitle: "Projete seu próprio retiro em qualquer hotel da rede",
+      createRetreatTitle: "Crie seu próprio retiro em qualquer hotel da rede",
       createRetreatDesc: "Crie experiências personalizadas para seus clientes em +300 hotéis wellness certificados. Publique e gerencie seus retiros a partir do seu painel de agência.",
       createRetreatCta: "Criar retiro",
     },
@@ -7283,7 +7283,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
       step3: {
         title: "Programa",
-        subtitle: "Desenhe o programa dia a dia do seu retiro",
+        subtitle: "Crie o programa dia a dia do seu retiro",
         addDay: "Adicionar dia",
         addActivity: "Adicionar atividade",
         time: "Horário",
