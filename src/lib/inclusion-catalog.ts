@@ -10,10 +10,10 @@ export interface CatalogInclusion {
 
 export const INCLUSION_CATALOG: Record<string, CatalogInclusion> = {
   // meals
-  "full-board": { name: "Pensión completa", category: "meals" },
-  "healthy-snacks": { name: "Snacks saludables", category: "meals" },
-  "welcome-dinner": { name: "Cena de bienvenida", category: "meals" },
-  "detox-juices": { name: "Jugos detox y tés", category: "meals" },
+  "full-board": { name: "Pensión completa", category: "meal" },
+  "healthy-snacks": { name: "Snacks saludables", category: "meal" },
+  "welcome-dinner": { name: "Cena de bienvenida", category: "meal" },
+  "detox-juices": { name: "Jugos detox y tés", category: "meal" },
   // wellness
   "spa-access": { name: "Acceso al spa", category: "wellness" },
   "one-on-one": { name: "Sesión 1:1", category: "wellness" },
@@ -37,7 +37,7 @@ export const INCLUSION_CATALOG: Record<string, CatalogInclusion> = {
 };
 
 export const INCLUSION_CATEGORIES = [
-  "meals",
+  "meal",
   "wellness",
   "transport",
   "amenity",
