@@ -22,6 +22,8 @@ export type BookingDisplay = {
   roomTypeName: string;
   retreatName: string;
   pricePerNightCents: number;
+  /** For retreat bookings: flat per-guest price (already includes all nights) */
+  retreatPricePerGuestCents?: number;
   currency: string;
   commissionRate: number;
   retreatPricings?: RetreatPricingCache[];

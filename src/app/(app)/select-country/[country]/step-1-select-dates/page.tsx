@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking, type RetreatPricingCache } from "@/contexts/BookingContext";
-import { agencyApi, type ApiExperience, type ApiRetreatPricing, type PublicRoomType } from "@/lib/api/agency";
+import { agencyApi, type ApiExperience, type PublicRoomType } from "@/lib/api/agency";
 import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
 import {
   MONTH_NAMES, WEEKDAY_NAMES, daysInMonth, firstDayOfMonth, toDateStr,
@@ -94,7 +94,9 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   const pricePerNight = firstRoom ? firstRoom.price_per_night_cents / 100 : 280;
   const displayPrice = pricePerGuest ?? retreatNights * pricePerNight;
   const commissionRate = experience?.commission_rate ?? 0.16;
-  const commission = Math.round(displayPrice * commissionRate);
+  const officeFeeRate = 0.02;
+  const totalCommissionRate = commissionRate + officeFeeRate;
+  const commission = Math.round(displayPrice * totalCommissionRate);
   const hasRetreatPricing = retreatPricings && retreatPricings.length > 0;
 
   if (!hydrated || loading) {
@@ -191,6 +193,9 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
         roomTypeName: firstRoom?.name ?? "",
         retreatName: experience?.title ?? "",
         pricePerNightCents: firstRoom?.price_per_night_cents ?? 28000,
+        retreatPricePerGuestCents: selectedPricing
+          ? selectedPricing.price_per_guest_cents
+          : (retreatPricings?.[0]?.price_per_guest_cents ?? undefined),
         currency: experience?.currency ?? "USD",
         commissionRate,
         retreatPricings: pricingCache,
@@ -199,7 +204,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   }
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
+    <div className="animate-fade-in-up mx-auto flex w-full max-w-[1440px] flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb
         items={[
           { label: t.breadcrumb.home, href: "/dashboard" },
@@ -331,7 +336,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
               <span className="text-[18px] font-semibold text-humana-ink">U$D {displayPrice.toLocaleString("en-US")}</span>
             </div>
             <span className="text-[14px] font-medium text-humana-gold">
-              Tu comision estimada: U$D {commission.toLocaleString("en-US")} ({Math.round(commissionRate * 100)}%)
+              Tu comisión estimada: U$D {commission.toLocaleString("en-US")} ({Math.round(totalCommissionRate * 100)}%)
             </span>
 
             <Link

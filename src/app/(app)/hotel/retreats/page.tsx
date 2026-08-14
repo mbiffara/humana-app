@@ -31,8 +31,9 @@ export default function HotelRetreatsPage() {
   const [retreats, setRetreats] = useState<ApiRetreat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  // Retreat id pending delete confirmation (two-step, no browser dialog)
-  const [pendingDelete, setPendingDelete] = useState<number | null>(null);
+  // Retreat pending delete confirmation (modal)
+  const [deleteModal, setDeleteModal] = useState<ApiRetreat | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -50,12 +51,17 @@ export default function HotelRetreatsPage() {
     fetchData();
   }, [fetchData]);
 
-  async function deleteRetreat(id: number) {
+  async function handleDelete() {
+    if (!deleteModal) return;
+    setDeleteLoading(true);
     try {
-      await hotelApi.deleteRetreat(id);
-      setRetreats((prev) => prev.filter((r) => r.id !== id));
+      await hotelApi.deleteRetreat(deleteModal.id);
+      setRetreats((prev) => prev.filter((r) => r.id !== deleteModal.id));
+      setDeleteModal(null);
+    } catch {
+      // ignore
     } finally {
-      setPendingDelete(null);
+      setDeleteLoading(false);
     }
   }
 
@@ -192,64 +198,75 @@ export default function HotelRetreatsPage() {
                 </div>
 
                 {/* Action links */}
-                <div className="mt-5 flex items-center gap-3 border-t border-humana-line pt-4">
+                <div className="mt-5 flex items-center gap-4 border-t border-humana-line pt-4">
                   {/* Preview */}
                   {retreat.slug && retreat.country_code && (
                     <Link
                       href={`/select-country/${retreat.country_code.toLowerCase()}/retreats/${retreat.slug}`}
-                      title={tr.viewProgram}
-                      className="flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
+                      className="flex items-center gap-1.5 text-[13px] text-humana-subtle transition-colors hover:text-humana-ink"
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                         <circle cx="12" cy="12" r="3" />
                       </svg>
+                      {tr.viewProgram}
                     </Link>
+                  )}
+                  {retreat.slug && retreat.country_code && (
+                    <span className="text-humana-line">·</span>
                   )}
                   {/* Edit */}
                   <Link
                     href={`/hotel/retreats/create/step-1?id=${retreat.id}`}
-                    title={tr.editDetails}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
+                    className="flex items-center gap-1.5 text-[13px] text-humana-subtle transition-colors hover:text-humana-ink"
                   >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
+                    {tr.editDetails}
                   </Link>
+                  <span className="text-humana-line">·</span>
                   {/* Delete */}
-                  {pendingDelete === retreat.id ? (
-                    <span className="ml-auto flex items-center gap-3 text-[13px]">
-                      <span className="text-humana-muted">{tr.confirmDelete}</span>
-                      <button
-                        onClick={() => deleteRetreat(retreat.id)}
-                        className="cursor-pointer font-medium text-red-600 hover:opacity-75"
-                      >
-                        {tr.delete}
-                      </button>
-                      <button
-                        onClick={() => setPendingDelete(null)}
-                        className="cursor-pointer text-humana-muted hover:text-humana-ink"
-                      >
-                        ✕
-                      </button>
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => setPendingDelete(retreat.id)}
-                      title={tr.delete}
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-red-50 hover:text-red-500"
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setDeleteModal(retreat)}
+                    className="flex cursor-pointer items-center gap-1.5 text-[13px] text-humana-subtle transition-colors hover:text-red-500"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    {tr.delete}
+                  </button>
                 </div>
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-md rounded-xl border border-humana-line bg-white p-8 shadow-xl animate-fade-in-scale">
+            <h3 className="text-[18px] font-bold text-humana-ink">{tr.delete}</h3>
+            <p className="mt-3 text-[14px] leading-relaxed text-humana-muted">{tr.confirmDelete}</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteModal(null)}
+                className="cursor-pointer rounded-lg border border-humana-line px-5 py-2.5 text-[12px] font-semibold text-humana-ink transition-colors hover:border-humana-ink"
+              >
+                {t.common.cancel}
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                className="cursor-pointer rounded-lg bg-red-600 px-5 py-2.5 text-[12px] font-semibold text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+              >
+                {deleteLoading ? "…" : tr.delete}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

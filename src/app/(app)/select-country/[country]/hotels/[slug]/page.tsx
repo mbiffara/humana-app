@@ -437,7 +437,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
 
         {/* ── Tab: Retreats ── */}
         {activeTab === "retreats" && (
-          <div className="flex flex-col gap-5">
+          <div>
             {hotelExperiences.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e6e2d6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -447,40 +447,71 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                 <p className="text-[15px] text-humana-muted">Este hotel aun no tiene retiros publicados.</p>
               </div>
             ) : (
-              hotelExperiences.map((exp) => (
-                <Link
-                  key={exp.id}
-                  href={`/select-country/${country}/retreats/${exp.slug}`}
-                  className="flex overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-                >
-                  <div className="relative w-[320px] shrink-0 bg-humana-stone">
-                    {exp.image_url && <Image src={exp.image_url} alt={exp.title} fill className="object-cover" />}
-                    <div className="absolute left-4 top-4 flex items-center gap-1.5 bg-white/90 px-3 py-1.5 backdrop-blur-sm">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-humana-ink">{exp.kind}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-1 flex-col justify-between gap-4 p-8">
-                    <div className="flex flex-col gap-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">{exp.kind}</span>
-                      <h3 className="text-[20px] font-medium tracking-[-0.01em] text-humana-ink">{exp.title}</h3>
-                      <p className="text-[14px] text-humana-muted">
-                        {exp.starts_on} — {exp.ends_on} &middot; {exp.capacity} plazas
-                      </p>
-                    </div>
-                    <div className="flex items-end justify-between gap-6">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
-                        <span className="text-[24px] font-light tracking-[-0.01em] text-humana-ink">
-                          {exp.currency} {(exp.price_cents / 100).toLocaleString("en-US")}
-                        </span>
+              <div className="grid grid-cols-2 gap-6">
+                {hotelExperiences.map((exp) => {
+                  const nights = exp.starts_on && exp.ends_on ? diffDays(exp.starts_on, exp.ends_on) : 0;
+                  const kindLabel = exp.kind.toUpperCase();
+                  const startFmt = exp.starts_on ? formatDateShort(exp.starts_on) : "";
+                  const endFmt = exp.ends_on ? formatDateShort(exp.ends_on) : "";
+                  const pricePerGuest = exp.price_cents > 0 ? exp.price_cents / 100 : 0;
+                  const commRate = exp.commission_rate ?? 0.16;
+                  const totalCommRate = Math.round((commRate + 0.02) * 100);
+
+                  return (
+                    <div
+                      key={exp.id}
+                      className="flex flex-col overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+                    >
+                      {/* Image with badge */}
+                      <div className="relative h-[220px] bg-humana-stone">
+                        {exp.image_url && <Image src={exp.image_url} alt={exp.title} fill className="object-cover" />}
+                        <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-white/90 px-3 py-1.5 backdrop-blur-sm">
+                          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-humana-ink">
+                            {kindLabel} &middot; {nights} {nights === 1 ? "NOCHE" : "NOCHES"}
+                          </span>
+                        </div>
                       </div>
-                      <span className="shrink-0 bg-humana-ink px-8 py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white">
-                        Ver retiro →
-                      </span>
+
+                      {/* Content */}
+                      <div className="flex flex-1 flex-col gap-3 p-6">
+                        <p className="text-[12px] text-humana-muted">
+                          {hotel.name} &middot; {location} &middot; {startFmt} – {endFmt}
+                        </p>
+                        <h3 className="text-[18px] font-medium leading-snug tracking-[-0.01em] text-humana-ink">
+                          {exp.title}
+                        </h3>
+                        {exp.description && (
+                          <p className="line-clamp-3 text-[13px] leading-[20px] text-humana-muted">
+                            {exp.description}
+                          </p>
+                        )}
+
+                        <div className="mt-auto flex flex-col gap-4 pt-3">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">DESDE</span>
+                            <span className="text-[22px] font-light tracking-[-0.01em] text-humana-ink">
+                              {exp.currency} {pricePerGuest.toLocaleString("en-US")}
+                            </span>
+                            <span className="text-[13px] text-humana-muted">/ por huésped</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[12px] font-medium text-humana-gold">Comisión {totalCommRate}%</span>
+                          </div>
+                          <Link
+                            href={`/select-country/${country}/retreats/${exp.slug}`}
+                            className="flex items-center justify-center gap-2 bg-humana-ink py-3.5 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]"
+                          >
+                            RESERVAR ESTE RETIRO
+                            <svg width="14" height="9" viewBox="0 0 16 10" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M1 5h14M10 1l4 4-4 4" />
+                            </svg>
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))
+                  );
+                })}
+              </div>
             )}
           </div>
         )}

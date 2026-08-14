@@ -22,14 +22,20 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
   const pricePerNight = state.display ? state.display.pricePerNightCents / 100 : 185;
   const preNights = state.preNights;
   const postNights = state.postNights;
-  const retreatCost = retreatNights * pricePerNight;
+  const isRetreatFlow = state.flowType === "retreats";
+  // Retreats: flat per-guest price (includes all nights). Hotels: per-night × nights.
+  const retreatPricePerGuest = state.display?.retreatPricePerGuestCents
+    ? state.display.retreatPricePerGuestCents / 100 : 0;
+  const retreatCost = isRetreatFlow && retreatPricePerGuest > 0
+    ? retreatPricePerGuest
+    : retreatNights * pricePerNight;
   const preCost = preNights * pricePerNight;
   const postCost = postNights * pricePerNight;
   const total = retreatCost + preCost + postCost;
   const commissionRate = state.display?.commissionRate ?? 0.16;
-  const commissionAgency = Math.round(total * commissionRate);
-  const commissionOffice = Math.round(total * 0.02);
-  const netCreator = total - commissionAgency - commissionOffice;
+  const officeFeeRate = 0.02;
+  const totalCommissionRate = commissionRate + officeFeeRate;
+  const totalCommission = Math.round(total * totalCommissionRate);
 
   const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
   const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
@@ -73,7 +79,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
   }
 
   return (
-    <div className="animate-fade-in-up flex flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
+    <div className="animate-fade-in-up mx-auto flex w-full max-w-[1440px] flex-col gap-10 bg-humana-stone min-h-screen px-20 py-14">
       <Breadcrumb items={[
         { label: t.breadcrumb.home, href: "/dashboard" },
         { label: displayHotelName, href: `/select-country/${country}` },
@@ -110,7 +116,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
             </div>
             <div className="h-px bg-humana-line" />
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Retiro — {retreatNights} noches x U$D {pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}.00</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Retiro — {retreatNights} noches x U$D {isRetreatFlow && retreatPricePerGuest > 0 ? Math.round(retreatPricePerGuest / retreatNights).toLocaleString() : pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}.00</span></div>
               {preNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Pre-retiro — {preNights} noches x U$D {pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString()}.00</span></div>}
               {postNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Post-retiro — {postNights} noches x U$D {pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString()}.00</span></div>}
             </div>
@@ -120,8 +126,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
           <div className="flex flex-col gap-5 border border-humana-line bg-white p-8">
             <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">DESGLOSE DE COMISIONES</span>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Comision agencia ({Math.round(commissionRate * 100)}%)</span><span className="text-[15px] font-medium text-humana-gold">U$D {commissionAgency.toLocaleString()}.00</span></div>
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Neto al hotel</span><span className="text-[14px] font-medium text-humana-ink">U$D {netCreator.toLocaleString()}.00</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Comisión ({Math.round(totalCommissionRate * 100)}%)</span><span className="text-[15px] font-medium text-humana-gold">U$D {totalCommission.toLocaleString()}.00</span></div>
             </div>
           </div>
         </div>

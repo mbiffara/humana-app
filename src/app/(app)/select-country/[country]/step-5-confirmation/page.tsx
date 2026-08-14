@@ -31,7 +31,7 @@ export default function ConfirmationPage({ params }: { params: Promise<{ country
   const isHotelDirect = state.flowType === "hotels" && !!state.roomTypeApiId;
 
   return (
-    <div className="flex flex-col items-center gap-10 bg-humana-stone min-h-screen px-16 py-20">
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-10 bg-humana-stone min-h-screen px-16 py-20">
       <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-check-pop">
         <circle cx="40" cy="40" r="38" stroke="#d4af37" strokeWidth="2" className="animate-check-circle" />
         <path d="M24 41l11 11 21-24" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" className="animate-check-stroke" />

@@ -153,7 +153,10 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
       <div className="px-16 pt-6">
         <Breadcrumb
           items={[
-            { label: t.breadcrumb.home, href: "/dashboard" },
+            {
+              label: user?.organization?.kind === "hotel" ? t.hotelWs.retreats.title : t.breadcrumb.home,
+              href: user?.organization?.kind === "hotel" ? "/hotel/retreats" : "/dashboard",
+            },
             { label: countryName, href: `/select-country/${country}` },
             { label: t.breadcrumb.retreats, href: `/select-country/${country}/retreats` },
             { label: experience.title },
@@ -196,7 +199,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
               <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
                 {t.retreatDetail.included.toUpperCase()}
               </span>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+              <div className="grid grid-cols-3 gap-x-8 gap-y-2.5" style={{ gridAutoFlow: "column", gridTemplateRows: `repeat(${Math.min(Math.ceil(experience.inclusions.length / 3), 6)}, auto)` }}>
                 {experience.inclusions.map((inc) => (
                   <div key={inc.id} className="flex items-center gap-2.5">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
