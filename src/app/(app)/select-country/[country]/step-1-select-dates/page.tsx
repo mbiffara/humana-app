@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { useBooking } from "@/contexts/BookingContext";
-import { agencyApi, type ApiExperience, type PublicRoomType } from "@/lib/api/agency";
+import { useBooking, type RetreatPricingCache } from "@/contexts/BookingContext";
+import { agencyApi, type ApiExperience, type ApiRetreatPricing, type PublicRoomType } from "@/lib/api/agency";
 import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
 import {
   MONTH_NAMES, WEEKDAY_NAMES, daysInMonth, firstDayOfMonth, toDateStr,
@@ -87,10 +87,15 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   const retreatEnd = experience?.ends_on ?? "2026-06-01";
   const retreatNights = diffDays(retreatStart, retreatEnd);
 
+  const retreatPricings = experience?.pricing ?? null;
+  const selectedPricing = retreatPricings?.find((p) => p.room_type.id === firstRoom?.id);
+  // Retreat pricing is per guest (for the entire stay), not per night
+  const pricePerGuest = selectedPricing?.price_per_guest ?? (retreatPricings?.[0]?.price_per_guest ?? null);
   const pricePerNight = firstRoom ? firstRoom.price_per_night_cents / 100 : 280;
-  const totalPrice = retreatNights * pricePerNight;
+  const displayPrice = pricePerGuest ?? retreatNights * pricePerNight;
   const commissionRate = experience?.commission_rate ?? 0.16;
-  const commission = Math.round(totalPrice * commissionRate);
+  const commission = Math.round(displayPrice * commissionRate);
+  const hasRetreatPricing = retreatPricings && retreatPricings.length > 0;
 
   if (!hydrated || loading) {
     return (
@@ -167,6 +172,11 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   }
 
   function handleContinue() {
+    const pricingCache: RetreatPricingCache[] | undefined = retreatPricings?.map((p) => ({
+      roomTypeId: p.room_type.id,
+      pricePerGuestCents: p.price_per_guest_cents,
+      currency: p.currency,
+    }));
     set({
       dates: { start: retreatStart, end: retreatEnd },
       preNights: 0,
@@ -183,6 +193,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
         pricePerNightCents: firstRoom?.price_per_night_cents ?? 28000,
         currency: experience?.currency ?? "USD",
         commissionRate,
+        retreatPricings: pricingCache,
       },
     });
   }
@@ -306,16 +317,18 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
             {/* Price breakdown */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">{retreatNights} noches x U$D {pricePerNight}</span>
-                <span className="text-[14px] font-medium text-humana-ink">U$D {totalPrice.toLocaleString("en-US")}</span>
+                <span className="text-[14px] text-humana-muted">
+                  {retreatNights} noches x U$D {hasRetreatPricing ? Math.round(displayPrice / retreatNights) : pricePerNight}
+                </span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {displayPrice.toLocaleString("en-US")}</span>
               </div>
             </div>
 
             <div className="h-px bg-humana-line" />
 
             <div className="flex items-center justify-between">
-              <span className="text-[15px] font-medium text-humana-ink">Total alojamiento</span>
-              <span className="text-[18px] font-semibold text-humana-ink">U$D {totalPrice.toLocaleString("en-US")}</span>
+              <span className="text-[15px] font-medium text-humana-ink">Total por huésped c/u</span>
+              <span className="text-[18px] font-semibold text-humana-ink">U$D {displayPrice.toLocaleString("en-US")}</span>
             </div>
             <span className="text-[14px] font-medium text-humana-gold">
               Tu comision estimada: U$D {commission.toLocaleString("en-US")} ({Math.round(commissionRate * 100)}%)
