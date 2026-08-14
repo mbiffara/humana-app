@@ -80,7 +80,8 @@ export default function AgencyRetreatRoomsStep() {
     for (const entry of included) {
       const block = blocks.find((b) => b.id === entry.inventoryBlockId);
       if (block) {
-        totalGuests += block.available_rooms * (block.room_type?.capacity ?? 1);
+        const rooms = entry.allocatedRooms ?? block.available_rooms;
+        totalGuests += rooms * (block.room_type?.capacity ?? 1);
       }
     }
     set({ capacityCovered: totalGuests });
@@ -173,6 +174,29 @@ export default function AgencyRetreatRoomsStep() {
                         <span>{tw.rooms.available(block.available_rooms, block.total_rooms)}</span>
                         <span>{tw.rooms.spots(totalSpots)}</span>
                         <span>{tw.rooms.cost(formatMoney(block.cost_per_night_cents))}</span>
+                      </div>
+                    </div>
+
+                    {/* Allocated rooms */}
+                    <div className="w-[120px] shrink-0">
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-muted">
+                        {tw.rooms.allocatedLabel}
+                      </label>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          min={1}
+                          max={block.available_rooms}
+                          value={entry?.allocatedRooms ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value === "" ? undefined : Math.max(1, Math.min(parseInt(e.target.value) || 1, block.available_rooms));
+                            updatePricing(block.id, { allocatedRooms: val });
+                          }}
+                          disabled={!isIncluded}
+                          className={`${inputClass} w-[60px] text-center ${!isIncluded ? "opacity-40" : ""}`}
+                          placeholder={String(block.available_rooms)}
+                        />
+                        <span className="text-[12px] text-humana-subtle">/ {block.available_rooms}</span>
                       </div>
                     </div>
 

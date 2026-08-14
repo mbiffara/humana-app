@@ -115,12 +115,12 @@ export default function RetreatPricingStep() {
     return sum + (entry && entry.included !== false ? toCents(entry.price) * rt.capacity : 0);
   }, 0);
 
-  // Guests the included rooms can host on the retreat dates: free units
-  // (bounded by blocked dates and existing bookings) × per-room capacity.
+  // Guests the included rooms can host: allocated rooms × per-room capacity.
+  // Falls back to all available units when no allocation is set.
   const capacityCovered = roomTypes.reduce((sum, rt) => {
     const entry = state.pricing.find((p) => p.roomTypeId === rt.id);
     if (!entry || entry.included === false) return sum;
-    const units = availability?.get(rt.id) ?? rt.total_rooms ?? 1;
+    const units = entry.allocatedRooms ?? availability?.get(rt.id) ?? rt.total_rooms ?? 1;
     return sum + units * rt.capacity;
   }, 0);
   const capacityIsCovered = capacityCovered >= state.capacity;
@@ -166,8 +166,8 @@ export default function RetreatPricingStep() {
         ) : (
           <div className="mt-8">
             {/* Table header */}
-            <div className="grid grid-cols-[70px_1.8fr_1fr_1fr_1fr] gap-4 border-b border-humana-line pb-3">
-              {[tw.pricing.include, tw.pricing.room, tw.pricing.roomsCapacity, tw.pricing.pricePerGuest, tw.pricing.totalPrice].map(
+            <div className="grid grid-cols-[70px_1.6fr_0.9fr_0.9fr_0.9fr_0.9fr] gap-4 border-b border-humana-line pb-3">
+              {[tw.pricing.include, tw.pricing.room, tw.pricing.roomsCapacity, tw.pricing.allocatedRooms, tw.pricing.pricePerGuest, tw.pricing.totalPrice].map(
                 (header) => (
                   <span
                     key={header}
@@ -187,7 +187,7 @@ export default function RetreatPricingStep() {
               return (
                 <div
                   key={roomType.id}
-                  className={`grid grid-cols-[70px_1.8fr_1fr_1fr_1fr] items-center gap-4 border-b border-humana-line py-4 transition-opacity ${
+                  className={`grid grid-cols-[70px_1.6fr_0.9fr_0.9fr_0.9fr_0.9fr] items-center gap-4 border-b border-humana-line py-4 transition-opacity ${
                     included ? "" : "opacity-45"
                   }`}
                 >
@@ -219,6 +219,29 @@ export default function RetreatPricingStep() {
                           : tw.pricing.availabilityLabel(minFree, roomType.total_rooms ?? minFree)}
                       </p>
                     )}
+                  </div>
+                  {/* Allocated rooms */}
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number"
+                      min={1}
+                      max={minFree ?? roomType.total_rooms ?? 99}
+                      value={entry?.allocatedRooms ?? ""}
+                      disabled={!included}
+                      onChange={(e) => {
+                        const val = e.target.value === "" ? undefined : Math.max(1, Math.min(parseInt(e.target.value) || 1, minFree ?? roomType.total_rooms ?? 99));
+                        set({
+                          pricing: state.pricing.map((p) =>
+                            p.roomTypeId === roomType.id ? { ...p, allocatedRooms: val } : p,
+                          ),
+                        });
+                      }}
+                      placeholder={String(minFree ?? roomType.total_rooms ?? "—")}
+                      className="w-[70px] border border-humana-line bg-white px-3 py-2 text-center text-[14px] text-humana-ink outline-none transition-colors focus:border-humana-gold disabled:cursor-not-allowed disabled:bg-humana-stone"
+                    />
+                    <span className="text-[12px] text-humana-subtle">
+                      / {minFree ?? roomType.total_rooms ?? "—"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[13px] text-humana-subtle">$</span>
