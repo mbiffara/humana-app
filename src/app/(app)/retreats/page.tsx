@@ -50,7 +50,7 @@ export default function RetreatsPage() {
   }, [countriesParam, typesParam, fromParam, toParam, guestsParam]);
 
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col px-16 py-12">
+    <div className="mx-auto flex max-w-[1400px] flex-col px-10 py-12">
       {/* Breadcrumb */}
       <nav className="mb-8 flex items-center gap-2 text-[13px] text-humana-muted">
         <Link href="/dashboard" className="transition-colors hover:text-humana-ink">
@@ -114,7 +114,7 @@ export default function RetreatsPage() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {experiences.map((exp) => (
             <ExperienceCard key={exp.id} experience={exp} />
           ))}

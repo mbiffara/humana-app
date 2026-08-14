@@ -179,7 +179,7 @@ function RetreatsSection() {
     : experiences.filter((e) => e.kind === activeFilter);
 
   return (
-    <section className="flex flex-col gap-10 px-10 py-20">
+    <section className="flex flex-col gap-10 px-5 py-20">
       <div className="flex items-end justify-between gap-8">
         <div className="flex flex-col gap-3">
           <span className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.28em] text-humana-subtle">
@@ -232,7 +232,7 @@ function RetreatsSection() {
           <p className="max-w-[400px] text-center text-[13px] leading-[19px] text-humana-muted">{t.retreats.emptyHint}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {filtered.map((exp) => (
             <ExperienceCard key={exp.id} experience={exp} />
           ))}
