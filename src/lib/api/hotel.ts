@@ -609,6 +609,7 @@ export interface ApiRetreatPricing {
   currency: string;
   occupancy_label: string | null;
   max_guests: number | null;
+  allocated_rooms: number | null;
 }
 
 export interface RetreatPricingCreate {
@@ -617,6 +618,7 @@ export interface RetreatPricingCreate {
   currency?: string;
   occupancy_label?: string;
   max_guests?: number;
+  allocated_rooms?: number;
 }
 
 export interface ApiRetreatImage {

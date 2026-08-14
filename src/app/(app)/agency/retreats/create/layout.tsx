@@ -129,6 +129,7 @@ function WizardShell({ children }: { children: ReactNode }) {
         .map((p) => ({
           room_type_id: p.roomTypeId,
           price_per_guest_cents: toCents(p.price),
+          allocated_rooms: p.allocatedRooms,
         })),
     );
   }, [state]);
@@ -177,6 +178,7 @@ function WizardShell({ children }: { children: ReactNode }) {
         .map((p) => ({
           room_type_id: p.roomTypeId,
           price_per_guest_cents: toCents(p.price),
+          allocated_rooms: p.allocatedRooms,
         })),
     });
   }, [state]);

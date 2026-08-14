@@ -39,6 +39,8 @@ export type PricingEntry = {
   price: string;
   /** Whether this room type is offered in the retreat (default true). */
   included?: boolean;
+  /** How many rooms of this type are allocated to the retreat. */
+  allocatedRooms?: number;
 };
 
 export type RetreatWizardState = {
@@ -128,8 +130,8 @@ function stateFromApi(r: ApiRetreatDetail): RetreatWizardState {
     pricing: r.pricing.map((p) => ({
       roomTypeId: p.room_type.id,
       price: p.price_per_guest_cents ? String(p.price_per_guest_cents / 100) : "",
-      // A pricing row on the retreat means the room is offered
       included: true,
+      allocatedRooms: p.allocated_rooms ?? undefined,
     })),
     photos: r.images.map((img) => img.image_url),
     failedUploads: [],

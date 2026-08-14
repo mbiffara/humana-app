@@ -148,14 +148,16 @@ function WizardShell({ children }: { children: ReactNode }) {
       const cents = entry.included === false ? 0 : toCents(entry.price);
       const existingId = existing.get(entry.roomTypeId);
       if (cents > 0) {
+        const pricingData = {
+          price_per_guest_cents: cents,
+          allocated_rooms: entry.allocatedRooms,
+        };
         if (existingId) {
-          await hotelApi.updateRetreatPricing(retreatId, existingId, {
-            price_per_guest_cents: cents,
-          });
+          await hotelApi.updateRetreatPricing(retreatId, existingId, pricingData);
         } else {
           await hotelApi.createRetreatPricing(retreatId, {
             room_type_id: entry.roomTypeId,
-            price_per_guest_cents: cents,
+            ...pricingData,
           });
         }
       } else if (existingId) {

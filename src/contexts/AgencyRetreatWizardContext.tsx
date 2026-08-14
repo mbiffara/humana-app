@@ -56,6 +56,7 @@ export type AgencyPricingEntry = {
   included?: boolean;
   availableRooms: number;
   costPerNightCents: number;
+  allocatedRooms?: number;
 };
 
 export type AgencyRetreatWizardState = {
@@ -149,6 +150,7 @@ function stateFromApi(r: ApiRetreat): AgencyRetreatWizardState {
       included: true,
       availableRooms: 0,
       costPerNightCents: 0,
+      allocatedRooms: p.allocated_rooms ?? undefined,
     })),
     capacityCovered: null,
     days: (r.days ?? []).map((d) => ({

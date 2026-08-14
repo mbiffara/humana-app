@@ -283,6 +283,7 @@ export interface ApiRetreatPricing {
   currency: string;
   occupancy_label: string | null;
   max_guests: number | null;
+  allocated_rooms: number | null;
 }
 
 export interface ApiRetreatImage {
@@ -498,7 +499,7 @@ export const agencyApi = {
     api.post<{ retreat: ApiRetreat }>(`/agency/retreats/${id}/submit_for_review`),
   replaceRetreatProgram: (id: number, data: Record<string, unknown>) =>
     api.put<{ retreat: ApiRetreat }>(`/agency/retreats/${id}/program`, data),
-  replaceRetreatPricings: (id: number, pricings: { room_type_id: number; price_per_guest_cents: number }[]) =>
+  replaceRetreatPricings: (id: number, pricings: { room_type_id: number; price_per_guest_cents: number; allocated_rooms?: number }[]) =>
     api.put<{ retreat: ApiRetreat }>(`/agency/retreats/${id}/pricings`, { pricings }),
   batchRetreatImages: (retreatId: number, images: { image_url: string; alt_text?: string }[]) =>
     api.post<{ images: ApiRetreatImage[] }>(`/agency/retreats/${retreatId}/images/batch`, { images }),

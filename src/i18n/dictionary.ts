@@ -332,6 +332,7 @@ type Dictionary = {
           subtitle: string;
           room: string;
           roomsCapacity: string;
+          allocatedRooms: string;
           pricePerGuest: string;
           totalPrice: string;
           include: string;
@@ -780,6 +781,7 @@ type Dictionary = {
           available: (n: number, total: number) => string;
           spots: (n: number) => string;
           cost: (v: string) => string;
+          allocatedLabel: string;
           pricePerGuest: string;
           margin: string;
           guest: string;
@@ -2184,6 +2186,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             subtitle: "Set the price per person by room type for your retreat.",
             room: "Room",
             roomsCapacity: "Rooms / Capacity",
+            allocatedRooms: "Allocated",
             pricePerGuest: "Price / Guest",
             include: "Include",
             includeHint: "Only the rooms you select will be bookable for this retreat.",
@@ -2665,6 +2668,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             available: (n: number, total: number) => `${n} of ${total} rooms available`,
             spots: (n: number) => `${n} spot${n === 1 ? "" : "s"} total`,
             cost: (v: string) => `Cost: ${v}/night`,
+            allocatedLabel: "Allocated",
             pricePerGuest: "Price/Guest",
             margin: "Margin",
             guest: "guest",
@@ -2774,7 +2778,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       "ceremony-supplies": "Ceremony supplies",
     },
     inclusionCategories: {
-      meals: "Meals",
+      meal: "Meals",
       wellness: "Wellness",
       transport: "Transport",
       amenity: "Amenities",
@@ -4276,6 +4280,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             subtitle: "Define el precio por persona según el tipo de habitación para tu retiro.",
             room: "Habitación",
             roomsCapacity: "Habitaciones / Capacidad",
+            allocatedRooms: "Asignadas",
             pricePerGuest: "Precio / Huésped",
             include: "Incluir",
             includeHint: "Solo las habitaciones que selecciones estarán disponibles para reservar en este retiro.",
@@ -4757,6 +4762,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             available: (n: number, total: number) => `${n} de ${total} habitaciones disponibles`,
             spots: (n: number) => `${n} plaza${n === 1 ? "" : "s"} total`,
             cost: (v: string) => `Costo: ${v}/noche`,
+            allocatedLabel: "Asignadas",
             pricePerGuest: "Precio/Huésped",
             margin: "Margen",
             guest: "huésped",
@@ -4866,7 +4872,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       "ceremony-supplies": "Suministros de ceremonia",
     },
     inclusionCategories: {
-      meals: "Comidas",
+      meal: "Comidas",
       wellness: "Bienestar",
       transport: "Transporte",
       amenity: "Amenidades",
@@ -6368,6 +6374,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             subtitle: "Defina o preço por pessoa por tipo de quarto para o seu retiro.",
             room: "Quarto",
             roomsCapacity: "Quartos / Capacidade",
+            allocatedRooms: "Alocados",
             pricePerGuest: "Preço / Hóspede",
             include: "Incluir",
             includeHint: "Somente os quartos que você selecionar estarão disponíveis para reserva neste retiro.",
@@ -6849,6 +6856,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             available: (n: number, total: number) => `${n} de ${total} quartos disponíveis`,
             spots: (n: number) => `${n} vaga${n === 1 ? "" : "s"} total`,
             cost: (v: string) => `Custo: ${v}/noite`,
+            allocatedLabel: "Alocados",
             pricePerGuest: "Preço/Hóspede",
             margin: "Margem",
             guest: "hóspede",
@@ -6958,7 +6966,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       "ceremony-supplies": "Suprimentos de cerimônia",
     },
     inclusionCategories: {
-      meals: "Refeições",
+      meal: "Refeições",
       wellness: "Bem-estar",
       transport: "Transporte",
       amenity: "Amenidades",
