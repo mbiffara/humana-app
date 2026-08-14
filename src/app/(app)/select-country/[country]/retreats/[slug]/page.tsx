@@ -94,9 +94,16 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
     ),
   );
   const days = nights + 1;
+  // Display price: use retreat min_price, or fall back to cheapest room × nights
+  let displayPrice = experience.price;
+  if (displayPrice <= 0 && hotel?.room_types && hotel.room_types.length > 0) {
+    const cheapest = Math.min(...hotel.room_types.map((rt) => rt.price_per_night_cents));
+    displayPrice = (cheapest * nights) / 100;
+  }
+  const displayCurrency = experience.currency || hotel?.room_types?.[0]?.currency || "USD";
   const commissionRate = experience.commission_rate ?? 0.16;
   const commissionPct = Math.round(commissionRate * 100);
-  const commissionAmount = Math.round(experience.price * commissionRate);
+  const commissionAmount = Math.round(displayPrice * commissionRate);
   const startFormatted = formatDate(experience.starts_on);
   const endFormatted = formatDate(experience.ends_on);
   const occupancy = Math.round(experience.capacity * 0.4);
@@ -433,7 +440,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                 {t.retreatDetail.startingFrom.toUpperCase()}
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-[40px] font-light tracking-[-0.02em] text-humana-ink">{experience.currency} {experience.price.toLocaleString()}</span>
+                <span className="text-[40px] font-light tracking-[-0.02em] text-humana-ink">{displayCurrency} {displayPrice.toLocaleString()}</span>
                 <span className="text-[15px] text-humana-muted">/ {t.retreatDetail.perGuest}</span>
               </div>
             </div>
@@ -463,7 +470,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
 
             <div className="flex items-center justify-between">
               <span className="text-[13px] text-humana-muted">{t.retreatDetail.commission} ({commissionPct}%)</span>
-              <span className="text-[15px] font-medium text-humana-gold">{experience.currency} {commissionAmount.toLocaleString()}</span>
+              <span className="text-[15px] font-medium text-humana-gold">{displayCurrency} {commissionAmount.toLocaleString()}</span>
             </div>
 
             {isOwnRetreat ? (

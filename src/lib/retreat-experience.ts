@@ -8,6 +8,15 @@
 import { agencyApi, type ApiExperience, type ApiRetreatPricing, type PublicRetreat } from "@/lib/api/agency";
 
 export function retreatToExperience(r: PublicRetreat): ApiExperience {
+  // Compute fallback price from cheapest retreat pricing when min_price is 0
+  let priceCents = r.min_price_cents;
+  let price = r.min_price;
+  if (priceCents <= 0 && r.pricing && r.pricing.length > 0) {
+    const cheapest = Math.min(...r.pricing.map((p) => p.price_per_guest_cents));
+    priceCents = cheapest;
+    price = cheapest / 100;
+  }
+
   return {
     id: r.id,
     slug: r.slug,
@@ -20,8 +29,8 @@ export function retreatToExperience(r: PublicRetreat): ApiExperience {
     country_code: r.country_code,
     starts_on: r.starts_on ?? "",
     ends_on: r.ends_on ?? "",
-    price_cents: r.min_price_cents,
-    price: r.min_price,
+    price_cents: priceCents,
+    price,
     currency: r.currency,
     capacity: r.capacity ?? 0,
     image_url: r.cover_image_url,
