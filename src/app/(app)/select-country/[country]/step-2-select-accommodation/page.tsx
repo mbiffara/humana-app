@@ -284,16 +284,14 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-[14px] text-humana-muted">
-                  {hasRetreatPricing ? "Precio por huésped" : `${retreatNights} noches x U$D ${pricePerNight}`}
+                  {retreatNights} noches x U$D {hasRetreatPricing ? Math.round(displayPrice / retreatNights) : pricePerNight}
                 </span>
                 <span className="text-[14px] font-medium text-humana-ink">U$D {displayPrice.toLocaleString()}</span>
               </div>
             </div>
             <div className="h-px bg-humana-line" />
             <div className="flex items-center justify-between">
-              <span className="text-[15px] font-medium text-humana-ink">
-                {hasRetreatPricing ? "Total por huésped" : "Total alojamiento"}
-              </span>
+              <span className="text-[15px] font-medium text-humana-ink">Total por huésped</span>
               <span className="text-[18px] font-semibold text-humana-ink">U$D {displayPrice.toLocaleString()}</span>
             </div>
             <span className="text-[14px] font-medium text-humana-gold">Tu comision estimada: U$D {commission.toLocaleString()} ({Math.round(commissionRate * 100)}%)</span>
