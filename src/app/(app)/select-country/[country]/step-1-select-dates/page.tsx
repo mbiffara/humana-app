@@ -327,7 +327,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
             <div className="h-px bg-humana-line" />
 
             <div className="flex items-center justify-between">
-              <span className="text-[15px] font-medium text-humana-ink">Total por huésped</span>
+              <span className="text-[15px] font-medium text-humana-ink">Total por huésped c/u</span>
               <span className="text-[18px] font-semibold text-humana-ink">U$D {displayPrice.toLocaleString("en-US")}</span>
             </div>
             <span className="text-[14px] font-medium text-humana-gold">
