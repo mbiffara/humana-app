@@ -50,6 +50,8 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
   const retreatStart = state.dates?.start ?? "2026-05-28";
   const retreatEnd = state.dates?.end ?? "2026-06-01";
   const retreatNights = diffDays(retreatStart, retreatEnd);
+  const retreatPricings = state.display?.retreatPricings ?? null;
+  const hasRetreatPricing = retreatPricings && retreatPricings.length > 0;
 
   const computedCheckIn = retreatStart;
   const computedCheckOut = retreatEnd;
@@ -65,9 +67,15 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
           agencyApi.getHotelAvailability(state.hotelApiId!, computedCheckIn, computedCheckOut),
         ]);
         if (cancelled) return;
-        setRoomTypes(hotelRes.hotel.room_types ?? []);
+        let rts = hotelRes.hotel.room_types ?? [];
+        // When retreat has explicit pricing, only show rooms included in the retreat
+        const rp = state.display?.retreatPricings;
+        if (rp && rp.length > 0) {
+          const pricedIds = new Set(rp.map((p) => p.roomTypeId));
+          rts = rts.filter((rt) => pricedIds.has(rt.id));
+        }
+        setRoomTypes(rts);
         setAvailabilityData(availRes.room_types ?? []);
-        const rts = hotelRes.hotel.room_types ?? [];
         if (state.roomTypeApiId && rts.find((rt) => rt.id === state.roomTypeApiId)) {
           setSelectedRoom(state.roomTypeApiId);
         } else if (rts.length > 0) {
@@ -85,11 +93,14 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
   }, [state.hotelApiId, computedCheckIn, computedCheckOut]);
 
   const room = roomTypes.find((r) => r.id === selectedRoom);
+  // Use retreat per-guest pricing when available, otherwise fall back to per-night
+  const retreatPriceForRoom = selectedRoom && retreatPricings?.find((p) => p.roomTypeId === selectedRoom);
+  const pricePerGuest = retreatPriceForRoom ? retreatPriceForRoom.pricePerGuestCents / 100 : null;
   const pricePerNight = room ? room.price_per_night_cents / 100 : (state.display?.pricePerNightCents ? state.display.pricePerNightCents / 100 : 185);
+  const displayPrice = pricePerGuest ?? retreatNights * pricePerNight;
 
-  const total = retreatNights * pricePerNight;
   const commissionRate = state.display?.commissionRate ?? 0.16;
-  const commission = Math.round(total * commissionRate);
+  const commission = Math.round(displayPrice * commissionRate);
 
   // Compute min availability per room type across the date range
   function getMinAvailability(rtId: number): number {
@@ -175,10 +186,23 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
                       </div>
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.hotelDetail.priceFrom}</span>
-                        <span className="text-[20px] font-light tracking-[-0.01em] text-humana-ink">
-                          U$D {rt.price_per_night_cents / 100}
-                          <span className="text-[12px] font-normal text-humana-muted"> / noche</span>
-                        </span>
+                        {(() => {
+                          const rp = retreatPricings?.find((p) => p.roomTypeId === rt.id);
+                          if (rp) {
+                            return (
+                              <span className="text-[20px] font-light tracking-[-0.01em] text-humana-ink">
+                                U$D {(rp.pricePerGuestCents / 100).toLocaleString()}
+                                <span className="text-[12px] font-normal text-humana-muted"> / huésped</span>
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="text-[20px] font-light tracking-[-0.01em] text-humana-ink">
+                              U$D {rt.price_per_night_cents / 100}
+                              <span className="text-[12px] font-normal text-humana-muted"> / noche</span>
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                     <p className="text-[14px] leading-[22px] text-humana-muted">{rt.description}</p>
@@ -259,14 +283,16 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
             <div className="h-px bg-humana-line" />
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] text-humana-muted">{retreatNights} noches x U$D {pricePerNight}</span>
-                <span className="text-[14px] font-medium text-humana-ink">U$D {total.toLocaleString()}</span>
+                <span className="text-[14px] text-humana-muted">
+                  {retreatNights} noches x U$D {hasRetreatPricing ? Math.round(displayPrice / retreatNights) : pricePerNight}
+                </span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {displayPrice.toLocaleString()}</span>
               </div>
             </div>
             <div className="h-px bg-humana-line" />
             <div className="flex items-center justify-between">
-              <span className="text-[15px] font-medium text-humana-ink">Total alojamiento</span>
-              <span className="text-[18px] font-semibold text-humana-ink">U$D {total.toLocaleString()}</span>
+              <span className="text-[15px] font-medium text-humana-ink">Total por huésped c/u</span>
+              <span className="text-[18px] font-semibold text-humana-ink">U$D {displayPrice.toLocaleString()}</span>
             </div>
             <span className="text-[14px] font-medium text-humana-gold">Tu comision estimada: U$D {commission.toLocaleString()} ({Math.round(commissionRate * 100)}%)</span>
             <Link href={`/select-country/${country}/step-3-assign-client`} onClick={() => set({
@@ -275,7 +301,11 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
               guests: room?.capacity ?? 1,
               preNights: 0,
               postNights: 0,
-              display: state.display ? { ...state.display, roomTypeName: room?.name ?? "", pricePerNightCents: room?.price_per_night_cents ?? state.display.pricePerNightCents } : null,
+              display: state.display ? {
+                ...state.display,
+                roomTypeName: room?.name ?? "",
+                pricePerNightCents: retreatPriceForRoom ? retreatPriceForRoom.pricePerGuestCents : (room?.price_per_night_cents ?? state.display.pricePerNightCents),
+              } : null,
             })}
               className="group/cta flex items-center justify-center gap-3 bg-humana-ink py-4 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-all duration-150 hover:bg-black active:scale-[0.98]">
               CONTINUAR

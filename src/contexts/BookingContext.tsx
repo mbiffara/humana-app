@@ -9,6 +9,12 @@ import {
   type ReactNode,
 } from "react";
 
+export type RetreatPricingCache = {
+  roomTypeId: number;
+  pricePerGuestCents: number;
+  currency: string;
+};
+
 export type BookingDisplay = {
   hotelName: string;
   hotelImage: string;
@@ -20,6 +26,7 @@ export type BookingDisplay = {
   retreatPricePerGuestCents?: number;
   currency: string;
   commissionRate: number;
+  retreatPricings?: RetreatPricingCache[];
 };
 
 export type BookingState = {

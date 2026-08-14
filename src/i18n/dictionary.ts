@@ -2774,7 +2774,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       "ceremony-supplies": "Ceremony supplies",
     },
     inclusionCategories: {
-      meals: "Meals",
+      meal: "Meals",
       wellness: "Wellness",
       transport: "Transport",
       amenity: "Amenities",
@@ -4866,7 +4866,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       "ceremony-supplies": "Suministros de ceremonia",
     },
     inclusionCategories: {
-      meals: "Comidas",
+      meal: "Comidas",
       wellness: "Bienestar",
       transport: "Transporte",
       amenity: "Amenidades",
@@ -6958,7 +6958,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       "ceremony-supplies": "Suprimentos de cerimônia",
     },
     inclusionCategories: {
-      meals: "Refeições",
+      meal: "Refeições",
       wellness: "Bem-estar",
       transport: "Transporte",
       amenity: "Amenidades",

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { useBooking } from "@/contexts/BookingContext";
+import { useBooking, type RetreatPricingCache } from "@/contexts/BookingContext";
 import { agencyApi, type ApiExperience, type PublicRoomType } from "@/lib/api/agency";
 import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
 import {
@@ -87,23 +87,17 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   const retreatEnd = experience?.ends_on ?? "2026-06-01";
   const retreatNights = diffDays(retreatStart, retreatEnd);
 
-  const isRetreatFlow = state.flowType === "retreats";
-
-  // Retreat pricing: find per-guest price for the selected room, or fall back to experience.price
-  const retreatPricingForRoom = isRetreatFlow && experience?.pricing && firstRoom
-    ? experience.pricing.find((p) => p.room_type.id === firstRoom.id)
-    : null;
-  const retreatPricePerGuest = retreatPricingForRoom
-    ? retreatPricingForRoom.price_per_guest
-    : (isRetreatFlow && experience ? experience.price : 0);
-
+  const retreatPricings = experience?.pricing ?? null;
+  const selectedPricing = retreatPricings?.find((p) => p.room_type.id === firstRoom?.id);
+  // Retreat pricing is per guest (for the entire stay), not per night
+  const pricePerGuest = selectedPricing?.price_per_guest ?? (retreatPricings?.[0]?.price_per_guest ?? null);
   const pricePerNight = firstRoom ? firstRoom.price_per_night_cents / 100 : 280;
-  // Retreats: flat per-guest price (includes all nights). Hotels: per-night × nights.
-  const totalPrice = isRetreatFlow ? retreatPricePerGuest : retreatNights * pricePerNight;
+  const displayPrice = pricePerGuest ?? retreatNights * pricePerNight;
   const commissionRate = experience?.commission_rate ?? 0.16;
   const officeFeeRate = 0.02;
   const totalCommissionRate = commissionRate + officeFeeRate;
-  const commission = Math.round(totalPrice * totalCommissionRate);
+  const commission = Math.round(displayPrice * totalCommissionRate);
+  const hasRetreatPricing = retreatPricings && retreatPricings.length > 0;
 
   if (!hydrated || loading) {
     return (
@@ -180,6 +174,11 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
   }
 
   function handleContinue() {
+    const pricingCache: RetreatPricingCache[] | undefined = retreatPricings?.map((p) => ({
+      roomTypeId: p.room_type.id,
+      pricePerGuestCents: p.price_per_guest_cents,
+      currency: p.currency,
+    }));
     set({
       dates: { start: retreatStart, end: retreatEnd },
       preNights: 0,
@@ -194,11 +193,12 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
         roomTypeName: firstRoom?.name ?? "",
         retreatName: experience?.title ?? "",
         pricePerNightCents: firstRoom?.price_per_night_cents ?? 28000,
-        retreatPricePerGuestCents: isRetreatFlow
-          ? (retreatPricingForRoom ? retreatPricingForRoom.price_per_guest_cents : (experience?.price_cents ?? 0))
-          : undefined,
+        retreatPricePerGuestCents: selectedPricing
+          ? selectedPricing.price_per_guest_cents
+          : (retreatPricings?.[0]?.price_per_guest_cents ?? undefined),
         currency: experience?.currency ?? "USD",
         commissionRate,
+        retreatPricings: pricingCache,
       },
     });
   }
@@ -323,17 +323,17 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-[14px] text-humana-muted">
-                  {retreatNights} noches x U$D {isRetreatFlow ? Math.round(retreatPricePerGuest / retreatNights).toLocaleString("en-US") : pricePerNight}
+                  {retreatNights} noches x U$D {hasRetreatPricing ? Math.round(displayPrice / retreatNights) : pricePerNight}
                 </span>
-                <span className="text-[14px] font-medium text-humana-ink">U$D {totalPrice.toLocaleString("en-US")}</span>
+                <span className="text-[14px] font-medium text-humana-ink">U$D {displayPrice.toLocaleString("en-US")}</span>
               </div>
             </div>
 
             <div className="h-px bg-humana-line" />
 
             <div className="flex items-center justify-between">
-              <span className="text-[15px] font-medium text-humana-ink">Total</span>
-              <span className="text-[18px] font-semibold text-humana-ink">U$D {totalPrice.toLocaleString("en-US")}</span>
+              <span className="text-[15px] font-medium text-humana-ink">Total por huésped c/u</span>
+              <span className="text-[18px] font-semibold text-humana-ink">U$D {displayPrice.toLocaleString("en-US")}</span>
             </div>
             <span className="text-[14px] font-medium text-humana-gold">
               Tu comisión estimada: U$D {commission.toLocaleString("en-US")} ({Math.round(totalCommissionRate * 100)}%)
