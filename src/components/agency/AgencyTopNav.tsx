@@ -50,7 +50,7 @@ export function AgencyTopNav() {
             className="h-[34px] w-auto"
             priority
           />
-          <span className="ml-1 rounded bg-humana-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-humana-gold">
+          <span className="ml-1 rounded bg-emerald-700 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white">
             {t.agencyWs.badge}
           </span>
         </Link>
