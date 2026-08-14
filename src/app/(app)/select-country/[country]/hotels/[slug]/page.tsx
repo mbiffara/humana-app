@@ -354,11 +354,11 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
       <div className="flex flex-col gap-8 px-16 pt-8 pb-16">
         <div className="flex flex-col gap-3">
           <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-            {t.hotelDetail.boutiqueHotel.toUpperCase()} &middot; {location.toUpperCase()}
+            {t.hotelDetail.certifiedHotel.toUpperCase()} &middot; {location.toUpperCase()}
           </span>
           <h1 className="text-[36px] font-light leading-[1.1] tracking-[-0.02em] text-humana-ink">{hotel.name}</h1>
           {hotel.description && (
-            <p className="max-w-[720px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
+            <p className="max-w-[960px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
           )}
         </div>
 
@@ -681,8 +681,8 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                           </span>
                           <div className="flex flex-wrap gap-1.5">
                             {selectedRoom.amenities_list.map((a) => {
-                              const rKey = amenityIdForName(a);
-                              const rTranslated = rKey ? (t.onboarding.hotel.amenityNames as Record<string, string>)[rKey] : null;
+                              const roomItems = t.hotelWs.roomEditor.amenitiesStep.items as Record<string, string>;
+                              const translated = roomItems[a] ?? a;
                               return (
                                 <span
                                   key={a}
@@ -693,7 +693,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                                     <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
                                     <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
-                                  {rTranslated || a}
+                                  {translated}
                                 </span>
                               );
                             })}
@@ -744,10 +744,6 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                           {selectedRoom.name}
                         </h2>
                       </div>
-                      <span className="text-[15px] font-semibold text-humana-ink">
-                        {selectedRoom.currency} {selectedRoom.price_per_night}
-                        <span className="ml-1 text-[12px] font-normal text-humana-muted">/ noche</span>
-                      </span>
                     </div>
 
                     <div className="h-px bg-humana-line" />

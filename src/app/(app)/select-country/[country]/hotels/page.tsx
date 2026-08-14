@@ -96,7 +96,7 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
 
               <div className="flex flex-col gap-4 p-8">
                 <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-                  {t.hotelDetail.boutiqueHotel} · {h.city}
+                  {t.hotelDetail.certifiedHotel} · {h.city}
                 </span>
 
                 <h3 className="text-[22px] font-normal leading-[30px] tracking-[-0.01em] text-humana-ink">

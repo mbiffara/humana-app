@@ -1111,7 +1111,7 @@ type Dictionary = {
     rating: string;
     viewRooms: string;
     notFound: string;
-    boutiqueHotel: string;
+    certifiedHotel: string;
     info: string;
     capacity: string;
     personCount: (n: number) => string;
@@ -3127,7 +3127,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       rating: "Rating",
       viewRooms: "View rooms",
       notFound: "Hotel not found",
-      boutiqueHotel: "Boutique Hotel",
+      certifiedHotel: "Certified Hotel",
       info: "Info",
       capacity: "Capacity",
       personCount: (n) => n === 1 ? "1 person" : `${n} people`,
@@ -5189,7 +5189,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       rating: "Calificación",
       viewRooms: "Ver habitaciones",
       notFound: "Hotel no encontrado",
-      boutiqueHotel: "Hotel Boutique",
+      certifiedHotel: "Hotel Certificado",
       info: "Info",
       capacity: "Capacidad",
       personCount: (n) => n === 1 ? "1 persona" : `${n} personas`,
@@ -7252,7 +7252,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       rating: "Avaliação",
       viewRooms: "Ver quartos",
       notFound: "Hotel não encontrado",
-      boutiqueHotel: "Hotel Boutique",
+      certifiedHotel: "Hotel Certificado",
       info: "Info",
       capacity: "Capacidade",
       personCount: (n) => n === 1 ? "1 pessoa" : `${n} pessoas`,
