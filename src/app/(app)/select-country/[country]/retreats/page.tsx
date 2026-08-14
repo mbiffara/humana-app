@@ -105,7 +105,7 @@ export default function CountryRetreatsPage({ params }: { params: Promise<{ coun
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {filtered.map((exp) => {
             const nights = Math.max(
               1,
@@ -120,7 +120,7 @@ export default function CountryRetreatsPage({ params }: { params: Promise<{ coun
             return (
               <article
                 key={exp.id}
-                className="flex flex-col overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                className="flex flex-col overflow-hidden border border-humana-line bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <Link href={`/select-country/${country}/retreats/${exp.slug}`} className="relative h-64 w-full bg-humana-stone">
                   {exp.image_url && (
