@@ -206,6 +206,15 @@ export interface ApiBooking {
   room_type: PublicRoomType | null;
   experience?: ApiExperience;
   hotel?: PublicHotel;
+  retreat?: {
+    id: number;
+    name: string;
+    slug: string;
+    retreat_type: string;
+    duration_nights: number;
+    starts_on: string;
+    ends_on: string;
+  };
   created_at: string;
 }
 
