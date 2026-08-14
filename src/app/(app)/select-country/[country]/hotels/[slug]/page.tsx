@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { countries, countrySlugToId } from "@/data/countries";
 import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type PublicHotelFull, type PublicRoomType, type HotelAvailabilityRoomType, type ApiExperience } from "@/lib/api/agency";
+import { retreatToExperience } from "@/lib/retreat-experience";
 import { amenityIdForName } from "@/lib/amenity-catalog";
 import {
   MONTH_NAMES, WEEKDAY_NAMES, daysInMonth, firstDayOfMonth, toDateStr,
@@ -64,13 +65,21 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
       .finally(() => setLoading(false));
   }, [slug]);
 
-  // Fetch experiences (retreats) for this hotel
+  // Fetch experiences + public retreats for this hotel
   useEffect(() => {
     if (!hotel) return;
-    agencyApi
-      .listExperiences({ hotel_id: hotel.id })
-      .then((res) => setHotelExperiences(res.experiences))
-      .catch(() => {});
+    Promise.all([
+      agencyApi.listExperiences({ hotel_id: hotel.id }).then((res) => res.experiences).catch(() => [] as ApiExperience[]),
+      agencyApi.listPublicRetreats({ hotel_id: hotel.id }).then((res) => res.retreats.map(retreatToExperience)).catch(() => [] as ApiExperience[]),
+    ]).then(([exps, retreats]) => {
+      // Deduplicate by slug
+      const seen = new Set<string>();
+      const merged: ApiExperience[] = [];
+      for (const e of [...exps, ...retreats]) {
+        if (!seen.has(e.slug)) { seen.add(e.slug); merged.push(e); }
+      }
+      setHotelExperiences(merged);
+    });
   }, [hotel]);
 
   // Reset modal state when selectedRoom changes

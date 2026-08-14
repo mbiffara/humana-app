@@ -20,6 +20,7 @@ import {
   type ReactNode,
 } from "react";
 import { agencyApi, type ApiRetreat } from "@/lib/api/agency";
+import { inclusionIdForName } from "@/lib/inclusion-catalog";
 
 // Re-export shared types for convenience
 export type RetreatType =
@@ -80,6 +81,7 @@ export type AgencyRetreatWizardState = {
   days: ProgramDayEntry[];
   facilitators: FacilitatorEntry[];
   inclusions: string[];
+  customInclusions: string[];
   /* Step 5 — Gallery */
   photos: string[];
   failedUploads: string[];
@@ -106,6 +108,7 @@ const initial: AgencyRetreatWizardState = {
   days: [],
   facilitators: [],
   inclusions: [],
+  customInclusions: [],
   photos: [],
   failedUploads: [],
 };
@@ -164,7 +167,8 @@ function stateFromApi(r: ApiRetreat): AgencyRetreatWizardState {
       role: f.role as "lead" | "assistant",
       specialty: f.specialty ?? "",
     })),
-    inclusions: (r.inclusions ?? []).map((i) => i.name),
+    inclusions: (r.inclusions ?? []).map((i) => inclusionIdForName(i.name)).filter((id): id is string => id !== null),
+    customInclusions: (r.inclusions ?? []).filter((i) => inclusionIdForName(i.name) === null).map((i) => i.name),
     photos: (r.images ?? []).map((img) => img.image_url),
     failedUploads: [],
   };

@@ -15,6 +15,7 @@ import {
   type ReactNode,
 } from "react";
 import { hotelApi, type ApiRetreatDetail, type RetreatType } from "@/lib/api/hotel";
+import { inclusionIdForName } from "@/lib/inclusion-catalog";
 
 export type ProgramActivity = { id: string; time: string; name: string };
 
@@ -52,6 +53,7 @@ export type RetreatWizardState = {
   days: ProgramDayEntry[];
   facilitators: FacilitatorEntry[];
   inclusions: string[];
+  customInclusions: string[];
   pricing: PricingEntry[];
   photos: string[];
   /** Blob URLs whose background upload failed — blocked from advancing until retried or removed */
@@ -72,6 +74,7 @@ const initial: RetreatWizardState = {
   days: [],
   facilitators: [],
   inclusions: [],
+  customInclusions: [],
   pricing: [],
   photos: [],
   failedUploads: [],
@@ -120,7 +123,8 @@ function stateFromApi(r: ApiRetreatDetail): RetreatWizardState {
       role: f.role,
       specialty: f.specialty ?? "",
     })),
-    inclusions: r.inclusions.map((i) => i.name),
+    inclusions: r.inclusions.map((i) => inclusionIdForName(i.name)).filter((id): id is string => id !== null),
+    customInclusions: r.inclusions.filter((i) => inclusionIdForName(i.name) === null).map((i) => i.name),
     pricing: r.pricing.map((p) => ({
       roomTypeId: p.room_type.id,
       price: p.price_per_guest_cents ? String(p.price_per_guest_cents / 100) : "",

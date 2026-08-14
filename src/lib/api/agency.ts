@@ -102,6 +102,7 @@ export interface ApiExperience {
   price: number;
   currency: string;
   capacity: number;
+  spots_available?: number;
   image_url: string | null;
   commission_rate?: number;
   commission_percent?: string;
@@ -128,6 +129,7 @@ export interface PublicRetreat {
   starts_on: string | null;
   ends_on: string | null;
   capacity: number | null;
+  spots_available?: number;
   language: string;
   description: string | null;
   short_description: string | null;
@@ -437,7 +439,7 @@ export const agencyApi = {
     api.get<{ experience: ApiExperience }>(`/experiences/${idOrSlug}`),
 
   // Public retreats (hotel-published marketplace)
-  listPublicRetreats: (params?: { country_code?: string | string[]; type?: string | string[] }) => {
+  listPublicRetreats: (params?: { country_code?: string | string[]; type?: string | string[]; hotel_id?: number }) => {
     const qs = new URLSearchParams();
     if (params?.country_code) {
       const v = Array.isArray(params.country_code) ? params.country_code.join(",") : params.country_code;
@@ -447,6 +449,7 @@ export const agencyApi = {
       const v = Array.isArray(params.type) ? params.type.join(",") : params.type;
       if (v) qs.set("type", v);
     }
+    if (params?.hotel_id) qs.set("hotel_id", String(params.hotel_id));
     const q = qs.toString();
     return api.get<{ retreats: PublicRetreat[] }>(`/public/retreats${q ? `?${q}` : ""}`);
   },

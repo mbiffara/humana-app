@@ -13,7 +13,6 @@ const STATUS_STYLES: Record<RetreatStatus, string> = {
   active: "border-emerald-500 text-emerald-600",
   upcoming: "border-humana-gold text-humana-gold",
   draft: "border-humana-line text-humana-muted",
-  pending_review: "border-amber-400 text-amber-600",
   closed: "border-humana-line text-humana-subtle",
   cancelled: "border-red-300 text-red-500",
 };
@@ -22,7 +21,6 @@ const DOT_STYLES: Record<RetreatStatus, string> = {
   active: "bg-emerald-500",
   upcoming: "bg-humana-gold",
   draft: "bg-humana-muted",
-  pending_review: "bg-amber-400",
   closed: "bg-humana-subtle",
   cancelled: "bg-red-400",
 };
@@ -194,50 +192,60 @@ export default function HotelRetreatsPage() {
                 </div>
 
                 {/* Action links */}
-                <div className="mt-5 flex items-center gap-6 border-t border-humana-line pt-4">
+                <div className="mt-5 flex items-center gap-3 border-t border-humana-line pt-4">
+                  {/* Preview */}
+                  {retreat.slug && retreat.country_code && (
+                    <Link
+                      href={`/select-country/${retreat.country_code.toLowerCase()}/retreats/${retreat.slug}`}
+                      title={tr.viewProgram}
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    </Link>
+                  )}
+                  {/* Edit */}
                   <Link
                     href={`/hotel/retreats/create/step-1?id=${retreat.id}`}
-                    className="text-[13px] font-medium text-humana-gold transition-opacity hover:opacity-75"
+                    title={tr.editDetails}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
                   >
-                    {tr.editDetails}
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
                   </Link>
-                  <Link
-                    href={`/hotel/retreats/create/step-2?id=${retreat.id}`}
-                    className="text-[13px] text-humana-muted transition-colors hover:text-humana-ink"
-                  >
-                    {tr.viewProgram}
-                  </Link>
-                  <Link
-                    href={`/hotel/retreats/create/step-4?id=${retreat.id}`}
-                    className="text-[13px] text-humana-muted transition-colors hover:text-humana-ink"
-                  >
-                    {tr.viewGallery}
-                  </Link>
-                  {retreat.status === "draft" &&
-                    (pendingDelete === retreat.id ? (
-                      <span className="ml-auto flex items-center gap-3 text-[13px]">
-                        <span className="text-humana-muted">{tr.confirmDelete}</span>
-                        <button
-                          onClick={() => deleteRetreat(retreat.id)}
-                          className="cursor-pointer font-medium text-red-600 hover:opacity-75"
-                        >
-                          {tr.delete}
-                        </button>
-                        <button
-                          onClick={() => setPendingDelete(null)}
-                          className="cursor-pointer text-humana-muted hover:text-humana-ink"
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    ) : (
+                  {/* Delete */}
+                  {pendingDelete === retreat.id ? (
+                    <span className="ml-auto flex items-center gap-3 text-[13px]">
+                      <span className="text-humana-muted">{tr.confirmDelete}</span>
                       <button
-                        onClick={() => setPendingDelete(retreat.id)}
-                        className="ml-auto cursor-pointer text-[13px] text-humana-muted transition-colors hover:text-red-600"
+                        onClick={() => deleteRetreat(retreat.id)}
+                        className="cursor-pointer font-medium text-red-600 hover:opacity-75"
                       >
                         {tr.delete}
                       </button>
-                    ))}
+                      <button
+                        onClick={() => setPendingDelete(null)}
+                        className="cursor-pointer text-humana-muted hover:text-humana-ink"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setPendingDelete(retreat.id)}
+                      title={tr.delete}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-red-50 hover:text-red-500"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
             </article>
