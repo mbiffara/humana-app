@@ -323,7 +323,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-[14px] text-humana-muted">
-                  {isRetreatFlow ? "Retiro — 1 huésped" : `${retreatNights} noches x U$D ${pricePerNight}`}
+                  {retreatNights} noches x U$D {isRetreatFlow ? Math.round(retreatPricePerGuest / retreatNights).toLocaleString("en-US") : pricePerNight}
                 </span>
                 <span className="text-[14px] font-medium text-humana-ink">U$D {totalPrice.toLocaleString("en-US")}</span>
               </div>
