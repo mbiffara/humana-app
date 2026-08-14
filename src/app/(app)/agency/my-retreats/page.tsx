@@ -236,41 +236,45 @@ export default function AgencyMyRetreatsPage() {
                 </div>
 
                 {/* Action links */}
-                <div className="mt-5 flex items-center gap-3 border-t border-humana-line pt-4">
+                <div className="mt-5 flex items-center gap-4 border-t border-humana-line pt-4">
                   {/* Preview */}
                   {retreat.slug && retreat.country_code && (
                     <Link
                       href={`/select-country/${retreat.country_code.toLowerCase()}/retreats/${retreat.slug}`}
-                      title={tr.preview}
-                      className="flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
+                      className="flex items-center gap-1.5 text-[13px] text-humana-subtle transition-colors hover:text-humana-ink"
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                         <circle cx="12" cy="12" r="3" />
                       </svg>
+                      {tr.preview}
                     </Link>
+                  )}
+                  {retreat.slug && retreat.country_code && (
+                    <span className="text-humana-line">·</span>
                   )}
                   {/* Edit */}
                   <Link
                     href={`/agency/retreats/create/step-1?id=${retreat.id}`}
-                    title={t.agencyWs.retreats.wizard.review.edit}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
+                    className="flex items-center gap-1.5 text-[13px] text-humana-subtle transition-colors hover:text-humana-ink"
                   >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
+                    {t.agencyWs.retreats.wizard.review.edit}
                   </Link>
+                  <span className="text-humana-line">·</span>
                   {/* Delete */}
                   <button
                     onClick={() => setDeleteModal(retreat)}
-                    title={tr.deleteConfirm}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-red-50 hover:text-red-500"
+                    className="flex cursor-pointer items-center gap-1.5 text-[13px] text-humana-subtle transition-colors hover:text-red-500"
                   >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
+                    {tr.deleteConfirm}
                   </button>
                 </div>
               </div>
