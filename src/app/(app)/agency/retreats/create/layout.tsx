@@ -14,6 +14,7 @@ import {
   computeEndDate,
   useAgencyRetreatWizard,
 } from "@/contexts/AgencyRetreatWizardContext";
+import { INCLUSION_CATALOG } from "@/lib/inclusion-catalog";
 import { agencyApi } from "@/lib/api/agency";
 
 const STEP_PATHS = [
@@ -155,9 +156,22 @@ function WizardShell({ children }: { children: ReactNode }) {
           specialty: facilitator.specialty.trim() || undefined,
           position: i,
         })),
-      inclusions: state.inclusions
-        .filter((name) => name.trim())
-        .map((name, i) => ({ name: name.trim(), position: i })),
+      inclusions: [
+        ...state.inclusions
+          .filter((id) => INCLUSION_CATALOG[id])
+          .map((id, i) => ({
+            name: INCLUSION_CATALOG[id].name,
+            category: INCLUSION_CATALOG[id].category,
+            position: i,
+          })),
+        ...state.customInclusions
+          .filter((name) => name.trim())
+          .map((name, i) => ({
+            name: name.trim(),
+            category: "general",
+            position: state.inclusions.length + i,
+          })),
+      ],
       pricings: state.pricing
         .filter((p) => p.included !== false && toCents(p.price) > 0)
         .map((p) => ({

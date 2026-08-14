@@ -105,7 +105,7 @@ export default function CountryRetreatsPage({ params }: { params: Promise<{ coun
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((exp) => {
             const nights = Math.max(
               1,

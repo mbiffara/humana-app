@@ -202,10 +202,11 @@ export default function RetreatPricingStep() {
                   </label>
                   <div>
                     <p className="text-[14px] font-medium text-humana-ink">{roomType.name}</p>
-                    <p className="mt-0.5 text-[12px] text-humana-muted">
-                      {roomType.category}
-                      {roomType.description ? ` · ${roomType.description}` : ""}
-                    </p>
+                    {roomType.description && (
+                      <p className="mt-0.5 text-[12px] text-humana-muted">
+                        {roomType.description}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <span className="text-[13px] text-humana-ink">

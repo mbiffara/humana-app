@@ -13,6 +13,7 @@ import {
   computeEndDate,
   useRetreatWizard,
 } from "@/contexts/RetreatWizardContext";
+import { INCLUSION_CATALOG } from "@/lib/inclusion-catalog";
 import { hotelApi, type HotelProfile } from "@/lib/api/hotel";
 
 const STEP_PATHS = [
@@ -117,9 +118,22 @@ function WizardShell({ children }: { children: ReactNode }) {
           specialty: facilitator.specialty.trim() || undefined,
           position: i,
         })),
-      inclusions: state.inclusions
-        .filter((name) => name.trim())
-        .map((name, i) => ({ name: name.trim(), position: i })),
+      inclusions: [
+        ...state.inclusions
+          .filter((id) => INCLUSION_CATALOG[id])
+          .map((id, i) => ({
+            name: INCLUSION_CATALOG[id].name,
+            category: INCLUSION_CATALOG[id].category,
+            position: i,
+          })),
+        ...state.customInclusions
+          .filter((name) => name.trim())
+          .map((name, i) => ({
+            name: name.trim(),
+            category: "general",
+            position: state.inclusions.length + i,
+          })),
+      ],
     });
   }, [state]);
 

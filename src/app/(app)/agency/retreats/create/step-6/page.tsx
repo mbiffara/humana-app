@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { computeEndDate, useAgencyRetreatWizard } from "@/contexts/AgencyRetreatWizardContext";
+import { INCLUSION_CATALOG } from "@/lib/inclusion-catalog";
 
 function formatMoney(cents: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -209,19 +210,27 @@ export default function AgencyRetreatReviewStep() {
       )}
 
       {/* Inclusions */}
-      {state.inclusions.length > 0 && (
+      {(state.inclusions.length > 0 || state.customInclusions.length > 0) && (
         <ReviewCard
           title={tw.review.included}
           editHref="/agency/retreats/create/step-4"
           editLabel={tw.review.edit}
         >
           <div className="flex flex-wrap gap-2">
-            {state.inclusions.map((inclusion, idx) => (
+            {state.inclusions.map((id) => (
               <span
-                key={idx}
+                key={id}
                 className="border border-humana-line px-3 py-1.5 text-[13px] text-humana-ink"
               >
-                {inclusion}
+                {t.inclusionNames[id] ?? INCLUSION_CATALOG[id]?.name ?? id}
+              </span>
+            ))}
+            {state.customInclusions.map((name) => (
+              <span
+                key={name}
+                className="border border-humana-line px-3 py-1.5 text-[13px] text-humana-ink"
+              >
+                {name}
               </span>
             ))}
           </div>

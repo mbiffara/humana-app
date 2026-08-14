@@ -179,7 +179,7 @@ function RetreatsSection() {
     : experiences.filter((e) => e.kind === activeFilter);
 
   return (
-    <section className="flex flex-col gap-10 px-16 py-20">
+    <section className="flex flex-col gap-10 px-10 py-20">
       <div className="flex items-end justify-between gap-8">
         <div className="flex flex-col gap-3">
           <span className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.28em] text-humana-subtle">

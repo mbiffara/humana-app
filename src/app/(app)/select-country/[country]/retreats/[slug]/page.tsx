@@ -106,8 +106,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
   const commissionAmount = Math.round(displayPrice * commissionRate);
   const startFormatted = formatDate(experience.starts_on);
   const endFormatted = formatDate(experience.ends_on);
-  const occupancy = Math.round(experience.capacity * 0.4);
-  const occupancyPct = Math.round((occupancy / experience.capacity) * 100);
+  const totalCapacity = experience.capacity;
 
   // Build gallery: retreat images → hotel images → experience fallback
   const gallery: string[] = [];
@@ -132,7 +131,7 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
   const kindLabel = (t.hotelWs?.retreats?.wizard?.types?.[experience.kind as keyof typeof t.hotelWs.retreats.wizard.types] ?? experience.kind).toUpperCase();
 
   return (
-    <div className="animate-fade-in-up flex flex-col">
+    <div className="animate-fade-in-up mx-auto flex max-w-[1460px] flex-col">
       {/* Gallery section — click to open lightbox */}
       {gallery.length > 0 && (
         <div className="flex gap-2 px-16 pt-8">
@@ -358,10 +357,10 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
                       </div>
                       <div className="flex items-end justify-between gap-6">
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">PRECIO POR NOCHE</span>
+                          <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">{t.retreatDetail.startingFrom.toUpperCase()}</span>
                           <span className="text-[22px] font-light tracking-[-0.01em] text-humana-ink">
-                            {p.currency} {Math.round(p.price_per_guest / nights).toLocaleString()}
-                            <span className="text-[13px] font-normal text-humana-muted"> / noche</span>
+                            {p.currency} {p.price_per_guest.toLocaleString()}
+                            <span className="text-[13px] font-normal text-humana-muted"> / {t.retreatDetail.perGuest}</span>
                           </span>
                         </div>
                         <button
@@ -456,15 +455,28 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
 
             <div className="h-px bg-humana-line" />
 
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-humana-muted">Plazas disponibles</span>
-                <span className="text-[13px] font-medium text-humana-gold">{occupancy} / {experience.capacity}</span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-humana-stone">
-                <div className="h-full rounded-full bg-humana-gold" style={{ width: `${occupancyPct}%` }} />
-              </div>
-            </div>
+            {/* Available spots — urgency indicator (bar = occupied spots) */}
+            {(() => {
+              const available = experience.spots_available ?? totalCapacity;
+              const occupied = totalCapacity - available;
+              const pct = totalCapacity > 0 ? Math.round((occupied / totalCapacity) * 100) : 0;
+              return (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-humana-muted">{t.retreatDetail.spotsAvailable}</span>
+                    <span className="text-[13px] font-semibold text-humana-ink">
+                      {available} / {totalCapacity}
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-humana-line">
+                    <div
+                      className="h-full rounded-full bg-humana-gold transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="h-px bg-humana-line" />
 
@@ -610,13 +622,13 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
               <div className="flex items-center justify-between gap-4 pt-8">
                 <div className="flex flex-col">
                   <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-humana-subtle">
-                    {selectedPricing ? "PRECIO POR NOCHE" : t.hotelDetail.priceFrom}
+                    {selectedPricing ? t.retreatDetail.startingFrom.toUpperCase() : t.hotelDetail.priceFrom}
                   </span>
                   <div className="flex items-baseline gap-1.5">
                     <span className="whitespace-nowrap text-[26px] font-light tracking-[-0.02em] text-humana-gold">
-                      {selectedPricing ? `${selectedPricing.currency} ${Math.round(selectedPricing.price_per_guest / nights).toLocaleString()}` : `${selectedRoom.currency} ${selectedRoom.price_per_night}`}
+                      {selectedPricing ? `${selectedPricing.currency} ${selectedPricing.price_per_guest.toLocaleString()}` : `${selectedRoom.currency} ${selectedRoom.price_per_night}`}
                     </span>
-                    <span className="whitespace-nowrap text-[13px] text-humana-muted">/ {selectedPricing ? "persona" : t.hotelDetail.perNight}</span>
+                    <span className="whitespace-nowrap text-[13px] text-humana-muted">/ {selectedPricing ? t.retreatDetail.perGuest : t.hotelDetail.perNight}</span>
                   </div>
                 </div>
                 {isOwnRetreat ? (

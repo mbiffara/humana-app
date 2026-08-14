@@ -10,6 +10,7 @@ import {
   type ProgramDayEntry,
   type FacilitatorEntry,
 } from "@/contexts/AgencyRetreatWizardContext";
+import { InclusionPicker } from "@/components/InclusionPicker";
 
 const MAX_FACILITATORS = 6;
 const inputClass =
@@ -93,17 +94,6 @@ export default function AgencyRetreatProgramStep() {
     set({ facilitators: state.facilitators.filter((f) => f.id !== id) });
   }
 
-  function addInclusion() {
-    set({ inclusions: [...state.inclusions, ""] });
-  }
-
-  function updateInclusion(idx: number, value: string) {
-    set({ inclusions: state.inclusions.map((v, i) => (i === idx ? value : v)) });
-  }
-
-  function removeInclusion(idx: number) {
-    set({ inclusions: state.inclusions.filter((_, i) => i !== idx) });
-  }
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up">
@@ -234,38 +224,28 @@ export default function AgencyRetreatProgramStep() {
 
       {/* What's included */}
       <section className="rounded-xl border border-humana-line bg-white p-8 shadow-sm">
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
-            {tw.program.included}
-          </p>
-          <button
-            onClick={addInclusion}
-            className="cursor-pointer text-[12px] font-medium text-humana-gold transition-opacity hover:opacity-75"
-          >
-            + {tw.program.addItem}
-          </button>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
+          {tw.program.included}
+        </p>
+        <div className="mt-4">
+          <InclusionPicker
+            selected={state.inclusions}
+            customItems={state.customInclusions}
+            onToggle={(id) =>
+              set({
+                inclusions: state.inclusions.includes(id)
+                  ? state.inclusions.filter((i) => i !== id)
+                  : [...state.inclusions, id],
+              })
+            }
+            onAddCustom={(name) =>
+              set({ customInclusions: [...state.customInclusions, name] })
+            }
+            onRemoveCustom={(name) =>
+              set({ customInclusions: state.customInclusions.filter((i) => i !== name) })
+            }
+          />
         </div>
-        {state.inclusions.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {state.inclusions.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-1 rounded border border-humana-line bg-humana-stone/20 px-3 py-1.5">
-                <input
-                  type="text"
-                  value={item}
-                  onChange={(e) => updateInclusion(idx, e.target.value)}
-                  placeholder={tw.program.itemPlaceholder}
-                  className="w-[160px] border-none bg-transparent text-[13px] text-humana-ink outline-none"
-                />
-                <button
-                  onClick={() => removeInclusion(idx)}
-                  className="cursor-pointer text-[11px] text-humana-subtle transition-colors hover:text-red-500"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
       </section>
     </div>
   );

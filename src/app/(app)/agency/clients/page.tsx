@@ -147,7 +147,7 @@ export default function AgencyClientsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={tc.searchPlaceholder}
-              className="w-[220px] rounded-lg border border-humana-line bg-white py-2.5 pl-9 pr-4 text-[13px] text-humana-ink outline-none placeholder:text-humana-subtle focus:border-humana-gold"
+              className="w-[232px] rounded-lg border border-humana-line bg-white py-2.5 pl-9 pr-4 text-[13px] text-humana-ink outline-none placeholder:text-humana-subtle focus:border-humana-gold"
             />
           </div>
           <button
@@ -176,22 +176,22 @@ export default function AgencyClientsPage() {
           {/* Column headers */}
           <div className="flex items-center px-5 py-1.5">
             <div className="mr-2.5 w-4 shrink-0" />
-            <div className="w-[180px] shrink-0">
+            <div className="w-[232px] shrink-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.name}</p>
             </div>
             <div className="min-w-0 flex-1 px-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.email}</p>
             </div>
-            <div className="w-[140px] shrink-0 px-3">
+            <div className="w-[172px] shrink-0 px-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.phone}</p>
             </div>
-            <div className="w-[80px] shrink-0 px-3 text-center">
+            <div className="w-[92px] shrink-0 px-3 text-center">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.bookings}</p>
             </div>
-            <div className="w-[160px] shrink-0 px-3">
+            <div className="w-[212px] shrink-0 px-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.notes}</p>
             </div>
-            <div className="w-[100px] shrink-0 px-3">
+            <div className="w-[132px] shrink-0 px-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.created}</p>
             </div>
             <div className="w-[64px] shrink-0" />
@@ -230,7 +230,7 @@ export default function AgencyClientsPage() {
                   </div>
 
                   {/* Name */}
-                  <div className="w-[180px] shrink-0">
+                  <div className="w-[232px] shrink-0">
                     <p className="truncate text-[14px] font-medium text-humana-ink">
                       {client.name}
                     </p>
@@ -244,28 +244,28 @@ export default function AgencyClientsPage() {
                   </div>
 
                   {/* Phone */}
-                  <div className="w-[140px] shrink-0 px-3">
+                  <div className="w-[172px] shrink-0 px-3">
                     <p className="truncate text-[13px] text-humana-ink">
                       {client.phone ?? "\u2014"}
                     </p>
                   </div>
 
                   {/* Bookings */}
-                  <div className="w-[80px] shrink-0 px-3 text-center">
+                  <div className="w-[92px] shrink-0 px-3 text-center">
                     <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${(client.booking_count ?? 0) > 0 ? "bg-humana-gold/10 text-humana-gold" : "text-humana-muted"}`}>
                       {client.booking_count ?? 0}
                     </span>
                   </div>
 
                   {/* Notes */}
-                  <div className="w-[160px] shrink-0 px-3">
+                  <div className="w-[212px] shrink-0 px-3">
                     <p className="truncate text-[13px] text-humana-muted">
                       {client.notes ?? "\u2014"}
                     </p>
                   </div>
 
                   {/* Created */}
-                  <div className="w-[100px] shrink-0 px-3">
+                  <div className="w-[132px] shrink-0 px-3">
                     <p className="text-[13px] text-humana-muted">
                       {formatDate(client.created_at)}
                     </p>
@@ -415,7 +415,7 @@ export default function AgencyClientsPage() {
                     {agency.bookings}
                   </span>
                 </div>
-                <div className="w-[120px] shrink-0 text-right">
+                <div className="w-[132px] shrink-0 text-right">
                   <span className="text-[13px] font-semibold text-humana-ink">{fmt(agency.revenue)}</span>
                 </div>
               </div>

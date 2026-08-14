@@ -250,7 +250,6 @@ type Dictionary = {
       confirmDelete: string;
       statuses: {
         draft: string;
-        pending_review: string;
         active: string;
         upcoming: string;
         closed: string;
@@ -692,19 +691,15 @@ type Dictionary = {
       createRetreat: string;
       empty: string;
       emptyHint: string;
-      filters: { all: string; draft: string; pending_review: string; active: string; closed: string };
-      statusLabels: { draft: string; pending_review: string; active: string; upcoming: string; closed: string; cancelled: string };
-      kpis: { total: string; active: string; draft: string; pending: string };
+      filters: { all: string; draft: string; active: string; closed: string };
+      statusLabels: { draft: string; active: string; upcoming: string; closed: string; cancelled: string };
+      kpis: { total: string; active: string; draft: string };
       columns: { name: string; hotel: string; dates: string; capacity: string; price: string; status: string; actions: string };
       preview: string;
       deleteTitle: string;
       deleteMessage: string;
       deleteConfirm: string;
       deleteCancel: string;
-      submitTitle: string;
-      submitMessage: string;
-      submitConfirm: string;
-      submitCancel: string;
     };
     retreats: {
       wizard: {
@@ -872,6 +867,8 @@ type Dictionary = {
       };
     };
   };
+  inclusionNames: Record<string, string>;
+  inclusionCategories: Record<string, string>;
   login: {
     langSupport: string;
     eyebrow: string;
@@ -1016,6 +1013,7 @@ type Dictionary = {
     duration: string;
     language: string;
     capacity: string;
+    spotsAvailable: string;
     startingFrom: string;
     perGuest: string;
     commission: string;
@@ -1810,7 +1808,7 @@ type Dictionary = {
         statusPending: string;
       };
     };
-    statusLabels: { pending: string; verified: string; suspended: string; active: string; draft: string; closed: string; pending_review: string };
+    statusLabels: { pending: string; verified: string; suspended: string; active: string; draft: string; closed: string };
   };
   suspended: {
     title: string;
@@ -2102,7 +2100,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         confirmDelete: "Delete this draft retreat? This can't be undone.",
         statuses: {
           draft: "Draft",
-          pending_review: "In review",
           active: "Active",
           upcoming: "Upcoming",
           closed: "Closed",
@@ -2579,19 +2576,15 @@ export const dictionary: Record<Locale, Dictionary> = {
         createRetreat: "Create Retreat",
         empty: "No retreats yet",
         emptyHint: "Create your first retreat to start offering curated wellness experiences.",
-        filters: { all: "All", draft: "Draft", pending_review: "Under Review", active: "Active", closed: "Closed" },
-        statusLabels: { draft: "Draft", pending_review: "Under Review", active: "Active", upcoming: "Upcoming", closed: "Closed", cancelled: "Cancelled" },
-        kpis: { total: "Total Retreats", active: "Active", draft: "Drafts", pending: "Under Review" },
+        filters: { all: "All", draft: "Draft", active: "Active", closed: "Closed" },
+        statusLabels: { draft: "Draft", active: "Active", upcoming: "Upcoming", closed: "Closed", cancelled: "Cancelled" },
+        kpis: { total: "Total Retreats", active: "Active", draft: "Drafts" },
         columns: { name: "Retreat", hotel: "Hotel", dates: "Dates", capacity: "Capacity", price: "From", status: "Status", actions: "Actions" },
         preview: "Preview",
         deleteTitle: "Delete Retreat",
         deleteMessage: "Are you sure you want to delete this draft retreat? This action cannot be undone.",
         deleteConfirm: "Delete",
         deleteCancel: "Cancel",
-        submitTitle: "Publish Retreat",
-        submitMessage: "Once published, the retreat will be visible to all agencies and available for booking.",
-        submitConfirm: "Publish",
-        submitCancel: "Cancel",
       },
       retreats: {
         wizard: {
@@ -2758,6 +2751,38 @@ export const dictionary: Record<Locale, Dictionary> = {
           },
         },
       },
+    },
+    inclusionNames: {
+      "full-board": "Full board",
+      "healthy-snacks": "Healthy snacks",
+      "welcome-dinner": "Welcome dinner",
+      "detox-juices": "Detox juices & teas",
+      "spa-access": "Spa access",
+      "one-on-one": "1:1 Session",
+      "sound-healing": "Sound healing",
+      "organic-products": "Organic products",
+      "airport-transfer": "Airport transfer",
+      "local-transport": "Local transport",
+      "welcome-kit": "Welcome kit",
+      "towels-robes": "Towels & robes",
+      "journal-materials": "Journal & materials",
+      "guided-excursion": "Guided excursion",
+      "guided-meditation": "Guided meditation",
+      "opening-closing": "Opening/closing ceremony",
+      "yoga-mat": "Yoga mat",
+      "meditation-supplies": "Meditation supplies",
+      "ceremony-supplies": "Ceremony supplies",
+    },
+    inclusionCategories: {
+      meals: "Meals",
+      wellness: "Wellness",
+      transport: "Transport",
+      amenity: "Amenities",
+      activity: "Activities",
+      equipment: "Equipment",
+      custom: "Custom",
+      customPlaceholder: "Add a custom inclusion…",
+      addCustom: "Add",
     },
     login: {
       langSupport: "Institutional support",
@@ -3034,6 +3059,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       duration: "Duration",
       language: "Language",
       capacity: "Max. capacity",
+      spotsAvailable: "Spots available",
       startingFrom: "Starting from",
       perGuest: "per guest",
       commission: "Your commission",
@@ -3881,7 +3907,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           statusPending: "Pending",
         },
       },
-      statusLabels: { pending: "Pending", verified: "Active", suspended: "Suspended", active: "Active", draft: "Draft", closed: "Closed", pending_review: "Under Review" },
+      statusLabels: { pending: "Pending", verified: "Active", suspended: "Suspended", active: "Active", draft: "Draft", closed: "Closed" },
     },
     suspended: {
       title: "Account Suspended",
@@ -4166,7 +4192,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         confirmDelete: "¿Eliminar este borrador de retiro? Esta acción no se puede deshacer.",
         statuses: {
           draft: "Borrador",
-          pending_review: "En revisión",
           active: "Activo",
           upcoming: "Próximo",
           closed: "Cerrado",
@@ -4643,19 +4668,15 @@ export const dictionary: Record<Locale, Dictionary> = {
         createRetreat: "Crear Retiro",
         empty: "Aún no hay retiros",
         emptyHint: "Crea tu primer retiro para comenzar a ofrecer experiencias de bienestar curadas.",
-        filters: { all: "Todos", draft: "Borrador", pending_review: "En Revisión", active: "Activos", closed: "Cerrados" },
-        statusLabels: { draft: "Borrador", pending_review: "En Revisión", active: "Activo", upcoming: "Próximo", closed: "Cerrado", cancelled: "Cancelado" },
-        kpis: { total: "Total Retiros", active: "Activos", draft: "Borradores", pending: "En Revisión" },
+        filters: { all: "Todos", draft: "Borrador", active: "Activos", closed: "Cerrados" },
+        statusLabels: { draft: "Borrador", active: "Activo", upcoming: "Próximo", closed: "Cerrado", cancelled: "Cancelado" },
+        kpis: { total: "Total Retiros", active: "Activos", draft: "Borradores" },
         columns: { name: "Retiro", hotel: "Hotel", dates: "Fechas", capacity: "Capacidad", price: "Desde", status: "Estado", actions: "Acciones" },
         preview: "Vista previa",
         deleteTitle: "Eliminar Retiro",
         deleteMessage: "¿Estás seguro de que quieres eliminar este retiro en borrador? Esta acción no se puede deshacer.",
         deleteConfirm: "Eliminar",
         deleteCancel: "Cancelar",
-        submitTitle: "Publicar Retiro",
-        submitMessage: "Una vez publicado, el retiro será visible para todas las agencias y estará disponible para reservar.",
-        submitConfirm: "Publicar",
-        submitCancel: "Cancelar",
       },
       retreats: {
         wizard: {
@@ -4822,6 +4843,38 @@ export const dictionary: Record<Locale, Dictionary> = {
           },
         },
       },
+    },
+    inclusionNames: {
+      "full-board": "Pensión completa",
+      "healthy-snacks": "Snacks saludables",
+      "welcome-dinner": "Cena de bienvenida",
+      "detox-juices": "Jugos detox y tés",
+      "spa-access": "Acceso al spa",
+      "one-on-one": "Sesión 1:1",
+      "sound-healing": "Sanación sonora",
+      "organic-products": "Productos orgánicos",
+      "airport-transfer": "Transfer aeropuerto",
+      "local-transport": "Transporte local",
+      "welcome-kit": "Kit de bienvenida",
+      "towels-robes": "Toallas y batas",
+      "journal-materials": "Diario y materiales",
+      "guided-excursion": "Excursión guiada",
+      "guided-meditation": "Meditación guiada",
+      "opening-closing": "Ceremonia apertura/cierre",
+      "yoga-mat": "Mat de yoga",
+      "meditation-supplies": "Materiales de meditación",
+      "ceremony-supplies": "Suministros de ceremonia",
+    },
+    inclusionCategories: {
+      meals: "Comidas",
+      wellness: "Bienestar",
+      transport: "Transporte",
+      amenity: "Amenidades",
+      activity: "Actividades",
+      equipment: "Equipamiento",
+      custom: "Personalizado",
+      customPlaceholder: "Agregar inclusión personalizada…",
+      addCustom: "Agregar",
     },
     login: {
       langSupport: "Soporte institucional",
@@ -5098,6 +5151,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       duration: "Duración",
       language: "Idioma",
       capacity: "Capacidad máx.",
+      spotsAvailable: "Plazas disponibles",
       startingFrom: "Desde",
       perGuest: "por huésped",
       commission: "Tu comisión",
@@ -5945,7 +5999,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           statusPending: "Pendiente",
         },
       },
-      statusLabels: { pending: "Pendiente", verified: "Activo", suspended: "Suspendido", active: "Activo", draft: "Borrador", closed: "Cerrado", pending_review: "En Revisión" },
+      statusLabels: { pending: "Pendiente", verified: "Activo", suspended: "Suspendido", active: "Activo", draft: "Borrador", closed: "Cerrado" },
     },
     suspended: {
       title: "Cuenta Suspendida",
@@ -6230,7 +6284,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         confirmDelete: "Excluir este rascunho de retiro? Esta ação não pode ser desfeita.",
         statuses: {
           draft: "Rascunho",
-          pending_review: "Em revisão",
           active: "Ativo",
           upcoming: "Próximo",
           closed: "Encerrado",
@@ -6707,19 +6760,15 @@ export const dictionary: Record<Locale, Dictionary> = {
         createRetreat: "Criar Retiro",
         empty: "Nenhum retiro ainda",
         emptyHint: "Crie seu primeiro retiro para começar a oferecer experiências de bem-estar curadas.",
-        filters: { all: "Todos", draft: "Rascunho", pending_review: "Em Revisão", active: "Ativos", closed: "Encerrados" },
-        statusLabels: { draft: "Rascunho", pending_review: "Em Revisão", active: "Ativo", upcoming: "Próximo", closed: "Encerrado", cancelled: "Cancelado" },
-        kpis: { total: "Total de Retiros", active: "Ativos", draft: "Rascunhos", pending: "Em Revisão" },
+        filters: { all: "Todos", draft: "Rascunho", active: "Ativos", closed: "Encerrados" },
+        statusLabels: { draft: "Rascunho", active: "Ativo", upcoming: "Próximo", closed: "Encerrado", cancelled: "Cancelado" },
+        kpis: { total: "Total de Retiros", active: "Ativos", draft: "Rascunhos" },
         columns: { name: "Retiro", hotel: "Hotel", dates: "Datas", capacity: "Capacidade", price: "Desde", status: "Status", actions: "Ações" },
         preview: "Visualizar",
         deleteTitle: "Excluir Retiro",
         deleteMessage: "Tem certeza de que deseja excluir este retiro em rascunho? Esta ação não pode ser desfeita.",
         deleteConfirm: "Excluir",
         deleteCancel: "Cancelar",
-        submitTitle: "Publicar Retiro",
-        submitMessage: "Uma vez publicado, o retiro será visível para todas as agências e estará disponível para reserva.",
-        submitConfirm: "Publicar",
-        submitCancel: "Cancelar",
       },
       retreats: {
         wizard: {
@@ -6886,6 +6935,38 @@ export const dictionary: Record<Locale, Dictionary> = {
           },
         },
       },
+    },
+    inclusionNames: {
+      "full-board": "Pensão completa",
+      "healthy-snacks": "Snacks saudáveis",
+      "welcome-dinner": "Jantar de boas-vindas",
+      "detox-juices": "Sucos detox e chás",
+      "spa-access": "Acesso ao spa",
+      "one-on-one": "Sessão 1:1",
+      "sound-healing": "Cura sonora",
+      "organic-products": "Produtos orgânicos",
+      "airport-transfer": "Transfer aeroporto",
+      "local-transport": "Transporte local",
+      "welcome-kit": "Kit de boas-vindas",
+      "towels-robes": "Toalhas e roupões",
+      "journal-materials": "Diário e materiais",
+      "guided-excursion": "Excursão guiada",
+      "guided-meditation": "Meditação guiada",
+      "opening-closing": "Cerimônia abertura/encerramento",
+      "yoga-mat": "Tapete de yoga",
+      "meditation-supplies": "Materiais de meditação",
+      "ceremony-supplies": "Suprimentos de cerimônia",
+    },
+    inclusionCategories: {
+      meals: "Refeições",
+      wellness: "Bem-estar",
+      transport: "Transporte",
+      amenity: "Amenidades",
+      activity: "Atividades",
+      equipment: "Equipamento",
+      custom: "Personalizado",
+      customPlaceholder: "Adicionar inclusão personalizada…",
+      addCustom: "Adicionar",
     },
     login: {
       langSupport: "Suporte institucional",
@@ -7163,6 +7244,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       duration: "Duração",
       language: "Idioma",
       capacity: "Capacidade máx.",
+      spotsAvailable: "Vagas disponíveis",
       startingFrom: "A partir de",
       perGuest: "por hóspede",
       commission: "Sua comissão",
@@ -8010,7 +8092,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           statusPending: "Pendente",
         },
       },
-      statusLabels: { pending: "Pendente", verified: "Ativo", suspended: "Suspenso", active: "Ativo", draft: "Rascunho", closed: "Encerrado", pending_review: "Em Revisão" },
+      statusLabels: { pending: "Pendente", verified: "Ativo", suspended: "Suspenso", active: "Ativo", draft: "Rascunho", closed: "Encerrado" },
     },
     suspended: {
       title: "Conta Suspensa",

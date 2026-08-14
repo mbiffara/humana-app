@@ -453,7 +453,6 @@ export interface ImageCreate {
 export type RetreatType = "wellness" | "spiritual" | "liderazgo_mujeres" | "constelaciones_familiares" | "breathwork" | "neurociencia" | "kabbalah" | "mindfulness";
 export type RetreatStatus =
   | "draft"
-  | "pending_review"
   | "active"
   | "upcoming"
   | "closed"
