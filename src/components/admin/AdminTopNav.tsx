@@ -49,7 +49,7 @@ export function AdminTopNav() {
           className="h-[34px] w-auto"
           priority
         />
-        <span className="ml-1 rounded bg-humana-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-humana-gold">
+        <span className="ml-1 rounded bg-humana-ink px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-humana-gold">
           {t.admin.badge}
         </span>
       </Link>
