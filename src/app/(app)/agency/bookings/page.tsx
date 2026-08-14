@@ -101,8 +101,8 @@ export default function AgencyBookingsPage() {
       } else {
         const total = res.meta?.total ?? res.bookings.length;
         const confirmed = res.bookings.filter((b) => b.status === "confirmed").length;
-        const retreat_count = res.bookings.filter((b) => !!b.experience).length;
-        const lodging_count = res.bookings.filter((b) => !b.experience).length;
+        const retreat_count = res.bookings.filter((b) => !!b.experience || !!b.retreat).length;
+        const lodging_count = res.bookings.filter((b) => !b.experience && !b.retreat).length;
         const commission_cents = res.bookings.reduce((acc, b) => acc + (b.commission_cents ?? 0), 0);
         const volume_cents = res.bookings.reduce((acc, b) => acc + (b.amount_cents ?? 0), 0);
         setSummary({ total, confirmed, retreat_count, lodging_count, commission_cents, volume_cents });
@@ -168,12 +168,14 @@ export default function AgencyBookingsPage() {
 
   // Split bookings by type, applying independent hotel filters
   const retreatBookings = bookings.filter((b) => {
-    if (!b.experience) return false;
-    if (retreatHotelId !== "" && b.experience.hotel?.id !== retreatHotelId) return false;
+    const isRetreat = !!b.experience || !!b.retreat;
+    if (!isRetreat) return false;
+    const hotelId = b.experience?.hotel?.id ?? b.hotel?.id;
+    if (retreatHotelId !== "" && hotelId !== retreatHotelId) return false;
     return true;
   });
   const hotelBookings = bookings.filter((b) => {
-    if (b.experience) return false;
+    if (b.experience || b.retreat) return false;
     if (lodgingHotelId !== "" && b.hotel?.id !== lodgingHotelId) return false;
     if (onlyRetreatVenues && b.client != null) return false;
     return true;
@@ -341,17 +343,17 @@ export default function AgencyBookingsPage() {
                             </td>
                             <td className="px-4 py-3 max-w-[160px]">
                               <p className="truncate text-[13px] text-humana-ink">
-                                {booking.experience?.title ?? "\u2014"}
+                                {booking.experience?.title ?? booking.retreat?.name ?? "\u2014"}
                               </p>
                             </td>
                             <td className="px-4 py-3">
                               <span className="text-[12px] capitalize text-humana-muted">
-                                {booking.experience?.kind ?? "\u2014"}
+                                {booking.experience?.kind ?? booking.retreat?.retreat_type ?? "\u2014"}
                               </span>
                             </td>
                             <td className="px-4 py-3 max-w-[140px]">
                               <p className="truncate text-[13px] text-humana-muted">
-                                {booking.experience?.hotel?.name ?? "\u2014"}
+                                {booking.experience?.hotel?.name ?? booking.hotel?.name ?? "\u2014"}
                               </p>
                             </td>
                             <td className="px-4 py-3 text-center">

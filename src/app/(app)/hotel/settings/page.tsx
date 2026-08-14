@@ -393,12 +393,24 @@ export default function HotelSettingsPage() {
     const stripeStatus = searchParams.get("stripe");
     if (stripeStatus === "success") {
       setTab("subscription");
-      loadSubscription();
-      refreshAuth();
-      // Clean up URL params
+      const sessionId = searchParams.get("session_id");
+      // Clean up URL params immediately
       const url = new URL(window.location.href);
       url.searchParams.delete("stripe");
+      url.searchParams.delete("session_id");
       window.history.replaceState({}, "", url.toString());
+      // Verify the checkout session to create subscription in DB, then refresh
+      (async () => {
+        if (sessionId) {
+          try {
+            await hotelApi.verifyCheckout(sessionId);
+          } catch {
+            // Webhook may have already created it — continue to load
+          }
+        }
+        await loadSubscription();
+        await refreshAuth();
+      })();
     }
   }, [searchParams, loadSubscription, refreshAuth]);
 

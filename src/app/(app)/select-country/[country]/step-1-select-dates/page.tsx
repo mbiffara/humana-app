@@ -185,6 +185,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
       postNights: 0,
       // Adapted retreats book through the direct hotel path — no experience_id
       experienceId: experience && !experience.is_retreat ? experience.id : null,
+      retreatApiId: experience?.is_retreat ? experience.id : null,
       hotelApiId: experience?.hotel?.id ?? null,
       display: {
         hotelName: hotelName || "Hotel",
