@@ -284,26 +284,10 @@ export default function RetreatPricingStep() {
           <div className="mt-4 flex flex-col divide-y divide-humana-line">
             <div className="flex items-center justify-between py-2.5">
               <span className="text-[13px] text-humana-muted">
-                {tw.pricing.agencyCommission(AGENCY_PCT)}
+                {tw.pricing.commission(AGENCY_PCT + OFFICE_PCT)}
               </span>
               <span className="text-[13px] font-medium text-humana-gold">
-                {formatMoney((totalCents * AGENCY_PCT) / 100)} USD
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-2.5">
-              <span className="text-[13px] text-humana-muted">
-                {tw.pricing.officeCommission(OFFICE_PCT)}
-              </span>
-              <span className="text-[13px] font-medium text-humana-ink">
-                {formatMoney((totalCents * OFFICE_PCT) / 100)} USD
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-2.5">
-              <span className="text-[13px] text-humana-muted">
-                {tw.pricing.creatorIncome(CREATOR_PCT)}
-              </span>
-              <span className="text-[13px] font-medium text-humana-ink">
-                {formatMoney((totalCents * CREATOR_PCT) / 100)} USD
+                {formatMoney((totalCents * (AGENCY_PCT + OFFICE_PCT)) / 100)} USD
               </span>
             </div>
             <div className="flex items-center justify-between py-3">
