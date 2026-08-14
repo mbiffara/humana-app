@@ -111,6 +111,10 @@ export interface ApiExperience {
   is_retreat?: boolean;
   created_by_organization_id?: number;
   pricing?: ApiRetreatPricing[];
+  days?: ApiRetreatDay[];
+  facilitators?: ApiRetreatFacilitator[];
+  inclusions?: ApiRetreatInclusion[];
+  images?: ApiRetreatImage[];
 }
 
 /** Published hotel-created retreat from the public marketplace endpoints. */
@@ -139,6 +143,10 @@ export interface PublicRetreat {
   created_by_type?: string;
   created_by_organization_id?: number;
   pricing?: ApiRetreatPricing[];
+  days?: ApiRetreatDay[];
+  facilitators?: ApiRetreatFacilitator[];
+  inclusions?: ApiRetreatInclusion[];
+  images?: ApiRetreatImage[];
   hotel?: PublicHotel;
 }
 

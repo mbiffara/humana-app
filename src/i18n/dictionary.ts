@@ -1023,6 +1023,8 @@ type Dictionary = {
     selectDates: string;
     dayLabel: string;
     highlights: string;
+    facilitators: string;
+    hotelAmenities: string;
   };
   selectDates: {
     title: string;
@@ -3039,6 +3041,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       selectDates: "Select dates",
       dayLabel: "Day",
       highlights: "Highlights",
+      facilitators: "Facilitators",
+      hotelAmenities: "Hotel amenities",
     },
     selectDates: {
       title: "Select your dates",
@@ -5101,6 +5105,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       selectDates: "Seleccionar fechas",
       dayLabel: "Día",
       highlights: "Destacados",
+      facilitators: "Facilitadores",
+      hotelAmenities: "Amenidades del hotel",
     },
     selectDates: {
       title: "Selecciona tus fechas",
@@ -7164,6 +7170,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       selectDates: "Selecionar datas",
       dayLabel: "Dia",
       highlights: "Destaques",
+      facilitators: "Facilitadores",
+      hotelAmenities: "Comodidades do hotel",
     },
     selectDates: {
       title: "Selecione suas datas",

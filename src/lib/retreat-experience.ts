@@ -31,6 +31,10 @@ export function retreatToExperience(r: PublicRetreat): ApiExperience {
     is_retreat: true,
     created_by_organization_id: r.created_by_organization_id,
     pricing: r.pricing,
+    days: r.days,
+    facilitators: r.facilitators,
+    inclusions: r.inclusions,
+    images: r.images,
   };
 }
 

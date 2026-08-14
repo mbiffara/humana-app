@@ -10,6 +10,7 @@ import { useBooking } from "@/contexts/BookingContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { countries, countrySlugToId } from "@/data/countries";
 import { agencyApi, type ApiExperience, type ApiRetreatPricing, type PublicHotelFull, type PublicRoomType } from "@/lib/api/agency";
+import { amenityIdForName } from "@/lib/amenity-catalog";
 import { fetchExperienceOrRetreat } from "@/lib/retreat-experience";
 
 export default function RetreatDetailPage({ params }: { params: Promise<{ country: string; slug: string }> }) {
@@ -101,9 +102,11 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
   const occupancy = Math.round(experience.capacity * 0.4);
   const occupancyPct = Math.round((occupancy / experience.capacity) * 100);
 
-  // Build gallery from hotel images or fallback to experience image
+  // Build gallery: retreat images → hotel images → experience fallback
   const gallery: string[] = [];
-  if (hotel?.images && hotel.images.length > 0) {
+  if (experience.images && experience.images.length > 0) {
+    gallery.push(...experience.images.sort((a, b) => a.position - b.position).map((i) => i.image_url));
+  } else if (hotel?.images && hotel.images.length > 0) {
     gallery.push(...hotel.images.map((i) => i.image_url));
   }
   if (gallery.length === 0 && experience.image_url) {
@@ -181,20 +184,134 @@ export default function RetreatDetailPage({ params }: { params: Promise<{ countr
             </div>
           )}
 
-          {/* Facilitator */}
-          {hotelName && (
+          {/* Inclusions */}
+          {experience.inclusions && experience.inclusions.length > 0 && (
             <div className="flex flex-col gap-3">
-              <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">FACILITADOR</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
+                {t.retreatDetail.included.toUpperCase()}
+              </span>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+                {experience.inclusions.map((inc) => (
+                  <div key={inc.id} className="flex items-center gap-2.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                      <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
+                      <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-[14px] text-humana-muted">{inc.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Itinerary / Program */}
+          {experience.days && experience.days.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
+                {t.retreatDetail.program.toUpperCase()}
+              </span>
+              <div className="flex flex-col gap-3">
+                {experience.days.sort((a, b) => a.day_number - b.day_number).map((day) => (
+                  <div key={day.id} className="flex flex-col gap-2 border border-humana-line bg-white p-5">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 items-center justify-center bg-humana-gold text-[12px] font-bold text-white">
+                        {day.day_number}
+                      </span>
+                      <span className="text-[14px] font-semibold text-humana-ink">
+                        {t.retreatDetail.dayLabel} {day.day_number}{day.title ? ` — ${day.title}` : ""}
+                      </span>
+                    </div>
+                    {day.description && (
+                      <p className="pl-10 text-[13px] leading-[20px] text-humana-muted">{day.description}</p>
+                    )}
+                    {day.activities && day.activities.length > 0 && (
+                      <div className="flex flex-col gap-1.5 pl-10">
+                        {day.activities.sort((a, b) => a.position - b.position).map((act) => (
+                          <div key={act.id} className="flex items-center gap-3">
+                            {act.time && (
+                              <span className="w-[52px] shrink-0 text-[12px] font-medium text-humana-gold">{act.time}</span>
+                            )}
+                            <span className="text-[13px] text-humana-ink">{act.name}</span>
+                            {act.duration_minutes && (
+                              <span className="text-[12px] text-humana-subtle">({act.duration_minutes} min)</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Facilitators */}
+          {experience.facilitators && experience.facilitators.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
+                {t.retreatDetail.facilitators.toUpperCase()}
+              </span>
+              <div className="flex flex-col gap-4">
+                {experience.facilitators.sort((a, b) => a.position - b.position).map((f) => (
+                  <div key={f.id} className="flex items-start gap-4">
+                    {f.avatar_url ? (
+                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-humana-stone">
+                        <Image src={f.avatar_url} alt={f.name} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-humana-stone">
+                        <span className="text-[15px] font-medium text-humana-muted">{f.name.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[15px] font-medium text-humana-ink">{f.name}</span>
+                      {f.specialty && (
+                        <span className="text-[13px] text-humana-gold">{f.specialty}</span>
+                      )}
+                      {f.bio && (
+                        <p className="mt-1 text-[13px] leading-[20px] text-humana-muted">{f.bio}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : hotelName && (
+            <div className="flex flex-col gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
+                {t.retreatDetail.facilitators.toUpperCase()}
+              </span>
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-humana-stone">
                   <span className="text-[15px] font-medium text-humana-muted">{experience.title.charAt(0)}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[15px] font-medium text-humana-ink">{hotelName}</span>
-                  {experience.description && (
-                    <span className="text-[14px] text-humana-muted line-clamp-1">{experience.description}</span>
-                  )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hotel amenities */}
+          {hotel?.amenities && hotel.amenities.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-humana-ink">
+                {t.retreatDetail.hotelAmenities.toUpperCase()}
+              </span>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+                {hotel.amenities.map((a) => {
+                  const amenityKey = amenityIdForName(a.name);
+                  const translated = amenityKey ? (t.onboarding.hotel.amenityNames as Record<string, string>)[amenityKey] : null;
+                  return (
+                    <div key={a.id} className="flex items-center gap-2.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                        <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
+                        <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="text-[14px] text-humana-muted">{translated || a.name}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
