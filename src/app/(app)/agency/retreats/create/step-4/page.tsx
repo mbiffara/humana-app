@@ -30,19 +30,47 @@ export default function AgencyRetreatProgramStep() {
   const { state, set } = useAgencyRetreatWizard();
   const [expandedDay, setExpandedDay] = useState(0);
 
-  // Auto-populate days to match duration if empty
+  // Keep days array in sync with duration (nights + 1)
   useEffect(() => {
-    if (state.days.length === 0 && state.nights > 0) {
-      const days: ProgramDayEntry[] = Array.from({ length: state.nights + 1 }, (_, i) => ({
+    const target = state.nights + 1;
+    if (target <= 0) return;
+
+    if (state.days.length === 0) {
+      // Initial population
+      const days: ProgramDayEntry[] = Array.from({ length: target }, (_, i) => ({
         id: generateId(),
         dayNumber: i + 1,
         title: "",
         activities: [{ id: generateId(), time: "09:00", name: "" }],
       }));
       set({ days });
+    } else if (state.days.length < target) {
+      // Nights increased — append new days
+      const extra: ProgramDayEntry[] = Array.from({ length: target - state.days.length }, (_, i) => ({
+        id: generateId(),
+        dayNumber: state.days.length + i + 1,
+        title: "",
+        activities: [{ id: generateId(), time: "09:00", name: "" }],
+      }));
+      set({ days: [...state.days, ...extra] });
+    } else if (state.days.length > target) {
+      // Nights decreased — trim from the end
+      set({ days: state.days.slice(0, target) });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.days.length, state.nights]);
+  }, [state.nights]);
+
+  // Auto-add a lead facilitator if none exist
+  useEffect(() => {
+    if (state.facilitators.length === 0) {
+      set({
+        facilitators: [
+          { id: generateId(), name: "", role: "lead", specialty: "" },
+        ],
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.facilitators.length]);
 
   function updateDay(dayId: string, patch: Partial<ProgramDayEntry>) {
     set({
