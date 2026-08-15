@@ -78,7 +78,9 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
 
   const computedCheckIn = useMemo(() => preNights > 0 ? addDays(retreatStart, -preNights) : retreatStart, [retreatStart, preNights]);
   const computedCheckOut = useMemo(() => postNights > 0 ? addDays(retreatEnd, postNights) : retreatEnd, [retreatEnd, postNights]);
-  const nightsBreakdown = [preNights > 0 ? `${preNights} pre` : null, `${retreatNights} retiro`, postNights > 0 ? `${postNights} post` : null].filter(Boolean).join(" + ");
+  const nightsBreakdown = isRetreatFlow
+    ? [preNights > 0 ? `${preNights} pre` : null, `${retreatNights} retiro`, postNights > 0 ? `${postNights} post` : null].filter(Boolean).join(" + ")
+    : `${retreatNights} noches`;
 
   /* ── can continue? ── */
   const canContinueClient = !!(selectedId || (newClientCreated && newName.trim()));
@@ -309,7 +311,7 @@ export default function AssignClientPage({ params }: { params: Promise<{ country
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Check-in</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckIn)} · 15:00</span></div>
               <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Check-out</span><span className="text-[14px] font-medium text-humana-ink">{formatDateShort(computedCheckOut)} · 11:00</span></div>
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Noches totales</span><span className="text-[14px] font-medium text-humana-ink">{totalNights} ({nightsBreakdown})</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Noches</span><span className="text-[14px] font-medium text-humana-ink">{isRetreatFlow ? `${totalNights} (${nightsBreakdown})` : totalNights}</span></div>
             </div>
             <div className="h-px bg-humana-line" />
 
