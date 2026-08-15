@@ -293,9 +293,9 @@ export default function AgencyBookingsPage() {
                 <p className="text-[14px] text-humana-muted">{tb.emptyRetreats}</p>
               </div>
             ) : (
-              <div className="rounded-xl border border-humana-line bg-white animate-fade-in-up">
-                <div>
-                  <table className="w-full">
+              <div className="overflow-hidden rounded-xl border border-humana-line bg-white animate-fade-in-up">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[1100px]">
                     <thead>
                       <tr className="border-b border-humana-line bg-[#fafaf7]">
                         <Th tooltip={tip.reference}>{col.reference}</Th>
@@ -434,9 +434,9 @@ export default function AgencyBookingsPage() {
                 <p className="text-[14px] text-humana-muted">{tb.emptyLodging}</p>
               </div>
             ) : (
-              <div className="rounded-xl border border-humana-line bg-white animate-fade-in-up">
-                <div>
-                  <table className="w-full">
+              <div className="overflow-hidden rounded-xl border border-humana-line bg-white animate-fade-in-up">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[1200px]">
                     <thead>
                       <tr className="border-b border-humana-line bg-[#fafaf7]">
                         <Th tooltip={tip.reference}>{col.reference}</Th>
