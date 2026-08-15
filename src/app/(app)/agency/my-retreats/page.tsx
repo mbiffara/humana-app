@@ -54,6 +54,7 @@ export default function AgencyMyRetreatsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [deleteModal, setDeleteModal] = useState<ApiRetreat | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchRetreats = useCallback(async (statusFilter: FilterStatus) => {
@@ -90,12 +91,14 @@ export default function AgencyMyRetreatsPage() {
   const handleDelete = async () => {
     if (!deleteModal) return;
     setActionLoading(true);
+    setDeleteError(null);
     try {
       await agencyApi.deleteRetreat(deleteModal.id);
       setRetreats((prev) => prev.filter((r) => r.id !== deleteModal.id));
       setDeleteModal(null);
-    } catch {
-      // ignore
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setDeleteError(msg);
     } finally {
       setActionLoading(false);
     }
@@ -295,9 +298,14 @@ export default function AgencyMyRetreatsPage() {
           <div className="w-full max-w-md rounded-xl border border-humana-line bg-white p-8 shadow-xl animate-fade-in-scale">
             <h3 className="text-[18px] font-bold text-humana-ink">{tr.deleteTitle}</h3>
             <p className="mt-3 text-[14px] leading-relaxed text-humana-muted">{tr.deleteMessage}</p>
+            {deleteError && (
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-[13px] text-red-600">
+                {deleteError}
+              </p>
+            )}
             <div className="mt-6 flex justify-end gap-3">
               <button
-                onClick={() => setDeleteModal(null)}
+                onClick={() => { setDeleteModal(null); setDeleteError(null); }}
                 className="rounded-lg border border-humana-line px-5 py-2.5 text-[12px] font-semibold text-humana-ink transition-colors hover:border-humana-ink"
               >
                 {tr.deleteCancel}
