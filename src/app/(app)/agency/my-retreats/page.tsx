@@ -78,6 +78,7 @@ export default function AgencyMyRetreatsPage() {
   const total = retreats.length;
   const activeCount = retreats.filter((r) => r.status === "active" || r.status === "upcoming").length;
   const draftCount = retreats.filter((r) => r.status === "draft").length;
+  const totalSales = retreats.reduce((sum, r) => sum + (r.bookings_count ?? 0), 0);
 
   const filters: { key: FilterStatus; label: string }[] = [
     { key: "all", label: tr.filters.all },
@@ -120,11 +121,12 @@ export default function AgencyMyRetreatsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="mb-6 grid grid-cols-3 gap-5 stagger-children">
+      <div className="mb-6 grid grid-cols-4 gap-5 stagger-children">
         {[
           { label: tr.kpis.total, value: total, color: "text-humana-ink", tooltip: tr.kpiTooltips.total },
           { label: tr.kpis.active, value: activeCount, color: "text-emerald-600", tooltip: tr.kpiTooltips.active },
           { label: tr.kpis.draft, value: draftCount, color: "text-humana-ink", tooltip: tr.kpiTooltips.draft },
+          { label: tr.kpis.sales, value: totalSales, color: "text-humana-gold", tooltip: tr.kpiTooltips.sales },
         ].map((kpi) => (
           <div key={kpi.label} className="group relative cursor-pointer rounded-xl border border-humana-line bg-white p-6">
             <div className="flex items-center justify-between">
@@ -228,12 +230,13 @@ export default function AgencyMyRetreatsPage() {
                     { label: tr.columns.dates, value: retreat.starts_on && retreat.ends_on ? formatDateRange(retreat.starts_on, retreat.ends_on, tag) : "—" },
                     { label: tr.columns.capacity, value: retreat.capacity > 0 ? String(retreat.capacity) : "—" },
                     { label: tr.columns.price, value: retreat.min_price_cents > 0 ? money(retreat.min_price_cents, retreat.currency, tag) : "—" },
+                    { label: tr.columns.sales, value: String(retreat.bookings_count ?? 0), gold: true },
                   ].map((stat) => (
                     <div key={stat.label}>
                       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
                         {stat.label}
                       </p>
-                      <p className="mt-1 text-[14px] font-medium text-humana-ink">{stat.value}</p>
+                      <p className={`mt-1 text-[14px] font-medium ${"gold" in stat && stat.gold ? "text-humana-gold" : "text-humana-ink"}`}>{stat.value}</p>
                     </div>
                   ))}
                 </div>

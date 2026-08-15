@@ -54,6 +54,7 @@ export type AgencyPricingEntry = {
   roomTypeId: number;
   price: string;
   included?: boolean;
+  allocatedRooms?: number;
   availableRooms: number;
   costPerNightCents: number;
 };
@@ -147,6 +148,7 @@ function stateFromApi(r: ApiRetreat): AgencyRetreatWizardState {
       roomTypeId: p.room_type.id,
       price: p.price_per_guest_cents ? String(p.price_per_guest_cents / 100) : "",
       included: true,
+      allocatedRooms: p.allocated_rooms ?? undefined,
       availableRooms: 0,
       costPerNightCents: 0,
     })),

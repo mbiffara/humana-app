@@ -152,6 +152,7 @@ function WizardShell({ children }: { children: ReactNode }) {
         .map((p) => ({
           room_type_id: p.roomTypeId,
           price_per_guest_cents: toCents(p.price),
+          allocated_rooms: p.allocatedRooms ?? p.availableRooms,
         })),
     );
   }, [state]);
@@ -200,6 +201,7 @@ function WizardShell({ children }: { children: ReactNode }) {
         .map((p) => ({
           room_type_id: p.roomTypeId,
           price_per_guest_cents: toCents(p.price),
+          allocated_rooms: p.allocatedRooms ?? p.availableRooms,
         })),
     });
   }, [state]);
@@ -413,21 +415,28 @@ function WizardShell({ children }: { children: ReactNode }) {
                 {tw.back}
               </Link>
             )}
-            <button
-              onClick={handleNext}
-              disabled={saving || !canProceed}
-              className={`flex-1 py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity ${
-                isLastStep ? "bg-humana-gold" : "bg-humana-ink"
-              } ${saving || !canProceed ? "cursor-not-allowed opacity-40" : "cursor-pointer hover:opacity-85"}`}
-            >
-              {saving
-                ? isLastStep
-                  ? tw.review.submitting
-                  : tw.saving
-                : isLastStep
-                  ? tw.review.submit
-                  : tw.next}
-            </button>
+            <div className="group relative flex-1">
+              <button
+                onClick={handleNext}
+                disabled={saving || !canProceed}
+                className={`w-full py-3.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity ${
+                  isLastStep ? "bg-humana-gold" : "bg-humana-ink"
+                } ${saving || !canProceed ? "cursor-not-allowed opacity-40" : "cursor-pointer hover:opacity-85"}`}
+              >
+                {saving
+                  ? isLastStep
+                    ? tw.review.submitting
+                    : tw.saving
+                  : isLastStep
+                    ? tw.review.submit
+                    : tw.next}
+              </button>
+              {activeIndex === 2 && !canProceed && state.pricing.some((p) => p.included !== false) && (
+                <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-lg border border-humana-line bg-white px-3 py-2 text-[12px] leading-[16px] text-humana-muted opacity-0 shadow-md transition-opacity group-hover:opacity-100" style={{ width: "max-content", maxWidth: "260px" }}>
+                  {tw.rooms.nextDisabledCapacity}
+                </div>
+              )}
+            </div>
           </div>
         </aside>
       </div>
