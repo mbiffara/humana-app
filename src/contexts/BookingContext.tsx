@@ -13,6 +13,7 @@ export type RetreatPricingCache = {
   roomTypeId: number;
   pricePerGuestCents: number;
   currency: string;
+  allocatedRooms?: number;
 };
 
 export type BookingDisplay = {

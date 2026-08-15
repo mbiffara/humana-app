@@ -178,6 +178,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
       roomTypeId: p.room_type.id,
       pricePerGuestCents: p.price_per_guest_cents,
       currency: p.currency,
+      allocatedRooms: p.allocated_rooms ?? undefined,
     }));
     set({
       dates: { start: retreatStart, end: retreatEnd },

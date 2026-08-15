@@ -105,8 +105,15 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
   const totalCommissionRate = commissionRate + officeFeeRate;
   const commission = Math.round(displayPrice * totalCommissionRate);
 
-  // Compute min availability per room type across the date range
+  // Compute min availability per room type across the date range.
+  // Retreat bookings use the retreat's allocated rooms, not the hotel's
+  // physical room inventory — the creating agency has already committed
+  // those rooms from their own inventory blocks.
   function getMinAvailability(rtId: number): number {
+    if (hasRetreatPricing) {
+      const rp = retreatPricings!.find((p) => p.roomTypeId === rtId);
+      return rp?.allocatedRooms ?? 1;
+    }
     const artData = availabilityData.find((a) => a.room_type.id === rtId);
     if (!artData || artData.days.length === 0) return 0;
     return Math.min(...artData.days.map((d) => d.available));
