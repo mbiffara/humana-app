@@ -54,6 +54,7 @@ export type AgencyPricingEntry = {
   roomTypeId: number;
   price: string;
   included?: boolean;
+  allocatedRooms?: number;
   availableRooms: number;
   costPerNightCents: number;
 };

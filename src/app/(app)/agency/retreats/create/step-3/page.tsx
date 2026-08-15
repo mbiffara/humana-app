@@ -1,6 +1,7 @@
 /** Agency retreat wizard step 3 — room selection & pricing.
  *  Shows inventory blocks for the selected hotel covering the retreat dates.
  *  Each block can be included/excluded, and a retail price per guest is set.
+ *  A +/- counter lets agencies choose how many rooms to allocate.
  *  Capacity coverage indicator + commission breakdown. */
 "use client";
 
@@ -61,6 +62,7 @@ export default function AgencyRetreatRoomsStep() {
                 roomTypeId: block.room_type_id,
                 price: existing?.price ?? "",
                 included: existing?.included ?? true,
+                allocatedRooms: block.available_rooms,
                 availableRooms: block.available_rooms,
                 costPerNightCents: block.cost_per_night_cents,
               };
@@ -80,7 +82,8 @@ export default function AgencyRetreatRoomsStep() {
     for (const entry of included) {
       const block = blocks.find((b) => b.id === entry.inventoryBlockId);
       if (block) {
-        totalGuests += block.available_rooms * (block.room_type?.capacity ?? 1);
+        const rooms = entry.allocatedRooms ?? block.available_rooms;
+        totalGuests += rooms * (block.room_type?.capacity ?? 1);
       }
     }
     set({ capacityCovered: totalGuests });
@@ -105,7 +108,8 @@ export default function AgencyRetreatRoomsStep() {
       const block = blocks.find((b) => b.id === p.inventoryBlockId);
       if (!block) return sum;
       const guestsCents = toCents(p.price);
-      return sum + guestsCents * block.available_rooms * (block.room_type?.capacity ?? 1);
+      const rooms = p.allocatedRooms ?? block.available_rooms;
+      return sum + guestsCents * rooms * (block.room_type?.capacity ?? 1);
     }, 0);
 
   if (loading) {
@@ -139,7 +143,8 @@ export default function AgencyRetreatRoomsStep() {
               const isIncluded = entry?.included !== false;
               const rt = block.room_type;
               const spotsPerRoom = rt?.capacity ?? 1;
-              const totalSpots = block.available_rooms * spotsPerRoom;
+              const usedRooms = entry?.allocatedRooms ?? block.available_rooms;
+              const totalSpots = usedRooms * spotsPerRoom;
 
               return (
                 <div
@@ -151,7 +156,12 @@ export default function AgencyRetreatRoomsStep() {
                   <div className="flex items-start gap-4">
                     {/* Checkbox */}
                     <button
-                      onClick={() => updatePricing(block.id, { included: !isIncluded })}
+                      onClick={() =>
+                        updatePricing(block.id, {
+                          included: !isIncluded,
+                          ...(!isIncluded ? { allocatedRooms: block.available_rooms } : {}),
+                        })
+                      }
                       className={`mt-1 flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded border-2 transition-all ${
                         isIncluded ? "border-humana-gold bg-humana-gold" : "border-humana-line"
                       }`}
@@ -174,6 +184,45 @@ export default function AgencyRetreatRoomsStep() {
                         <span>{tw.rooms.spots(totalSpots)}</span>
                         <span>{tw.rooms.cost(formatMoney(block.cost_per_night_cents))}</span>
                       </div>
+
+                      {/* Room allocation counter */}
+                      {isIncluded && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <span className="text-[12px] font-medium text-humana-muted">
+                            {tw.rooms.roomsToUse}:
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() =>
+                                updatePricing(block.id, {
+                                  allocatedRooms: Math.max(1, usedRooms - 1),
+                                })
+                              }
+                              disabled={usedRooms <= 1}
+                              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-humana-line bg-white text-[14px] font-medium text-humana-ink transition-colors hover:border-humana-gold disabled:cursor-not-allowed disabled:opacity-30"
+                            >
+                              −
+                            </button>
+                            <span className="w-8 text-center text-[14px] font-semibold text-humana-ink">
+                              {usedRooms}
+                            </span>
+                            <button
+                              onClick={() =>
+                                updatePricing(block.id, {
+                                  allocatedRooms: Math.min(block.available_rooms, usedRooms + 1),
+                                })
+                              }
+                              disabled={usedRooms >= block.available_rooms}
+                              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-humana-line bg-white text-[14px] font-medium text-humana-ink transition-colors hover:border-humana-gold disabled:cursor-not-allowed disabled:opacity-30"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <span className="text-[12px] text-humana-subtle">
+                            of {block.available_rooms}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Price input */}

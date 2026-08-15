@@ -807,6 +807,8 @@ type Dictionary = {
           coverageOk: string;
           coverageShort: string;
           coverageShortDetail: (covered: number, needed: number) => string;
+          roomsToUse: string;
+          nextDisabledCapacity: string;
           earningsTitle: string;
           commission: (pct: number) => string;
           agencyCommission: (pct: number) => string;
@@ -819,6 +821,7 @@ type Dictionary = {
           subtitle: (n: number) => string;
           dayLabel: (n: number) => string;
           dayTitlePlaceholder: string;
+          activitiesCount: (n: number) => string;
           activityPlaceholder: string;
           addActivity: string;
           facilitators: string;
@@ -2712,6 +2715,8 @@ export const dictionary: Record<Locale, Dictionary> = {
             coverageOk: "Maximum capacity covered",
             coverageShort: "Include more rooms to reach the retreat's maximum capacity.",
             coverageShortDetail: (covered: number, needed: number) => `${covered} spots covered — ${needed - covered} more needed to reach full capacity.`,
+            roomsToUse: "Rooms to use",
+            nextDisabledCapacity: "You need more inventory spots to cover the retreat capacity.",
             earningsTitle: "Total estimated earnings",
             commission: (pct: number) => `Commission (${pct}%)`,
             agencyCommission: (pct: number) => `Agency commission (${pct}%)`,
@@ -2724,6 +2729,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             subtitle: (n: number) => `Define the day-by-day activities for your ${n}-night retreat.`,
             dayLabel: (n: number) => `Day ${n}`,
             dayTitlePlaceholder: "e.g. Arrival & Welcome",
+            activitiesCount: (n: number) => `${n} ${n === 1 ? "activity" : "activities"}`,
             activityPlaceholder: "Activity name",
             addActivity: "Add activity",
             facilitators: "Facilitators",
@@ -4824,6 +4830,8 @@ export const dictionary: Record<Locale, Dictionary> = {
             coverageOk: "Capacidad máxima cubierta",
             coverageShort: "Incluye más habitaciones para alcanzar la capacidad máxima del retiro.",
             coverageShortDetail: (covered: number, needed: number) => `${covered} plazas cubiertas — faltan ${needed - covered} para capacidad completa.`,
+            roomsToUse: "Habitaciones a usar",
+            nextDisabledCapacity: "Necesitas más plazas de inventario para cubrir la capacidad del retiro.",
             earningsTitle: "Ingresos estimados totales",
             commission: (pct: number) => `Comisión (${pct}%)`,
             agencyCommission: (pct: number) => `Comisión agencia (${pct}%)`,
@@ -4836,6 +4844,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             subtitle: (n: number) => `Define las actividades día a día de tu retiro de ${n} noches.`,
             dayLabel: (n: number) => `Día ${n}`,
             dayTitlePlaceholder: "ej. Llegada y Bienvenida",
+            activitiesCount: (n: number) => `${n} ${n === 1 ? "actividad" : "actividades"}`,
             activityPlaceholder: "Nombre de la actividad",
             addActivity: "Agregar actividad",
             facilitators: "Facilitadores",
@@ -6936,6 +6945,8 @@ export const dictionary: Record<Locale, Dictionary> = {
             coverageOk: "Capacidade máxima coberta",
             coverageShort: "Inclua mais quartos para atingir a capacidade máxima do retiro.",
             coverageShortDetail: (covered: number, needed: number) => `${covered} vagas cobertas — faltam ${needed - covered} para capacidade completa.`,
+            roomsToUse: "Quartos a usar",
+            nextDisabledCapacity: "Você precisa de mais vagas de inventário para cobrir a capacidade do retiro.",
             earningsTitle: "Receita estimada total",
             commission: (pct: number) => `Comissão (${pct}%)`,
             agencyCommission: (pct: number) => `Comissão agência (${pct}%)`,
@@ -6948,6 +6959,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             subtitle: (n: number) => `Defina as atividades dia a dia do seu retiro de ${n} noites.`,
             dayLabel: (n: number) => `Dia ${n}`,
             dayTitlePlaceholder: "ex. Chegada e Boas-vindas",
+            activitiesCount: (n: number) => `${n} ${n === 1 ? "atividade" : "atividades"}`,
             activityPlaceholder: "Nome da atividade",
             addActivity: "Adicionar atividade",
             facilitators: "Facilitadores",

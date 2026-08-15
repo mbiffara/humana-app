@@ -210,7 +210,7 @@ export default function AgencyRetreatHotelStep() {
                     {tw.back}
                   </Link>
                 )}
-                {emptyReason !== "dates_not_covered" && emptyReason !== "no_dates" && (
+                {emptyReason !== "no_dates" && (
                   <Link
                     href="/map"
                     className="mt-6 bg-humana-gold px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-white transition-opacity hover:opacity-85"
