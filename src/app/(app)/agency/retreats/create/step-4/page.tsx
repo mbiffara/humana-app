@@ -30,9 +30,9 @@ export default function AgencyRetreatProgramStep() {
   const { state, set } = useAgencyRetreatWizard();
   const [expandedDay, setExpandedDay] = useState(0);
 
-  // Keep days array in sync with duration (nights + 1)
+  // Keep days array in sync with duration (nights = days of program)
   useEffect(() => {
-    const target = state.nights + 1;
+    const target = state.nights;
     if (target <= 0) return;
 
     if (state.days.length === 0) {
