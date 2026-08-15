@@ -583,7 +583,7 @@ type Dictionary = {
       exportBtn: string;
       empty: string;
       emptyHint: string;
-      kpis: { total: string; totalBookings: string; retreats: string; lodging: string; commission: string; volume: string };
+      kpis: { total: string; totalBookings: string; inventoryRetreats: string; retreats: string; lodging: string; commission: string; volume: string };
       filters: { all: string; inquiry: string; confirmed: string; completed: string; cancelled: string };
       statusLabels: { inquiry: string; confirmed: string; completed: string; cancelled: string };
       columns: { reference: string; client: string; experience: string; dates: string; guests: string; room: string; hotel: string; amount: string; commission: string; status: string; created: string; type: string; checkIn: string; checkOut: string; nights: string };
@@ -2453,7 +2453,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Export",
         empty: "No bookings yet",
         emptyHint: "Your booking history will appear here once you make your first reservation.",
-        kpis: { total: "Total Spots", totalBookings: "Total Bookings", retreats: "Retreat Bookings", lodging: "Lodging Bookings", commission: "Commission Earned", volume: "Total Volume" },
+        kpis: { total: "Total Spots", totalBookings: "Total Bookings", inventoryRetreats: "Total Retreats", retreats: "Retreat Bookings", lodging: "Lodging Bookings", commission: "Commission Earned", volume: "Total Volume" },
         filters: { all: "All", inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
         statusLabels: { inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
         columns: { reference: "Reference", client: "Client", experience: "Experience", dates: "Dates", guests: "Guests", room: "Room", hotel: "Hotel", amount: "Amount", commission: "Commission", status: "Status", created: "Created", type: "Type", checkIn: "Check-in", checkOut: "Check-out", nights: "Nights" },
@@ -4545,7 +4545,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Exportar",
         empty: "Aún no hay reservas",
         emptyHint: "Tu historial de reservas aparecerá aquí una vez que realices tu primera reservación.",
-        kpis: { total: "Total de Plazas", totalBookings: "Total de Reservas", retreats: "Reservas Retiros", lodging: "Reservas Alojamiento", commission: "Comisión Ganada", volume: "Volumen Total" },
+        kpis: { total: "Total de Plazas", totalBookings: "Total de Reservas", inventoryRetreats: "Total de Retiros", retreats: "Reservas Retiros", lodging: "Reservas Alojamiento", commission: "Comisión Ganada", volume: "Volumen Total" },
         filters: { all: "Todas", inquiry: "Pendientes", confirmed: "Confirmadas", completed: "Completadas", cancelled: "Canceladas" },
         statusLabels: { inquiry: "Pendiente", confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada" },
         columns: { reference: "Referencia", client: "Cliente", experience: "Experiencia", dates: "Fechas", guests: "Huéspedes", room: "Habitación", hotel: "Hotel", amount: "Monto", commission: "Comisión", status: "Estado", created: "Creada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noches" },
@@ -6637,7 +6637,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Exportar",
         empty: "Nenhuma reserva ainda",
         emptyHint: "Seu histórico de reservas aparecerá aqui assim que você fizer sua primeira reserva.",
-        kpis: { total: "Total de Vagas", totalBookings: "Total de Reservas", retreats: "Reservas Retiros", lodging: "Reservas Alojamento", commission: "Comissão Recebida", volume: "Volume Total" },
+        kpis: { total: "Total de Vagas", totalBookings: "Total de Reservas", inventoryRetreats: "Total de Retiros", retreats: "Reservas Retiros", lodging: "Reservas Alojamento", commission: "Comissão Recebida", volume: "Volume Total" },
         filters: { all: "Todas", inquiry: "Pendentes", confirmed: "Confirmadas", completed: "Concluídas", cancelled: "Canceladas" },
         statusLabels: { inquiry: "Pendente", confirmed: "Confirmada", completed: "Concluída", cancelled: "Cancelada" },
         columns: { reference: "Referência", client: "Cliente", experience: "Experiência", dates: "Datas", guests: "Hóspedes", room: "Quarto", hotel: "Hotel", amount: "Valor", commission: "Comissão", status: "Status", created: "Criada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noites" },
