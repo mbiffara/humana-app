@@ -69,19 +69,28 @@ function DashboardKpis() {
     new Intl.NumberFormat(tag, { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(cents / 100);
 
   const kpis = [
-    { label: t.agencyWs.bookings.kpis.total, value: String(dashboard.inventory_lodging_spots) },
-    { label: t.agencyWs.bookings.kpis.inventoryRetreats, value: String(dashboard.inventory_retreat_count) },
-    { label: t.agencyWs.bookings.kpis.volume, value: fmt(dashboard.volume_cents), gold: true },
-    { label: t.agencyWs.bookings.kpis.commission, value: fmt(dashboard.commission_earned_cents) },
+    { label: t.agencyWs.bookings.kpis.total, value: String(dashboard.inventory_lodging_spots), tooltip: t.agencyWs.bookings.kpiTooltips.total },
+    { label: t.agencyWs.bookings.kpis.inventoryRetreats, value: String(dashboard.inventory_retreat_count), tooltip: t.agencyWs.bookings.kpiTooltips.inventoryRetreats },
+    { label: t.agencyWs.bookings.kpis.volume, value: fmt(dashboard.volume_cents), gold: true, tooltip: t.agencyWs.bookings.kpiTooltips.volume },
+    { label: t.agencyWs.bookings.kpis.commission, value: fmt(dashboard.commission_earned_cents), tooltip: t.agencyWs.bookings.kpiTooltips.commission },
   ];
 
   return (
     <section className="px-16 pt-8">
       <div className="grid grid-cols-4 gap-5 stagger-children">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="border border-humana-line bg-white p-5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">{kpi.label}</p>
+          <div key={kpi.label} className="group relative cursor-pointer border border-humana-line bg-white p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">{kpi.label}</p>
+              <svg className="h-3.5 w-3.5 text-humana-line group-hover:text-humana-subtle transition-colors" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11ZM8 5a.75.75 0 1 1 0-1.5A.75.75 0 0 1 8 5Zm-.75 1.75a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-1.5 0v-3.5Z" />
+              </svg>
+            </div>
             <p className={`mt-1.5 text-[26px] font-bold ${kpi.gold ? "text-humana-gold" : "text-humana-ink"}`}>{kpi.value}</p>
+            <span className="pointer-events-none absolute left-1/2 bottom-full z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-humana-ink px-3 py-2 text-[11px] font-normal normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+              {kpi.tooltip}
+              <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-humana-ink" />
+            </span>
           </div>
         ))}
       </div>

@@ -83,10 +83,10 @@ export default function AgencyBillingPage() {
   const totalVolume = bookingsSummary.volume_cents + salesSummary.total_revenue_cents;
 
   const kpis = [
-    { label: tb.kpis.totalCommission, value: fmt(totalCommission), gold: true },
-    { label: tb.kpis.commissionFromBookings, value: fmt(bookingsSummary.commission_cents) },
-    { label: tb.kpis.retreatSalesRevenue, value: fmt(salesSummary.total_revenue_cents) },
-    { label: tb.kpis.totalVolume, value: fmt(totalVolume) },
+    { label: tb.kpis.totalCommission, value: fmt(totalCommission), gold: true, tooltip: tb.kpiTooltips.totalCommission },
+    { label: tb.kpis.commissionFromBookings, value: fmt(bookingsSummary.commission_cents), tooltip: tb.kpiTooltips.commissionFromBookings },
+    { label: tb.kpis.retreatSalesRevenue, value: fmt(salesSummary.total_revenue_cents), tooltip: tb.kpiTooltips.retreatSalesRevenue },
+    { label: tb.kpis.totalVolume, value: fmt(totalVolume), tooltip: tb.kpiTooltips.totalVolume },
   ];
 
   const statusColors: Record<string, string> = {
@@ -110,9 +110,18 @@ export default function AgencyBillingPage() {
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-5 stagger-children">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="rounded-xl border border-humana-line bg-white p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">{kpi.label}</p>
+          <div key={kpi.label} className="group relative cursor-pointer rounded-xl border border-humana-line bg-white p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">{kpi.label}</p>
+              <svg className="h-3.5 w-3.5 text-humana-line group-hover:text-humana-subtle transition-colors" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11ZM8 5a.75.75 0 1 1 0-1.5A.75.75 0 0 1 8 5Zm-.75 1.75a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-1.5 0v-3.5Z" />
+              </svg>
+            </div>
             <p className={`mt-1.5 text-[30px] font-bold ${kpi.gold ? "text-humana-gold" : "text-humana-ink"}`}>{kpi.value}</p>
+            <span className="pointer-events-none absolute left-1/2 bottom-full z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-humana-ink px-3 py-2 text-[11px] font-normal normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+              {kpi.tooltip}
+              <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-humana-ink" />
+            </span>
           </div>
         ))}
       </div>
