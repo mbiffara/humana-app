@@ -419,6 +419,8 @@ export const agencyApi = {
     ends_on?: string;
   }) =>
     api.post<{ booking: ApiBooking; checkout_url?: string }>("/bookings", { booking: data }),
+  updateBooking: (id: number, data: { client_id?: number | null; status?: string; guests?: number; notes?: string }) =>
+    api.patch<{ booking: ApiBooking }>(`/bookings/${id}`, { booking: data }),
   verifyBookingCheckout: (bookingId: number, sessionId: string) =>
     api.post<{ booking: ApiBooking }>(`/bookings/${bookingId}/verify_checkout`, { session_id: sessionId }),
 

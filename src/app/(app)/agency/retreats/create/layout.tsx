@@ -79,7 +79,17 @@ function WizardShell({ children }: { children: ReactNode }) {
       currency: "USD",
     };
     if (state.retreatId) {
-      await agencyApi.updateRetreat(state.retreatId, payload);
+      try {
+        await agencyApi.updateRetreat(state.retreatId, payload);
+      } catch (err: unknown) {
+        // Retreat was deleted server-side but sessionStorage still has the id.
+        // Clear the stale id so the wizard continues as a new retreat.
+        if (err && typeof err === "object" && "status" in err && (err as { status: number }).status === 404) {
+          set({ retreatId: null });
+          return;
+        }
+        throw err;
+      }
     }
     // If no retreatId yet, we just persist to session — the retreat
     // will be created in step 2 when a hotel is selected and validated
@@ -88,15 +98,26 @@ function WizardShell({ children }: { children: ReactNode }) {
 
   const saveHotelSelection = useCallback(async () => {
     if (!state.hotelId) return;
-    const payload: Record<string, unknown> = {
-      hotel_id: state.hotelId,
-      location: [state.hotelCity, state.hotelCountry].filter(Boolean).join(", "),
-      country: state.hotelCountry,
-      country_code: state.hotelCountryCode,
-    };
-    if (state.retreatId) {
-      await agencyApi.updateRetreat(state.retreatId, payload);
-    } else {
+
+    const createOrUpdate = async (retreatId: number | null) => {
+      if (retreatId) {
+        try {
+          await agencyApi.updateRetreat(retreatId, {
+            hotel_id: state.hotelId,
+            location: [state.hotelCity, state.hotelCountry].filter(Boolean).join(", "),
+            country: state.hotelCountry,
+            country_code: state.hotelCountryCode,
+          });
+          return;
+        } catch (err: unknown) {
+          // Retreat was deleted — fall through to create a new one
+          if (err && typeof err === "object" && "status" in err && (err as { status: number }).status === 404) {
+            set({ retreatId: null });
+          } else {
+            throw err;
+          }
+        }
+      }
       // Create the retreat now with hotel + basic info
       const createPayload: Record<string, unknown> = {
         hotel_id: state.hotelId,
@@ -115,7 +136,9 @@ function WizardShell({ children }: { children: ReactNode }) {
       };
       const res = await agencyApi.createRetreat(createPayload);
       set({ retreatId: res.retreat.id });
-    }
+    };
+
+    await createOrUpdate(state.retreatId);
   }, [state, set]);
 
   const savePricing = useCallback(async () => {

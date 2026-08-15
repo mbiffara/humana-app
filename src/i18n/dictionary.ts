@@ -588,15 +588,32 @@ type Dictionary = {
       kpiTooltips: { total: string; inventoryRetreats: string; volume: string; commission: string; totalBookings: string; retreats: string; lodging: string };
       filters: { all: string; inquiry: string; confirmed: string; completed: string; cancelled: string };
       statusLabels: { inquiry: string; confirmed: string; completed: string; cancelled: string };
-      columns: { reference: string; client: string; experience: string; dates: string; guests: string; room: string; hotel: string; amount: string; commission: string; status: string; created: string; type: string; checkIn: string; checkOut: string; nights: string };
+      columns: { reference: string; client: string; experience: string; dates: string; guests: string; room: string; hotel: string; amount: string; commission: string; status: string; created: string; type: string; checkIn: string; checkOut: string; nights: string; actions: string };
       retreatSection: string;
       lodgingSection: string;
       emptyRetreats: string;
       emptyLodging: string;
-      tooltips: { reference: string; client: string; experience: string; type: string; hotel: string; room: string; guests: string; dates: string; checkIn: string; checkOut: string; nights: string; amount: string; commission: string; status: string; created: string };
+      tooltips: { reference: string; client: string; experience: string; type: string; hotel: string; room: string; guests: string; dates: string; checkIn: string; checkOut: string; nights: string; amount: string; commission: string; status: string; created: string; actions: string };
       filterByHotel: string;
       allHotels: string;
       onlyRetreatVenues: string;
+      clientModal: {
+        assignTitle: string;
+        changeTitle: string;
+        searchPlaceholder: string;
+        noClients: string;
+        noResults: string;
+        assignBtn: string;
+        unassignBtn: string;
+        unassignMessage: string;
+        saving: string;
+        inventory: string;
+        createAndAssign: string;
+        newClient: string;
+        nameLabel: string;
+        emailLabel: string;
+        phoneLabel: string;
+      };
     };
     settings: {
       eyebrow: string;
@@ -2461,15 +2478,32 @@ export const dictionary: Record<Locale, Dictionary> = {
         kpiTooltips: { total: "Available lodging spots without an assigned client", inventoryRetreats: "Retreat bookings without an assigned client", volume: "Total revenue from confirmed bookings", commission: "Total commission earned from bookings", totalBookings: "Total number of confirmed bookings", retreats: "Bookings for retreat experiences", lodging: "Bookings for hotel accommodation only" },
         filters: { all: "All", inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
         statusLabels: { inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
-        columns: { reference: "Reference", client: "Client", experience: "Experience", dates: "Dates", guests: "Guests", room: "Room", hotel: "Hotel", amount: "Amount", commission: "Commission", status: "Status", created: "Created", type: "Type", checkIn: "Check-in", checkOut: "Check-out", nights: "Nights" },
+        columns: { reference: "Reference", client: "Client", experience: "Experience", dates: "Dates", guests: "Guests", room: "Room", hotel: "Hotel", amount: "Amount", commission: "Commission", status: "Status", created: "Created", type: "Type", checkIn: "Check-in", checkOut: "Check-out", nights: "Nights", actions: "Actions" },
         retreatSection: "Retreats",
         lodgingSection: "Lodging",
         emptyRetreats: "No retreat bookings yet",
         emptyLodging: "No lodging bookings yet",
-        tooltips: { reference: "Unique booking identifier", client: "Client assigned to this booking", experience: "Retreat or experience booked", type: "Category of the experience", hotel: "Hotel hosting the stay", room: "Room type selected", guests: "Number of guests or participants", dates: "Experience start and end dates", checkIn: "Guest arrival date", checkOut: "Guest departure date", nights: "Number of nights booked", amount: "Total amount charged", commission: "Commission earned by your agency", status: "Current status of the booking", created: "Date the booking was placed" },
+        tooltips: { reference: "Unique booking identifier", client: "Client assigned to this booking", experience: "Retreat or experience booked", type: "Category of the experience", hotel: "Hotel hosting the stay", room: "Room type selected", guests: "Number of guests or participants", dates: "Experience start and end dates", checkIn: "Guest arrival date", checkOut: "Guest departure date", nights: "Number of nights booked", amount: "Total amount charged", commission: "Commission earned by your agency", status: "Current status of the booking", created: "Date the booking was placed", actions: "Assign or change the client" },
         filterByHotel: "Hotel",
         allHotels: "All Hotels",
         onlyRetreatVenues: "Available for retreats",
+        clientModal: {
+          assignTitle: "Assign Client",
+          changeTitle: "Change Client",
+          searchPlaceholder: "Search by name or email\u2026",
+          noClients: "No clients yet. Create your first client below.",
+          noResults: "No clients match your search.",
+          assignBtn: "Assign",
+          unassignBtn: "Remove Client",
+          unassignMessage: "This booking will revert to inventory (no client assigned).",
+          saving: "Saving\u2026",
+          inventory: "Inventory",
+          createAndAssign: "Create & Assign",
+          newClient: "New Client",
+          nameLabel: "Name",
+          emailLabel: "Email",
+          phoneLabel: "Phone",
+        },
       },
       settings: {
         eyebrow: "SETTINGS",
@@ -4556,15 +4590,32 @@ export const dictionary: Record<Locale, Dictionary> = {
         kpiTooltips: { total: "Plazas de alojamiento disponibles sin cliente asignado", inventoryRetreats: "Reservas de retiro sin cliente asignado", volume: "Ingresos totales de reservas confirmadas", commission: "Comisión total ganada por reservas", totalBookings: "Número total de reservas confirmadas", retreats: "Reservas de experiencias de retiro", lodging: "Reservas de alojamiento en hotel" },
         filters: { all: "Todas", inquiry: "Pendientes", confirmed: "Confirmadas", completed: "Completadas", cancelled: "Canceladas" },
         statusLabels: { inquiry: "Pendiente", confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada" },
-        columns: { reference: "Referencia", client: "Cliente", experience: "Experiencia", dates: "Fechas", guests: "Huéspedes", room: "Habitación", hotel: "Hotel", amount: "Monto", commission: "Comisión", status: "Estado", created: "Creada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noches" },
+        columns: { reference: "Referencia", client: "Cliente", experience: "Experiencia", dates: "Fechas", guests: "Huéspedes", room: "Habitación", hotel: "Hotel", amount: "Monto", commission: "Comisión", status: "Estado", created: "Creada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noches", actions: "Acciones" },
         retreatSection: "Retiros",
         lodgingSection: "Alojamiento",
         emptyRetreats: "Aún no hay reservas de retiros",
         emptyLodging: "Aún no hay reservas de alojamiento",
-        tooltips: { reference: "Identificador único de la reserva", client: "Cliente asignado a esta reserva", experience: "Retiro o experiencia reservada", type: "Categoría de la experiencia", hotel: "Hotel donde se realiza la estadía", room: "Tipo de habitación seleccionada", guests: "Número de huéspedes o participantes", dates: "Fechas de inicio y fin de la experiencia", checkIn: "Fecha de llegada del huésped", checkOut: "Fecha de salida del huésped", nights: "Número de noches reservadas", amount: "Monto total cobrado", commission: "Comisión ganada por tu agencia", status: "Estado actual de la reserva", created: "Fecha en que se realizó la reserva" },
+        tooltips: { reference: "Identificador único de la reserva", client: "Cliente asignado a esta reserva", experience: "Retiro o experiencia reservada", type: "Categoría de la experiencia", hotel: "Hotel donde se realiza la estadía", room: "Tipo de habitación seleccionada", guests: "Número de huéspedes o participantes", dates: "Fechas de inicio y fin de la experiencia", checkIn: "Fecha de llegada del huésped", checkOut: "Fecha de salida del huésped", nights: "Número de noches reservadas", amount: "Monto total cobrado", commission: "Comisión ganada por tu agencia", status: "Estado actual de la reserva", created: "Fecha en que se realizó la reserva", actions: "Asignar o cambiar el cliente" },
         filterByHotel: "Hotel",
         allHotels: "Todos los Hoteles",
         onlyRetreatVenues: "Disponibles para retiros",
+        clientModal: {
+          assignTitle: "Asignar Cliente",
+          changeTitle: "Cambiar Cliente",
+          searchPlaceholder: "Buscar por nombre o email\u2026",
+          noClients: "Aún no hay clientes. Crea tu primer cliente abajo.",
+          noResults: "Ningún cliente coincide con tu búsqueda.",
+          assignBtn: "Asignar",
+          unassignBtn: "Quitar Cliente",
+          unassignMessage: "Esta reserva volverá a inventario (sin cliente asignado).",
+          saving: "Guardando\u2026",
+          inventory: "Inventario",
+          createAndAssign: "Crear y Asignar",
+          newClient: "Nuevo Cliente",
+          nameLabel: "Nombre",
+          emailLabel: "Email",
+          phoneLabel: "Teléfono",
+        },
       },
       settings: {
         eyebrow: "CONFIGURACIÓN",
@@ -6651,15 +6702,32 @@ export const dictionary: Record<Locale, Dictionary> = {
         kpiTooltips: { total: "Vagas de alojamento disponíveis sem cliente atribuído", inventoryRetreats: "Reservas de retiro sem cliente atribuído", volume: "Receita total de reservas confirmadas", commission: "Comissão total recebida por reservas", totalBookings: "Número total de reservas confirmadas", retreats: "Reservas de experiências de retiro", lodging: "Reservas de alojamento em hotel" },
         filters: { all: "Todas", inquiry: "Pendentes", confirmed: "Confirmadas", completed: "Concluídas", cancelled: "Canceladas" },
         statusLabels: { inquiry: "Pendente", confirmed: "Confirmada", completed: "Concluída", cancelled: "Cancelada" },
-        columns: { reference: "Referência", client: "Cliente", experience: "Experiência", dates: "Datas", guests: "Hóspedes", room: "Quarto", hotel: "Hotel", amount: "Valor", commission: "Comissão", status: "Status", created: "Criada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noites" },
+        columns: { reference: "Referência", client: "Cliente", experience: "Experiência", dates: "Datas", guests: "Hóspedes", room: "Quarto", hotel: "Hotel", amount: "Valor", commission: "Comissão", status: "Status", created: "Criada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noites", actions: "Ações" },
         retreatSection: "Retiros",
         lodgingSection: "Hospedagem",
         emptyRetreats: "Nenhuma reserva de retiro ainda",
         emptyLodging: "Nenhuma reserva de hospedagem ainda",
-        tooltips: { reference: "Identificador único da reserva", client: "Cliente atribuído a esta reserva", experience: "Retiro ou experiência reservada", type: "Categoria da experiência", hotel: "Hotel onde a estadia acontece", room: "Tipo de quarto selecionado", guests: "Número de hóspedes ou participantes", dates: "Datas de início e fim da experiência", checkIn: "Data de chegada do hóspede", checkOut: "Data de saída do hóspede", nights: "Número de noites reservadas", amount: "Valor total cobrado", commission: "Comissão recebida pela sua agência", status: "Status atual da reserva", created: "Data em que a reserva foi feita" },
+        tooltips: { reference: "Identificador único da reserva", client: "Cliente atribuído a esta reserva", experience: "Retiro ou experiência reservada", type: "Categoria da experiência", hotel: "Hotel onde a estadia acontece", room: "Tipo de quarto selecionado", guests: "Número de hóspedes ou participantes", dates: "Datas de início e fim da experiência", checkIn: "Data de chegada do hóspede", checkOut: "Data de saída do hóspede", nights: "Número de noites reservadas", amount: "Valor total cobrado", commission: "Comissão recebida pela sua agência", status: "Status atual da reserva", created: "Data em que a reserva foi feita", actions: "Atribuir ou alterar o cliente" },
         filterByHotel: "Hotel",
         allHotels: "Todos os Hotéis",
         onlyRetreatVenues: "Disponíveis para retiros",
+        clientModal: {
+          assignTitle: "Atribuir Cliente",
+          changeTitle: "Alterar Cliente",
+          searchPlaceholder: "Buscar por nome ou email\u2026",
+          noClients: "Nenhum cliente ainda. Crie seu primeiro cliente abaixo.",
+          noResults: "Nenhum cliente corresponde à sua busca.",
+          assignBtn: "Atribuir",
+          unassignBtn: "Remover Cliente",
+          unassignMessage: "Esta reserva voltará ao inventário (sem cliente atribuído).",
+          saving: "Salvando\u2026",
+          inventory: "Inventário",
+          createAndAssign: "Criar e Atribuir",
+          newClient: "Novo Cliente",
+          nameLabel: "Nome",
+          emailLabel: "Email",
+          phoneLabel: "Telefone",
+        },
       },
       settings: {
         eyebrow: "CONFIGURAÇÕES",

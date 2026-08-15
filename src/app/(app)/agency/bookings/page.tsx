@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { agencyApi, type ApiBooking } from "@/lib/api/agency";
+import { ClientAssignModal } from "./ClientAssignModal";
 
 const LOCALE_TAGS: Record<string, string> = { en: "en-US", es: "es-ES", pt: "pt-PT" };
 
@@ -82,6 +83,7 @@ export default function AgencyBookingsPage() {
   const [retreatHotelId, setRetreatHotelId] = useState<number | "">("");
   const [lodgingHotelId, setLodgingHotelId] = useState<number | "">("");
   const [onlyRetreatVenues, setOnlyRetreatVenues] = useState(false);
+  const [assignModal, setAssignModal] = useState<ApiBooking | null>(null);
 
   const fetchBookings = useCallback(async (pg: number) => {
     setLoading(true);
@@ -306,6 +308,7 @@ export default function AgencyBookingsPage() {
                         <Th tooltip={tip.amount} align="right">{col.amount}</Th>
                         <Th tooltip={tip.commission} align="right">{col.commission}</Th>
                         <Th tooltip={tip.created}>{col.created}</Th>
+                        <Th tooltip={tip.actions}>{col.actions}</Th>
                       </tr>
                     </thead>
                     <tbody>
@@ -321,14 +324,20 @@ export default function AgencyBookingsPage() {
                               </span>
                             </td>
                             <td className="px-4 py-3">
-                              <div className="min-w-0">
-                                <p className="truncate text-[13px] font-medium text-humana-ink">
-                                  {booking.client?.name ?? "\u2014"}
-                                </p>
-                                <p className="truncate text-[11px] text-humana-subtle">
-                                  {booking.client?.email ?? ""}
-                                </p>
-                              </div>
+                              {booking.client ? (
+                                <div className="min-w-0">
+                                  <p className="truncate text-[13px] font-medium text-humana-ink">
+                                    {booking.client.name}
+                                  </p>
+                                  <p className="truncate text-[11px] text-humana-subtle">
+                                    {booking.client.email}
+                                  </p>
+                                </div>
+                              ) : (
+                                <span className="inline-block rounded-full bg-humana-stone px-2.5 py-0.5 text-[11px] font-medium text-humana-subtle">
+                                  {tb.clientModal.inventory}
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-3 max-w-[160px]">
                               <p className="truncate text-[13px] text-humana-ink">
@@ -369,6 +378,14 @@ export default function AgencyBookingsPage() {
                               <span className="text-[12px] text-humana-subtle">
                                 {booking.created_at ? formatDate(booking.created_at.slice(0, 10), tag) : "\u2014"}
                               </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <button
+                                onClick={() => setAssignModal(booking)}
+                                className="text-[12px] font-semibold text-humana-gold transition-colors hover:text-humana-gold/80"
+                              >
+                                {booking.client ? tb.clientModal.changeTitle : tb.clientModal.assignTitle}
+                              </button>
                             </td>
                           </tr>
                         );
@@ -433,6 +450,7 @@ export default function AgencyBookingsPage() {
                         <Th tooltip={tip.amount} align="right">{col.amount}</Th>
                         <Th tooltip={tip.commission} align="right">{col.commission}</Th>
                         <Th tooltip={tip.created}>{col.created}</Th>
+                        <Th tooltip={tip.actions}>{col.actions}</Th>
                       </tr>
                     </thead>
                     <tbody>
@@ -449,14 +467,20 @@ export default function AgencyBookingsPage() {
                               </span>
                             </td>
                             <td className="px-4 py-3">
-                              <div className="min-w-0">
-                                <p className="truncate text-[13px] font-medium text-humana-ink">
-                                  {booking.client?.name ?? "\u2014"}
-                                </p>
-                                <p className="truncate text-[11px] text-humana-subtle">
-                                  {booking.client?.email ?? ""}
-                                </p>
-                              </div>
+                              {booking.client ? (
+                                <div className="min-w-0">
+                                  <p className="truncate text-[13px] font-medium text-humana-ink">
+                                    {booking.client.name}
+                                  </p>
+                                  <p className="truncate text-[11px] text-humana-subtle">
+                                    {booking.client.email}
+                                  </p>
+                                </div>
+                              ) : (
+                                <span className="inline-block rounded-full bg-humana-stone px-2.5 py-0.5 text-[11px] font-medium text-humana-subtle">
+                                  {tb.clientModal.inventory}
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-3 max-w-[140px]">
                               <p className="truncate text-[13px] text-humana-ink">
@@ -499,6 +523,14 @@ export default function AgencyBookingsPage() {
                                 {booking.created_at ? formatDate(booking.created_at.slice(0, 10), tag) : "\u2014"}
                               </span>
                             </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <button
+                                onClick={() => setAssignModal(booking)}
+                                className="text-[12px] font-semibold text-humana-gold transition-colors hover:text-humana-gold/80"
+                              >
+                                {booking.client ? tb.clientModal.changeTitle : tb.clientModal.assignTitle}
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -510,6 +542,13 @@ export default function AgencyBookingsPage() {
           </section>
         </div>
       )}
+
+      {/* Client Assign Modal */}
+      <ClientAssignModal
+        booking={assignModal}
+        onClose={() => setAssignModal(null)}
+        onSuccess={() => fetchBookings(page)}
+      />
 
       {/* Pagination */}
       {!loading && bookings.length > 0 && totalPages > 1 && (
