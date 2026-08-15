@@ -47,6 +47,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
   const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const isRetreatFlow = state.flowType === "retreats";
   const retreatStart = state.dates?.start ?? "2026-05-28";
   const retreatEnd = state.dates?.end ?? "2026-06-01";
   const retreatNights = diffDays(retreatStart, retreatEnd);
@@ -301,7 +302,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
             <Link href={`/select-country/${country}/step-3-assign-client`} onClick={() => set({
               roomTypeId: selectedRoom ? String(selectedRoom) : null,
               roomTypeApiId: selectedRoom,
-              guests: room?.capacity ?? 1,
+              guests: isRetreatFlow ? 1 : (room?.capacity ?? 1),
               preNights: 0,
               postNights: 0,
               display: state.display ? {

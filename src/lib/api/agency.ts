@@ -237,7 +237,7 @@ export interface HotelAvailabilityResponse {
 }
 
 export interface AgencyDashboard {
-  total_bookings: number;
+  total_guests: number;
   confirmed_count: number;
   commission_earned_cents: number;
   volume_cents: number;

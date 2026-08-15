@@ -69,7 +69,7 @@ function DashboardKpis() {
     new Intl.NumberFormat(tag, { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(cents / 100);
 
   const kpis = [
-    { label: t.agencyWs.bookings.kpis.total, value: String(dashboard.total_bookings) },
+    { label: t.agencyWs.bookings.kpis.total, value: String(dashboard.total_guests) },
     { label: t.agencyWs.bookings.kpis.volume, value: fmt(dashboard.volume_cents), gold: true },
     { label: t.agencyWs.bookings.kpis.commission, value: fmt(dashboard.commission_earned_cents) },
     { label: t.agencyWs.clients.title, value: String(dashboard.active_clients) },
