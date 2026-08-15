@@ -550,6 +550,7 @@ type Dictionary = {
       empty: string;
       emptyHint: string;
       kpis: { totalSales: string; revenue: string; avgSale: string; totalCommission: string; commissionFromBookings: string; retreatSalesRevenue: string; totalVolume: string };
+      kpiTooltips: { totalCommission: string; commissionFromBookings: string; retreatSalesRevenue: string; totalVolume: string };
       tabs: { commissions: string; retreatSales: string };
       columns: { reference: string; retreat: string; agency: string; roomType: string; dates: string; guests: string; amount: string; commission: string; status: string; created: string; client: string; type: string; hotel: string };
       bookingType: { retreat: string; lodging: string };
@@ -583,7 +584,8 @@ type Dictionary = {
       exportBtn: string;
       empty: string;
       emptyHint: string;
-      kpis: { total: string; retreats: string; lodging: string; commission: string; volume: string };
+      kpis: { total: string; totalBookings: string; inventoryRetreats: string; retreats: string; lodging: string; commission: string; volume: string };
+      kpiTooltips: { total: string; inventoryRetreats: string; volume: string; commission: string; totalBookings: string; retreats: string; lodging: string };
       filters: { all: string; inquiry: string; confirmed: string; completed: string; cancelled: string };
       statusLabels: { inquiry: string; confirmed: string; completed: string; cancelled: string };
       columns: { reference: string; client: string; experience: string; dates: string; guests: string; room: string; hotel: string; amount: string; commission: string; status: string; created: string; type: string; checkIn: string; checkOut: string; nights: string };
@@ -694,6 +696,7 @@ type Dictionary = {
       filters: { all: string; draft: string; active: string; closed: string };
       statusLabels: { draft: string; active: string; upcoming: string; closed: string; cancelled: string };
       kpis: { total: string; active: string; draft: string };
+      kpiTooltips: { total: string; active: string; draft: string };
       columns: { name: string; hotel: string; dates: string; capacity: string; price: string; status: string; actions: string };
       preview: string;
       deleteTitle: string;
@@ -2420,6 +2423,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         empty: "No sales yet",
         emptyHint: "When other agencies book spots on your retreats, their bookings will appear here.",
         kpis: { totalSales: "Total Sales", revenue: "Revenue", avgSale: "Avg. Sale", totalCommission: "Total Commission", commissionFromBookings: "Booking Commission", retreatSalesRevenue: "Retreat Sales Revenue", totalVolume: "Total Volume" },
+        kpiTooltips: { totalCommission: "Sum of booking and retreat sales commission", commissionFromBookings: "Commission earned from your own bookings", retreatSalesRevenue: "Revenue from retreats sold to other agencies", totalVolume: "Total transaction volume across all bookings" },
         tabs: { commissions: "Commissions", retreatSales: "Retreat Sales" },
         columns: { reference: "Reference", retreat: "Retreat", agency: "Agency", roomType: "Room Type", dates: "Dates", guests: "Guests", amount: "Amount", commission: "Commission", status: "Status", created: "Created", client: "Client", type: "Type", hotel: "Hotel" },
         bookingType: { retreat: "Retreat", lodging: "Lodging" },
@@ -2453,7 +2457,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Export",
         empty: "No bookings yet",
         emptyHint: "Your booking history will appear here once you make your first reservation.",
-        kpis: { total: "Total Spots", retreats: "Retreat Bookings", lodging: "Lodging Bookings", commission: "Commission Earned", volume: "Total Volume" },
+        kpis: { total: "Total Spots", totalBookings: "Total Bookings", inventoryRetreats: "Total Retreats", retreats: "Retreat Bookings", lodging: "Lodging Bookings", commission: "Commission Earned", volume: "Total Volume" },
+        kpiTooltips: { total: "Available lodging spots without an assigned client", inventoryRetreats: "Retreat bookings without an assigned client", volume: "Total revenue from confirmed bookings", commission: "Total commission earned from bookings", totalBookings: "Total number of confirmed bookings", retreats: "Bookings for retreat experiences", lodging: "Bookings for hotel accommodation only" },
         filters: { all: "All", inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
         statusLabels: { inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
         columns: { reference: "Reference", client: "Client", experience: "Experience", dates: "Dates", guests: "Guests", room: "Room", hotel: "Hotel", amount: "Amount", commission: "Commission", status: "Status", created: "Created", type: "Type", checkIn: "Check-in", checkOut: "Check-out", nights: "Nights" },
@@ -2579,6 +2584,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         filters: { all: "All", draft: "Draft", active: "Active", closed: "Closed" },
         statusLabels: { draft: "Draft", active: "Active", upcoming: "Upcoming", closed: "Closed", cancelled: "Cancelled" },
         kpis: { total: "Total Retreats", active: "Active", draft: "Drafts" },
+        kpiTooltips: { total: "Total retreats created by your agency", active: "Retreats currently active or upcoming", draft: "Retreats still in draft, not published" },
         columns: { name: "Retreat", hotel: "Hotel", dates: "Dates", capacity: "Capacity", price: "From", status: "Status", actions: "Actions" },
         preview: "Preview",
         deleteTitle: "Delete Retreat",
@@ -4512,6 +4518,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         empty: "Aún no hay ventas",
         emptyHint: "Cuando otras agencias reserven plazas en tus retiros, sus reservas aparecerán aquí.",
         kpis: { totalSales: "Total Ventas", revenue: "Ingresos", avgSale: "Venta Promedio", totalCommission: "Comisión Total", commissionFromBookings: "Comisión de Reservas", retreatSalesRevenue: "Ingresos por Retiros", totalVolume: "Volumen Total" },
+        kpiTooltips: { totalCommission: "Suma de comisiones de reservas y ventas de retiros", commissionFromBookings: "Comisión ganada por tus propias reservas", retreatSalesRevenue: "Ingresos por retiros vendidos a otras agencias", totalVolume: "Volumen total de transacciones de todas las reservas" },
         tabs: { commissions: "Comisiones", retreatSales: "Ventas de Retiros" },
         columns: { reference: "Referencia", retreat: "Retiro", agency: "Agencia", roomType: "Habitación", dates: "Fechas", guests: "Huéspedes", amount: "Monto", commission: "Comisión", status: "Estado", created: "Creada", client: "Cliente", type: "Tipo", hotel: "Hotel" },
         bookingType: { retreat: "Retiro", lodging: "Alojamiento" },
@@ -4545,7 +4552,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Exportar",
         empty: "Aún no hay reservas",
         emptyHint: "Tu historial de reservas aparecerá aquí una vez que realices tu primera reservación.",
-        kpis: { total: "Total de Plazas", retreats: "Reservas Retiros", lodging: "Reservas Alojamiento", commission: "Comisión Ganada", volume: "Volumen Total" },
+        kpis: { total: "Total de Plazas", totalBookings: "Total de Reservas", inventoryRetreats: "Total de Retiros", retreats: "Reservas Retiros", lodging: "Reservas Alojamiento", commission: "Comisión Ganada", volume: "Volumen Total" },
+        kpiTooltips: { total: "Plazas de alojamiento disponibles sin cliente asignado", inventoryRetreats: "Reservas de retiro sin cliente asignado", volume: "Ingresos totales de reservas confirmadas", commission: "Comisión total ganada por reservas", totalBookings: "Número total de reservas confirmadas", retreats: "Reservas de experiencias de retiro", lodging: "Reservas de alojamiento en hotel" },
         filters: { all: "Todas", inquiry: "Pendientes", confirmed: "Confirmadas", completed: "Completadas", cancelled: "Canceladas" },
         statusLabels: { inquiry: "Pendiente", confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada" },
         columns: { reference: "Referencia", client: "Cliente", experience: "Experiencia", dates: "Fechas", guests: "Huéspedes", room: "Habitación", hotel: "Hotel", amount: "Monto", commission: "Comisión", status: "Estado", created: "Creada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noches" },
@@ -4671,6 +4679,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         filters: { all: "Todos", draft: "Borrador", active: "Activos", closed: "Cerrados" },
         statusLabels: { draft: "Borrador", active: "Activo", upcoming: "Próximo", closed: "Cerrado", cancelled: "Cancelado" },
         kpis: { total: "Total Retiros", active: "Activos", draft: "Borradores" },
+        kpiTooltips: { total: "Total de retiros creados por tu agencia", active: "Retiros activos o próximos", draft: "Retiros en borrador, no publicados" },
         columns: { name: "Retiro", hotel: "Hotel", dates: "Fechas", capacity: "Capacidad", price: "Desde", status: "Estado", actions: "Acciones" },
         preview: "Vista previa",
         deleteTitle: "Eliminar Retiro",
@@ -6604,6 +6613,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         empty: "Nenhuma venda ainda",
         emptyHint: "Quando outras agências reservarem vagas nos seus retiros, as reservas aparecerão aqui.",
         kpis: { totalSales: "Total Vendas", revenue: "Receita", avgSale: "Venda Média", totalCommission: "Comissão Total", commissionFromBookings: "Comissão de Reservas", retreatSalesRevenue: "Receita de Retiros", totalVolume: "Volume Total" },
+        kpiTooltips: { totalCommission: "Soma de comissões de reservas e vendas de retiros", commissionFromBookings: "Comissão recebida pelas suas próprias reservas", retreatSalesRevenue: "Receita de retiros vendidos a outras agências", totalVolume: "Volume total de transações de todas as reservas" },
         tabs: { commissions: "Comissões", retreatSales: "Vendas de Retiros" },
         columns: { reference: "Referência", retreat: "Retiro", agency: "Agência", roomType: "Quarto", dates: "Datas", guests: "Hóspedes", amount: "Valor", commission: "Comissão", status: "Status", created: "Criada", client: "Cliente", type: "Tipo", hotel: "Hotel" },
         bookingType: { retreat: "Retiro", lodging: "Hospedagem" },
@@ -6637,7 +6647,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Exportar",
         empty: "Nenhuma reserva ainda",
         emptyHint: "Seu histórico de reservas aparecerá aqui assim que você fizer sua primeira reserva.",
-        kpis: { total: "Total de Vagas", retreats: "Reservas Retiros", lodging: "Reservas Alojamento", commission: "Comissão Recebida", volume: "Volume Total" },
+        kpis: { total: "Total de Vagas", totalBookings: "Total de Reservas", inventoryRetreats: "Total de Retiros", retreats: "Reservas Retiros", lodging: "Reservas Alojamento", commission: "Comissão Recebida", volume: "Volume Total" },
+        kpiTooltips: { total: "Vagas de alojamento disponíveis sem cliente atribuído", inventoryRetreats: "Reservas de retiro sem cliente atribuído", volume: "Receita total de reservas confirmadas", commission: "Comissão total recebida por reservas", totalBookings: "Número total de reservas confirmadas", retreats: "Reservas de experiências de retiro", lodging: "Reservas de alojamento em hotel" },
         filters: { all: "Todas", inquiry: "Pendentes", confirmed: "Confirmadas", completed: "Concluídas", cancelled: "Canceladas" },
         statusLabels: { inquiry: "Pendente", confirmed: "Confirmada", completed: "Concluída", cancelled: "Cancelada" },
         columns: { reference: "Referência", client: "Cliente", experience: "Experiência", dates: "Datas", guests: "Hóspedes", room: "Quarto", hotel: "Hotel", amount: "Valor", commission: "Comissão", status: "Status", created: "Criada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noites" },
@@ -6763,6 +6774,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         filters: { all: "Todos", draft: "Rascunho", active: "Ativos", closed: "Encerrados" },
         statusLabels: { draft: "Rascunho", active: "Ativo", upcoming: "Próximo", closed: "Encerrado", cancelled: "Cancelado" },
         kpis: { total: "Total de Retiros", active: "Ativos", draft: "Rascunhos" },
+        kpiTooltips: { total: "Total de retiros criados pela sua agência", active: "Retiros ativos ou próximos", draft: "Retiros em rascunho, não publicados" },
         columns: { name: "Retiro", hotel: "Hotel", dates: "Datas", capacity: "Capacidade", price: "Desde", status: "Status", actions: "Ações" },
         preview: "Visualizar",
         deleteTitle: "Excluir Retiro",

@@ -297,9 +297,12 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
       hotelApiId: hotel.id,
       hotelSlug: slug,
       experienceId: null,
+      retreatApiId: null,
+      retreatSlug: null,
       dates: { start: checkIn, end: checkOut },
       roomTypeId: String(selectedRoom.id),
       roomTypeApiId: selectedRoom.id,
+      guests: 1,
       preNights: 0,
       postNights: 0,
       display: {

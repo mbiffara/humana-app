@@ -237,8 +237,8 @@ export interface HotelAvailabilityResponse {
 }
 
 export interface AgencyDashboard {
-  total_guests: number;
-  confirmed_count: number;
+  inventory_lodging_spots: number;
+  inventory_retreat_count: number;
   commission_earned_cents: number;
   volume_cents: number;
   active_clients: number;

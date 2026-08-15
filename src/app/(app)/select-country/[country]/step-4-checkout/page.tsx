@@ -57,7 +57,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
         hotel_id: !state.experienceId ? (state.hotelApiId ?? undefined) : undefined,
         client_id: state.clientApiId ?? undefined,
         room_type_id: state.roomTypeApiId ?? undefined,
-        retreat_id: state.retreatApiId ?? undefined,
+        // Only send retreat_id for retreat bookings — never for direct lodging
+        retreat_id: isRetreatFlow ? (state.retreatApiId ?? undefined) : undefined,
         guests: state.guests,
         starts_on: computedCheckIn,
         ends_on: computedCheckOut,
@@ -117,7 +118,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ country: st
             </div>
             <div className="h-px bg-humana-line" />
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Retiro — {retreatNights} noches x U$D {isRetreatFlow && retreatPricePerGuest > 0 ? Math.round(retreatPricePerGuest / retreatNights).toLocaleString() : pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}.00</span></div>
+              <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">{isRetreatFlow ? "Retiro" : "Alojamiento"} — {retreatNights} noches x U$D {isRetreatFlow && retreatPricePerGuest > 0 ? Math.round(retreatPricePerGuest / retreatNights).toLocaleString() : pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {retreatCost.toLocaleString()}.00</span></div>
               {preNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Pre-retiro — {preNights} noches x U$D {pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {preCost.toLocaleString()}.00</span></div>}
               {postNights > 0 && <div className="flex items-center justify-between"><span className="text-[14px] text-humana-muted">Post-retiro — {postNights} noches x U$D {pricePerNight}</span><span className="text-[14px] font-medium text-humana-ink">U$D {postCost.toLocaleString()}.00</span></div>}
             </div>

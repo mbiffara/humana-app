@@ -227,40 +227,29 @@ export default function AgencyBookingsPage() {
       {/* KPI Cards */}
       {summary && (
         <div className="mb-6 grid grid-cols-5 gap-5 stagger-children">
-          <div className="rounded-xl border border-humana-line bg-white p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-              {tb.kpis.total}
-            </p>
-            <p className="mt-2 text-[30px] font-bold text-humana-ink">{summary.total}</p>
-          </div>
-          <div className="rounded-xl border border-humana-line bg-white p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-              {tb.kpis.retreats}
-            </p>
-            <p className="mt-2 text-[30px] font-bold text-humana-gold">{summary.retreat_count}</p>
-          </div>
-          <div className="rounded-xl border border-humana-line bg-white p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-              {tb.kpis.lodging}
-            </p>
-            <p className="mt-2 text-[30px] font-bold text-humana-gold">{summary.lodging_count}</p>
-          </div>
-          <div className="rounded-xl border border-humana-line bg-white p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-              {tb.kpis.commission}
-            </p>
-            <p className="mt-2 text-[30px] font-bold text-humana-ink">
-              {money(summary.commission_cents, "USD", tag)}
-            </p>
-          </div>
-          <div className="rounded-xl border border-humana-line bg-white p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-              {tb.kpis.volume}
-            </p>
-            <p className="mt-2 text-[30px] font-bold text-humana-ink">
-              {money(summary.volume_cents, "USD", tag)}
-            </p>
-          </div>
+          {[
+            { label: tb.kpis.totalBookings, value: String(summary.total), tooltip: tb.kpiTooltips.totalBookings },
+            { label: tb.kpis.retreats, value: String(summary.retreat_count), gold: true, tooltip: tb.kpiTooltips.retreats },
+            { label: tb.kpis.lodging, value: String(summary.lodging_count), gold: true, tooltip: tb.kpiTooltips.lodging },
+            { label: tb.kpis.commission, value: money(summary.commission_cents, "USD", tag), tooltip: tb.kpiTooltips.commission },
+            { label: tb.kpis.volume, value: money(summary.volume_cents, "USD", tag), tooltip: tb.kpiTooltips.volume },
+          ].map((kpi) => (
+            <div key={kpi.label} className="group relative cursor-pointer rounded-xl border border-humana-line bg-white p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                  {kpi.label}
+                </p>
+                <svg className="h-3.5 w-3.5 text-humana-line group-hover:text-humana-subtle transition-colors" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 12.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11ZM8 5a.75.75 0 1 1 0-1.5A.75.75 0 0 1 8 5Zm-.75 1.75a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-1.5 0v-3.5Z" />
+                </svg>
+              </div>
+              <p className={`mt-2 text-[30px] font-bold ${kpi.gold ? "text-humana-gold" : "text-humana-ink"}`}>{kpi.value}</p>
+              <span className="pointer-events-none absolute left-1/2 bottom-full z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-humana-ink px-3 py-2 text-[11px] font-normal normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                {kpi.tooltip}
+                <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-humana-ink" />
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
