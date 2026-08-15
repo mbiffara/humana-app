@@ -229,7 +229,7 @@ export default function AgencyBookingsPage() {
         <div className="mb-6 grid grid-cols-5 gap-5 stagger-children">
           <div className="rounded-xl border border-humana-line bg-white p-6">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
-              {tb.kpis.total}
+              {tb.kpis.totalBookings}
             </p>
             <p className="mt-2 text-[30px] font-bold text-humana-ink">{summary.total}</p>
           </div>
