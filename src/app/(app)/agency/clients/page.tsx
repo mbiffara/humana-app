@@ -185,9 +185,6 @@ export default function AgencyClientsPage() {
             <div className="w-[172px] shrink-0 px-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.phone}</p>
             </div>
-            <div className="w-[92px] shrink-0 px-3 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.bookings}</p>
-            </div>
             <div className="w-[212px] shrink-0 px-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-humana-subtle">{tc.columns.notes}</p>
             </div>
@@ -248,13 +245,6 @@ export default function AgencyClientsPage() {
                     <p className="truncate text-[13px] text-humana-ink">
                       {client.phone ?? "\u2014"}
                     </p>
-                  </div>
-
-                  {/* Bookings */}
-                  <div className="w-[92px] shrink-0 px-3 text-center">
-                    <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${(client.booking_count ?? 0) > 0 ? "bg-humana-gold/10 text-humana-gold" : "text-humana-muted"}`}>
-                      {client.booking_count ?? 0}
-                    </span>
                   </div>
 
                   {/* Notes */}
