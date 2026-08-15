@@ -23,7 +23,7 @@ export default function AgencyBillingPage() {
 
   // Retreat sales state
   const [sales, setSales] = useState<BillingSale[]>([]);
-  const [salesSummary, setSalesSummary] = useState<BillingSummary>({ total_count: 0, total_revenue_cents: 0, total_commission_cents: 0 });
+  const [salesSummary, setSalesSummary] = useState<BillingSummary>({ total_count: 0, total_revenue_cents: 0, total_commission_cents: 0, total_net_cents: 0 });
   const [salesMeta, setSalesMeta] = useState<PaginationMeta | null>(null);
   const [salesPage, setSalesPage] = useState(1);
   const [salesLoading, setSalesLoading] = useState(true);
@@ -79,13 +79,13 @@ export default function AgencyBillingPage() {
     return new Intl.DateTimeFormat(localeTag, { day: "numeric", month: "short" }).format(d);
   }
 
-  const totalCommission = bookingsSummary.commission_cents + salesSummary.total_commission_cents;
+  const total = bookingsSummary.commission_cents + salesSummary.total_net_cents;
   const totalVolume = bookingsSummary.volume_cents + salesSummary.total_revenue_cents;
 
   const kpis = [
-    { label: tb.kpis.totalCommission, value: fmt(totalCommission), gold: true, tooltip: tb.kpiTooltips.totalCommission },
+    { label: tb.kpis.totalCommission, value: fmt(total), gold: true, tooltip: tb.kpiTooltips.totalCommission },
     { label: tb.kpis.commissionFromBookings, value: fmt(bookingsSummary.commission_cents), tooltip: tb.kpiTooltips.commissionFromBookings },
-    { label: tb.kpis.retreatSalesRevenue, value: fmt(salesSummary.total_revenue_cents), tooltip: tb.kpiTooltips.retreatSalesRevenue },
+    { label: tb.kpis.retreatSalesRevenue, value: fmt(salesSummary.total_net_cents), tooltip: tb.kpiTooltips.retreatSalesRevenue },
     { label: tb.kpis.totalVolume, value: fmt(totalVolume), tooltip: tb.kpiTooltips.totalVolume },
   ];
 

@@ -187,6 +187,7 @@ export interface BillingSummary {
   total_count: number;
   total_revenue_cents: number;
   total_commission_cents: number;
+  total_net_cents: number;
 }
 
 export interface ApiBooking {
