@@ -311,7 +311,7 @@ function RetreatSalesTab({
   tb: {
     empty: string;
     emptyHint: string;
-    columns: { reference: string; retreat: string; agency: string; roomType: string; guests: string; dates: string; amount: string; commission: string; status: string; created: string };
+    columns: { reference: string; retreat: string; agency: string; roomType: string; guests: string; dates: string; amount: string; commission: string; net: string; status: string; created: string };
   };
   fmt: (cents: number) => string;
   formatDate: (iso: string) => string;
@@ -349,6 +349,7 @@ function RetreatSalesTab({
               <Th>{tb.columns.dates}</Th>
               <Th align="right">{tb.columns.amount}</Th>
               <Th align="right">{tb.columns.commission}</Th>
+              <Th align="right">{tb.columns.net}</Th>
               <Th>{tb.columns.status}</Th>
               <Th>{tb.columns.created}</Th>
             </tr>
@@ -387,6 +388,11 @@ function RetreatSalesTab({
                 <td className="px-4 py-3 text-right">
                   <span className="whitespace-nowrap text-[13px] font-semibold text-humana-gold">
                     {fmt(sale.commission_cents)}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <span className="whitespace-nowrap text-[13px] font-semibold text-emerald-600">
+                    {fmt(sale.net_cents)}
                   </span>
                 </td>
                 <td className="px-4 py-3">

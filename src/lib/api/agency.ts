@@ -175,6 +175,8 @@ export interface BillingSale {
   currency: string;
   commission_cents: number;
   commission: number;
+  net_cents: number;
+  net: number;
   retreat_name: string | null;
   buying_agency: string | null;
   client_name: string | null;
