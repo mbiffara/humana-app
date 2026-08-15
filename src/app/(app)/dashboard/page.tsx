@@ -71,13 +71,14 @@ function DashboardKpis() {
   const kpis = [
     { label: t.agencyWs.bookings.kpis.total, value: String(dashboard.inventory_lodging_spots), tooltip: t.agencyWs.bookings.kpiTooltips.total },
     { label: t.agencyWs.bookings.kpis.inventoryRetreats, value: String(dashboard.inventory_retreat_count), tooltip: t.agencyWs.bookings.kpiTooltips.inventoryRetreats },
-    { label: t.agencyWs.bookings.kpis.volume, value: fmt(dashboard.volume_cents), gold: true, tooltip: t.agencyWs.bookings.kpiTooltips.volume },
+    { label: t.agencyWs.bookings.kpis.retreatSales, value: String(dashboard.retreat_sales_count), gold: true, tooltip: t.agencyWs.bookings.kpiTooltips.retreatSales },
+    { label: t.agencyWs.bookings.kpis.volume, value: fmt(dashboard.volume_cents), tooltip: t.agencyWs.bookings.kpiTooltips.volume },
     { label: t.agencyWs.bookings.kpis.commission, value: fmt(dashboard.commission_earned_cents), tooltip: t.agencyWs.bookings.kpiTooltips.commission },
   ];
 
   return (
     <section className="px-16 pt-8">
-      <div className="grid grid-cols-4 gap-5 stagger-children">
+      <div className="grid grid-cols-5 gap-5 stagger-children">
         {kpis.map((kpi) => (
           <div key={kpi.label} className="group relative cursor-pointer border border-humana-line bg-white p-5">
             <div className="flex items-center justify-between">

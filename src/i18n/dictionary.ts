@@ -584,8 +584,8 @@ type Dictionary = {
       exportBtn: string;
       empty: string;
       emptyHint: string;
-      kpis: { total: string; totalBookings: string; inventoryRetreats: string; retreats: string; lodging: string; commission: string; volume: string };
-      kpiTooltips: { total: string; inventoryRetreats: string; volume: string; commission: string; totalBookings: string; retreats: string; lodging: string };
+      kpis: { total: string; totalBookings: string; inventoryRetreats: string; retreatSales: string; retreats: string; lodging: string; commission: string; volume: string };
+      kpiTooltips: { total: string; inventoryRetreats: string; retreatSales: string; volume: string; commission: string; totalBookings: string; retreats: string; lodging: string };
       filters: { all: string; inquiry: string; confirmed: string; completed: string; cancelled: string };
       statusLabels: { inquiry: string; confirmed: string; completed: string; cancelled: string };
       columns: { reference: string; client: string; experience: string; dates: string; guests: string; room: string; hotel: string; amount: string; commission: string; status: string; created: string; type: string; checkIn: string; checkOut: string; nights: string; actions: string };
@@ -712,9 +712,9 @@ type Dictionary = {
       emptyHint: string;
       filters: { all: string; draft: string; active: string; closed: string };
       statusLabels: { draft: string; active: string; upcoming: string; closed: string; cancelled: string };
-      kpis: { total: string; active: string; draft: string };
-      kpiTooltips: { total: string; active: string; draft: string };
-      columns: { name: string; hotel: string; dates: string; capacity: string; price: string; status: string; actions: string };
+      kpis: { total: string; active: string; draft: string; sales: string };
+      kpiTooltips: { total: string; active: string; draft: string; sales: string };
+      columns: { name: string; hotel: string; dates: string; capacity: string; price: string; sales: string; status: string; actions: string };
       preview: string;
       deleteTitle: string;
       deleteMessage: string;
@@ -2477,8 +2477,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Export",
         empty: "No bookings yet",
         emptyHint: "Your booking history will appear here once you make your first reservation.",
-        kpis: { total: "Total Spots", totalBookings: "Total Bookings", inventoryRetreats: "Total Retreats", retreats: "Retreat Bookings", lodging: "Lodging Bookings", commission: "Commission Earned", volume: "Total Volume" },
-        kpiTooltips: { total: "Available lodging spots without an assigned client", inventoryRetreats: "Retreat bookings without an assigned client", volume: "Total revenue from confirmed bookings", commission: "Total commission earned from bookings", totalBookings: "Total number of confirmed bookings", retreats: "Bookings for retreat experiences", lodging: "Bookings for hotel accommodation only" },
+        kpis: { total: "Total Spots", totalBookings: "Total Bookings", inventoryRetreats: "Total Retreats", retreatSales: "Retreat Sales", retreats: "Retreat Bookings", lodging: "Lodging Bookings", commission: "Commission Earned", volume: "Total Volume" },
+        kpiTooltips: { total: "Available lodging spots without an assigned client", inventoryRetreats: "Retreat bookings without an assigned client", retreatSales: "Total bookings on your agency's retreats", volume: "Total revenue from confirmed bookings", commission: "Total commission earned from bookings", totalBookings: "Total number of confirmed bookings", retreats: "Bookings for retreat experiences", lodging: "Bookings for hotel accommodation only" },
         filters: { all: "All", inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
         statusLabels: { inquiry: "Pending", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled" },
         columns: { reference: "Reference", client: "Client", experience: "Experience", dates: "Dates", guests: "Guests", room: "Room", hotel: "Hotel", amount: "Amount", commission: "Commission", status: "Status", created: "Created", type: "Type", checkIn: "Check-in", checkOut: "Check-out", nights: "Nights", actions: "Actions" },
@@ -2620,9 +2620,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyHint: "Create your first retreat to start offering curated wellness experiences.",
         filters: { all: "All", draft: "Draft", active: "Active", closed: "Closed" },
         statusLabels: { draft: "Draft", active: "Active", upcoming: "Upcoming", closed: "Closed", cancelled: "Cancelled" },
-        kpis: { total: "Total Retreats", active: "Active", draft: "Drafts" },
-        kpiTooltips: { total: "Total retreats created by your agency", active: "Retreats currently active or upcoming", draft: "Retreats still in draft, not published" },
-        columns: { name: "Retreat", hotel: "Hotel", dates: "Dates", capacity: "Capacity", price: "From", status: "Status", actions: "Actions" },
+        kpis: { total: "Total Retreats", active: "Active", draft: "Drafts", sales: "Total Sales" },
+        kpiTooltips: { total: "Total retreats created by your agency", active: "Retreats currently active or upcoming", draft: "Retreats still in draft, not published", sales: "Total bookings across all your retreats" },
+        columns: { name: "Retreat", hotel: "Hotel", dates: "Dates", capacity: "Capacity", price: "From", sales: "Sales", status: "Status", actions: "Actions" },
         preview: "Preview",
         deleteTitle: "Delete Retreat",
         deleteMessage: "Are you sure you want to delete this draft retreat? This action cannot be undone.",
@@ -4592,8 +4592,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Exportar",
         empty: "Aún no hay reservas",
         emptyHint: "Tu historial de reservas aparecerá aquí una vez que realices tu primera reservación.",
-        kpis: { total: "Total de Plazas", totalBookings: "Total de Reservas", inventoryRetreats: "Total de Retiros", retreats: "Reservas Retiros", lodging: "Reservas Alojamiento", commission: "Comisión Ganada", volume: "Volumen Total" },
-        kpiTooltips: { total: "Plazas de alojamiento disponibles sin cliente asignado", inventoryRetreats: "Reservas de retiro sin cliente asignado", volume: "Ingresos totales de reservas confirmadas", commission: "Comisión total ganada por reservas", totalBookings: "Número total de reservas confirmadas", retreats: "Reservas de experiencias de retiro", lodging: "Reservas de alojamiento en hotel" },
+        kpis: { total: "Total de Plazas", totalBookings: "Total de Reservas", inventoryRetreats: "Total de Retiros", retreatSales: "Ventas de Retiros", retreats: "Reservas Retiros", lodging: "Reservas Alojamiento", commission: "Comisión Ganada", volume: "Volumen Total" },
+        kpiTooltips: { total: "Plazas de alojamiento disponibles sin cliente asignado", inventoryRetreats: "Reservas de retiro sin cliente asignado", retreatSales: "Total de reservas en los retiros de tu agencia", volume: "Ingresos totales de reservas confirmadas", commission: "Comisión total ganada por reservas", totalBookings: "Número total de reservas confirmadas", retreats: "Reservas de experiencias de retiro", lodging: "Reservas de alojamiento en hotel" },
         filters: { all: "Todas", inquiry: "Pendientes", confirmed: "Confirmadas", completed: "Completadas", cancelled: "Canceladas" },
         statusLabels: { inquiry: "Pendiente", confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada" },
         columns: { reference: "Referencia", client: "Cliente", experience: "Experiencia", dates: "Fechas", guests: "Huéspedes", room: "Habitación", hotel: "Hotel", amount: "Monto", commission: "Comisión", status: "Estado", created: "Creada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noches", actions: "Acciones" },
@@ -4735,9 +4735,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyHint: "Crea tu primer retiro para comenzar a ofrecer experiencias de bienestar curadas.",
         filters: { all: "Todos", draft: "Borrador", active: "Activos", closed: "Cerrados" },
         statusLabels: { draft: "Borrador", active: "Activo", upcoming: "Próximo", closed: "Cerrado", cancelled: "Cancelado" },
-        kpis: { total: "Total Retiros", active: "Activos", draft: "Borradores" },
-        kpiTooltips: { total: "Total de retiros creados por tu agencia", active: "Retiros activos o próximos", draft: "Retiros en borrador, no publicados" },
-        columns: { name: "Retiro", hotel: "Hotel", dates: "Fechas", capacity: "Capacidad", price: "Desde", status: "Estado", actions: "Acciones" },
+        kpis: { total: "Total Retiros", active: "Activos", draft: "Borradores", sales: "Ventas Totales" },
+        kpiTooltips: { total: "Total de retiros creados por tu agencia", active: "Retiros activos o próximos", draft: "Retiros en borrador, no publicados", sales: "Total de reservas en todos tus retiros" },
+        columns: { name: "Retiro", hotel: "Hotel", dates: "Fechas", capacity: "Capacidad", price: "Desde", sales: "Ventas", status: "Estado", actions: "Acciones" },
         preview: "Vista previa",
         deleteTitle: "Eliminar Retiro",
         deleteMessage: "¿Estás seguro de que quieres eliminar este retiro en borrador? Esta acción no se puede deshacer.",
@@ -6707,8 +6707,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         exportBtn: "Exportar",
         empty: "Nenhuma reserva ainda",
         emptyHint: "Seu histórico de reservas aparecerá aqui assim que você fizer sua primeira reserva.",
-        kpis: { total: "Total de Vagas", totalBookings: "Total de Reservas", inventoryRetreats: "Total de Retiros", retreats: "Reservas Retiros", lodging: "Reservas Alojamento", commission: "Comissão Recebida", volume: "Volume Total" },
-        kpiTooltips: { total: "Vagas de alojamento disponíveis sem cliente atribuído", inventoryRetreats: "Reservas de retiro sem cliente atribuído", volume: "Receita total de reservas confirmadas", commission: "Comissão total recebida por reservas", totalBookings: "Número total de reservas confirmadas", retreats: "Reservas de experiências de retiro", lodging: "Reservas de alojamento em hotel" },
+        kpis: { total: "Total de Vagas", totalBookings: "Total de Reservas", inventoryRetreats: "Total de Retiros", retreatSales: "Vendas de Retiros", retreats: "Reservas Retiros", lodging: "Reservas Alojamento", commission: "Comissão Recebida", volume: "Volume Total" },
+        kpiTooltips: { total: "Vagas de alojamento disponíveis sem cliente atribuído", inventoryRetreats: "Reservas de retiro sem cliente atribuído", retreatSales: "Total de reservas nos retiros da sua agência", volume: "Receita total de reservas confirmadas", commission: "Comissão total recebida por reservas", totalBookings: "Número total de reservas confirmadas", retreats: "Reservas de experiências de retiro", lodging: "Reservas de alojamento em hotel" },
         filters: { all: "Todas", inquiry: "Pendentes", confirmed: "Confirmadas", completed: "Concluídas", cancelled: "Canceladas" },
         statusLabels: { inquiry: "Pendente", confirmed: "Confirmada", completed: "Concluída", cancelled: "Cancelada" },
         columns: { reference: "Referência", client: "Cliente", experience: "Experiência", dates: "Datas", guests: "Hóspedes", room: "Quarto", hotel: "Hotel", amount: "Valor", commission: "Comissão", status: "Status", created: "Criada", type: "Tipo", checkIn: "Check-in", checkOut: "Check-out", nights: "Noites", actions: "Ações" },
@@ -6850,9 +6850,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         emptyHint: "Crie seu primeiro retiro para começar a oferecer experiências de bem-estar curadas.",
         filters: { all: "Todos", draft: "Rascunho", active: "Ativos", closed: "Encerrados" },
         statusLabels: { draft: "Rascunho", active: "Ativo", upcoming: "Próximo", closed: "Encerrado", cancelled: "Cancelado" },
-        kpis: { total: "Total de Retiros", active: "Ativos", draft: "Rascunhos" },
-        kpiTooltips: { total: "Total de retiros criados pela sua agência", active: "Retiros ativos ou próximos", draft: "Retiros em rascunho, não publicados" },
-        columns: { name: "Retiro", hotel: "Hotel", dates: "Datas", capacity: "Capacidade", price: "Desde", status: "Status", actions: "Ações" },
+        kpis: { total: "Total de Retiros", active: "Ativos", draft: "Rascunhos", sales: "Vendas Totais" },
+        kpiTooltips: { total: "Total de retiros criados pela sua agência", active: "Retiros ativos ou próximos", draft: "Retiros em rascunho, não publicados", sales: "Total de reservas em todos os seus retiros" },
+        columns: { name: "Retiro", hotel: "Hotel", dates: "Datas", capacity: "Capacidade", price: "Desde", sales: "Vendas", status: "Status", actions: "Ações" },
         preview: "Visualizar",
         deleteTitle: "Excluir Retiro",
         deleteMessage: "Tem certeza de que deseja excluir este retiro em rascunho? Esta ação não pode ser desfeita.",
