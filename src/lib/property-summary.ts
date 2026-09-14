@@ -37,12 +37,32 @@ export function airportTransferLabel(
   return isAirportTransfer(transfer) ? p.transfers[transfer] : null;
 }
 
+/** Appends the free-text detail to its item: "Extra cost: USD 20 per night". */
+function withNotes(label: string, notes: string | null | undefined): string {
+  const detail = notes?.trim();
+  return detail ? `${label}: ${detail}` : label;
+}
+
+/** The transfer option plus its notes, so the detail the hotel typed is shown. */
+export function airportTransferSummary(
+  p: PropertyFormCopy,
+  transfer: AirportTransfer | null | undefined,
+  notes: string | null | undefined,
+): string | null {
+  const label = airportTransferLabel(p, transfer);
+  if (!label) return null;
+  // Notes only make sense when a transfer is actually offered
+  return transfer === "none" ? label : withNotes(label, notes);
+}
+
 export type PetPolicyFields = {
   pet_friendly: boolean | null;
   pet_dogs: boolean | null;
   pet_cats: boolean | null;
   pet_size_restriction: boolean | null;
+  pet_size_restriction_notes: string | null;
   pet_extra_cost: boolean | null;
+  pet_extra_cost_notes: string | null;
   pet_common_areas: boolean | null;
   pet_specific_rooms: boolean | null;
 };
@@ -58,8 +78,10 @@ export function petPolicySummary(p: PropertyFormCopy, v: PetPolicyFields): strin
   if (v.pet_dogs) animals.push(p.petSummary.dogs);
   if (v.pet_cats) animals.push(p.petSummary.cats);
   if (animals.length > 0) parts.push(animals.join(", "));
-  if (v.pet_size_restriction) parts.push(p.petSummary.sizeRestriction);
-  if (v.pet_extra_cost === true) parts.push(p.petSummary.extraCost);
+  if (v.pet_size_restriction)
+    parts.push(withNotes(p.petSummary.sizeRestriction, v.pet_size_restriction_notes));
+  if (v.pet_extra_cost === true)
+    parts.push(withNotes(p.petSummary.extraCost, v.pet_extra_cost_notes));
   else if (v.pet_extra_cost === false) parts.push(p.petSummary.noExtraCost);
   if (v.pet_common_areas) parts.push(p.petSummary.commonAreas);
   if (v.pet_specific_rooms) parts.push(p.petSummary.specificRooms);

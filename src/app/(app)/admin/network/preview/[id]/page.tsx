@@ -10,7 +10,7 @@ import type { AdminHotelPreview, AdminRoomType, AdminRoomImage, Organization, Us
 import { formatCheckTime } from "@/components/TimePicker";
 import { googleMapsUrl, instagramUrl } from "@/lib/property-catalog";
 import {
-  airportTransferLabel,
+  airportTransferSummary,
   distanceAndTime,
   environmentLabels,
   groupCapacitySummary,
@@ -112,7 +112,11 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
   const airportDistance = hotel
     ? distanceAndTime(p, hotel.airport_distance_km, hotel.airport_time_min)
     : null;
-  const transferLabel = airportTransferLabel(p, hotel?.airport_transfer);
+  const transferLabel = airportTransferSummary(
+    p,
+    hotel?.airport_transfer,
+    hotel?.airport_transfer_notes,
+  );
   const petSummary = hotel ? petPolicySummary(p, hotel) : null;
   const groupsSummary = hotel
     ? groupCapacitySummary(p, hotel.group_min_guests, hotel.group_max_guests)
@@ -298,7 +302,6 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
           <PreviewRow label={p.nearestAirportLabel} value={hotel.nearest_airport} />
           <PreviewRow label={p.airportDistanceLabel} value={airportDistance} />
           <PreviewRow label={p.airportTransferLabel} value={transferLabel} />
-          <PreviewRow label={p.airportTransferNotesLabel} value={hotel.airport_transfer_notes} />
           <PreviewRow
             label={p.distanceToCenterLabel}
             value={hotel.distance_to_center_km != null ? `${hotel.distance_to_center_km} ${p.kmSuffix}` : null}

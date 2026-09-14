@@ -12,7 +12,7 @@ import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
 import { formatCheckTime } from "@/components/TimePicker";
 import { decimalOrNull, googleMapsUrl, integerOrNull } from "@/lib/property-catalog";
 import {
-  airportTransferLabel,
+  airportTransferSummary,
   distanceAndTime,
   environmentLabels,
   groupCapacitySummary,
@@ -82,14 +82,20 @@ export default function HotelWizardStep5() {
     decimalOrNull(state.airportDistanceKm, 1),
     integerOrNull(state.airportTimeMin),
   );
-  const transferLabel = airportTransferLabel(p, state.airportTransfer || null);
+  const transferLabel = airportTransferSummary(
+    p,
+    state.airportTransfer || null,
+    state.airportTransferNotes,
+  );
   const centreDistance = decimalOrNull(state.distanceToCenterKm, 1);
   const petSummary = petPolicySummary(p, {
     pet_friendly: state.petFriendly,
     pet_dogs: state.petDogs,
     pet_cats: state.petCats,
     pet_size_restriction: state.petSizeRestriction,
+    pet_size_restriction_notes: state.petSizeRestrictionNotes,
     pet_extra_cost: state.petExtraCost,
+    pet_extra_cost_notes: state.petExtraCostNotes,
     pet_common_areas: state.petCommonAreas,
     pet_specific_rooms: state.petSpecificRooms,
   });

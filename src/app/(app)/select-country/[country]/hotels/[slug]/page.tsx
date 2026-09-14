@@ -15,7 +15,7 @@ import { amenityIdForName } from "@/lib/amenity-catalog";
 import { formatCheckTime } from "@/components/TimePicker";
 import { googleMapsUrl, instagramUrl } from "@/lib/property-catalog";
 import {
-  airportTransferLabel,
+  airportTransferSummary,
   distanceAndTime,
   environmentLabels,
   groupCapacitySummary,
@@ -76,7 +76,11 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
   const airportDistance = hotel
     ? distanceAndTime(p, hotel.airport_distance_km, hotel.airport_time_min)
     : null;
-  const transferLabel = airportTransferLabel(p, hotel?.airport_transfer);
+  const transferLabel = airportTransferSummary(
+    p,
+    hotel?.airport_transfer,
+    hotel?.airport_transfer_notes,
+  );
   const petSummary = hotel ? petPolicySummary(p, hotel) : null;
   const groupsSummary = hotel
     ? groupCapacitySummary(p, hotel.group_min_guests, hotel.group_max_guests)
@@ -646,7 +650,6 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                 <InfoRow label={p.nearestAirportLabel} value={hotel.nearest_airport} />
                 <InfoRow label={p.airportDistanceLabel} value={airportDistance} />
                 <InfoRow label={p.airportTransferLabel} value={transferLabel} />
-                <InfoRow label={p.airportTransferNotesLabel} value={hotel.airport_transfer_notes} />
                 <InfoRow
                   label={p.distanceToCenterLabel}
                   value={hotel.distance_to_center_km != null ? `${hotel.distance_to_center_km} ${p.kmSuffix}` : null}

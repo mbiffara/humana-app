@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HotelWizardProvider, useHotelWizard } from "@/contexts/HotelWizardContext";
 import { hotelApi } from "@/lib/api/hotel";
-import { api } from "@/lib/api";
+import { api, apiErrorMessage } from "@/lib/api";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
@@ -261,9 +261,7 @@ function BottomBar() {
       }
     } catch (err) {
       console.error("Save error:", err);
-      setSaveError(
-        err instanceof Error ? err.message : "Could not save. Please try again."
-      );
+      setSaveError(apiErrorMessage(err, "Could not save. Please try again."));
       setSubmitting(false);
       setShowConfirmModal(false);
       return;
