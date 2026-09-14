@@ -4,6 +4,7 @@
  */
 import { api } from "@/lib/api";
 import type { Organization, PaginationMeta } from "@/lib/types";
+import type { PropertyProfileFields, PropertyType } from "@/lib/property-catalog";
 
 /* ─── Response Types ─── */
 
@@ -17,6 +18,9 @@ export interface PublicHotel {
   longitude: number | null;
   certified: boolean;
   wellness_standard: string | null;
+  /** Also served by the list endpoint so cards can label the property. */
+  property_type: PropertyType | null;
+  property_type_other: string | null;
   /** Present on the public list endpoint: cover image, else first by position. */
   cover_image_url?: string | null;
   /** True when this hotel has at least one active retreat. */
@@ -41,14 +45,15 @@ export interface PublicHotelAmenity {
   featured: boolean;
 }
 
-export interface PublicHotelFull extends PublicHotel {
+export interface PublicHotelFull extends PublicHotel, PropertyProfileFields {
   description: string | null;
   address: string | null;
   postal_code: string | null;
   phone: string | null;
-  stars: number | null;
   total_rooms: number | null;
+  /** "HH:MM" or "flexible". */
   check_in_time: string | null;
+  /** "HH:MM" or "flexible". */
   check_out_time: string | null;
   logo_url: string | null;
   website: string | null;

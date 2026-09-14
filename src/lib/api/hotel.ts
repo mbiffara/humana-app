@@ -3,6 +3,7 @@
  * Used by hotel owners for onboarding and property management.
  */
 import { api } from "@/lib/api";
+import type { PropertyProfileFields } from "@/lib/property-catalog";
 
 export const hotelApi = {
   // Profile
@@ -241,7 +242,7 @@ export interface HotelDashboard {
   };
 }
 
-export interface HotelProfile {
+export interface HotelProfile extends PropertyProfileFields {
   id: number;
   name: string;
   city: string;
@@ -255,9 +256,10 @@ export interface HotelProfile {
   address: string | null;
   postal_code: string | null;
   phone: string | null;
-  stars: number | null;
   total_rooms: number | null;
+  /** "HH:MM" or "flexible". */
   check_in_time: string | null;
+  /** "HH:MM" or "flexible". */
   check_out_time: string | null;
   logo_url: string | null;
   website: string | null;
@@ -267,18 +269,19 @@ export interface HotelProfile {
   images: HotelImage[];
 }
 
-export interface HotelProfileUpdate {
+export interface HotelProfileUpdate extends PropertyProfileFields {
   name: string;
   city: string;
   country: string;
   country_code: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   description: string;
   address: string;
   phone: string;
-  stars: number;
+  /** "HH:MM" or "flexible". */
   check_in_time: string;
+  /** "HH:MM" or "flexible". */
   check_out_time: string;
   total_rooms: number;
   website: string;
