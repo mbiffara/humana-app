@@ -10,6 +10,7 @@ import { api } from "@/lib/api";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
+import { groupRangeInvalid, propertyFormPayload } from "@/lib/property-form";
 
 const STEP_PATHS = [
   "/onboarding/hotel/step-1",
@@ -123,17 +124,12 @@ function BottomBar() {
     // Save hotel profile + user name/phone in a single PATCH
     const payload: Record<string, unknown> = {
       hotel: {
+        ...propertyFormPayload(state),
         name: state.hotelName.trim(),
         address: state.address.trim(),
-        city: state.city.trim(),
-        country: state.country.trim(),
-        country_code: state.countryCode.trim(),
         description: state.description.trim(),
-        stars: state.stars,
         phone: state.phone.trim(),
-        contact_email: user?.email ?? state.contactEmail.trim(),
-        check_in_time: state.checkInTime,
-        check_out_time: state.checkOutTime,
+        contact_email: state.contactEmail.trim() || user?.email || "",
       },
     };
     if (fullName) payload.user_name = fullName;
@@ -303,10 +299,12 @@ function BottomBar() {
           state.hotelName.trim().length > 0 &&
           state.address.trim().length > 0 &&
           state.description.trim().length > 0 &&
-          state.stars > 0 &&
+          state.propertyType.length > 0 &&
+          (state.propertyType !== "other" || state.propertyTypeOther.trim().length > 0) &&
           state.phone.trim().length > 0 &&
           state.checkInTime.length > 0 &&
-          state.checkOutTime.length > 0
+          state.checkOutTime.length > 0 &&
+          !groupRangeInvalid(state)
         );
       case 1:
         return state.roomTypes.length > 0;
@@ -320,6 +318,7 @@ function BottomBar() {
   }
 
   const h = t.onboarding.hotel;
+  const p = t.propertyForm;
 
   function getMissingFields(): string[] {
     const missing: string[] = [];
@@ -330,10 +329,13 @@ function BottomBar() {
         if (!state.hotelName.trim()) missing.push(h.hotelName);
         if (!state.address.trim()) missing.push(h.addressLabel);
         if (!state.description.trim()) missing.push(h.descriptionLabel);
-        if (state.stars <= 0) missing.push(h.starsLabel);
+        if (!state.propertyType) missing.push(p.typeLabel);
+        else if (state.propertyType === "other" && !state.propertyTypeOther.trim())
+          missing.push(p.typeOtherLabel);
         if (!state.phone.trim()) missing.push(h.hotelPhoneLabel);
-        if (!state.checkInTime) missing.push(h.checkInLabel);
-        if (!state.checkOutTime) missing.push(h.checkOutLabel);
+        if (!state.checkInTime) missing.push(p.checkInLabel);
+        if (!state.checkOutTime) missing.push(p.checkOutLabel);
+        if (groupRangeInvalid(state)) missing.push(p.groupRangeError);
         break;
       case 1:
         if (state.roomTypes.length === 0) {

@@ -9,6 +9,15 @@ import { useHotelWizard } from "@/contexts/HotelWizardContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
+import { formatCheckTime } from "@/components/TimePicker";
+import { decimalOrNull, googleMapsUrl, integerOrNull } from "@/lib/property-catalog";
+import {
+  distanceAndTime,
+  environmentLabels,
+  groupCapacitySummary,
+  petPolicySummary,
+  propertyTypeLabel,
+} from "@/lib/property-summary";
 
 function SectionCard({
   title,
@@ -47,12 +56,47 @@ function Field({ label, value }: { label: string; value: string | number | null 
   );
 }
 
+/** Same as Field, but the whole row disappears when there is nothing to show —
+ *  hotels saved before the property contract leave most of these empty. */
+function OptionalField({ label, value }: { label: string; value: string | null | undefined }) {
+  if (!value) return null;
+  return <Field label={label} value={value} />;
+}
+
 export default function HotelWizardStep5() {
   const { state } = useHotelWizard();
   const { user } = useAuth();
   const { t } = useLocale();
   const router = useRouter();
   const h = t.onboarding.hotel;
+  const p = t.propertyForm;
+
+  const latitude = decimalOrNull(state.latitude, 6);
+  const longitude = decimalOrNull(state.longitude, 6);
+  const mapsUrl = googleMapsUrl(latitude, longitude);
+  const typeLabel = propertyTypeLabel(p, state.propertyType || null, state.propertyTypeOther);
+  const environments = environmentLabels(p, state.environments);
+  const airportDistance = distanceAndTime(
+    p,
+    decimalOrNull(state.airportDistanceKm, 1),
+    integerOrNull(state.airportTimeMin),
+  );
+  const transferLabel = state.airportTransfer ? p.transfers[state.airportTransfer] : null;
+  const centreDistance = decimalOrNull(state.distanceToCenterKm, 1);
+  const petSummary = petPolicySummary(p, {
+    pet_friendly: state.petFriendly,
+    pet_dogs: state.petDogs,
+    pet_cats: state.petCats,
+    pet_size_restriction: state.petSizeRestriction,
+    pet_extra_cost: state.petExtraCost,
+    pet_common_areas: state.petCommonAreas,
+    pet_specific_rooms: state.petSpecificRooms,
+  });
+  const groupsSummary = groupCapacitySummary(
+    p,
+    integerOrNull(state.groupMinGuests),
+    integerOrNull(state.groupMaxGuests),
+  );
 
   const editStep = (step: number) => () => router.push(`/onboarding/hotel/step-${step}`);
 
@@ -147,12 +191,52 @@ export default function HotelWizardStep5() {
         <SectionCard title={h.reviewHotelInfo} editLabel={h.reviewEdit} onEdit={editStep(1)}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-4">
             <Field label={h.hotelName} value={state.hotelName} />
-            <Field label={h.starsLabel} value={state.stars > 0 ? "★".repeat(state.stars) : null} />
+            <OptionalField label={p.typeLabel} value={typeLabel} />
             <Field label={h.addressLabel} value={state.address} />
+            <OptionalField label={p.stateRegionLabel} value={state.stateRegion} />
             <Field label={h.hotelPhoneLabel} value={state.phone} />
-            <Field label={h.checkInLabel} value={state.checkInTime} />
-            <Field label={h.checkOutLabel} value={state.checkOutTime} />
+            <OptionalField label={p.emailLabel} value={state.contactEmail} />
+            <OptionalField label={p.websiteLabel} value={state.website} />
+            <OptionalField label={p.instagramLabel} value={state.instagram} />
+            <OptionalField label={p.nearestAirportLabel} value={state.nearestAirport} />
+            <OptionalField label={p.airportDistanceLabel} value={airportDistance} />
+            <OptionalField label={p.airportTransferLabel} value={transferLabel} />
+            <OptionalField
+              label={p.distanceToCenterLabel}
+              value={centreDistance != null ? `${centreDistance} ${p.kmSuffix}` : null}
+            />
+            <Field label={p.checkInLabel} value={formatCheckTime(state.checkInTime, p.flexible)} />
+            <Field label={p.checkOutLabel} value={formatCheckTime(state.checkOutTime, p.flexible)} />
+            <OptionalField label={p.policiesSection} value={petSummary} />
+            <OptionalField label={p.groupsSection} value={groupsSummary} />
+            {mapsUrl && (
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                  {p.latitudeLabel} / {p.longitudeLabel}
+                </p>
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-0.5 block text-[14px] text-humana-gold hover:underline"
+                >
+                  {latitude}, {longitude} — {p.viewOnMaps}
+                </a>
+              </div>
+            )}
           </div>
+          {environments.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-humana-line pt-4">
+              {environments.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full border border-humana-line bg-humana-stone px-3 py-1.5 text-[13px] text-humana-ink"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          )}
           {state.description && (
             <p className="mt-4 border-t border-humana-line pt-4 text-[14px] leading-relaxed text-humana-muted">
               {state.description}

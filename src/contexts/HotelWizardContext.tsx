@@ -11,13 +11,8 @@ import {
 } from "react";
 import { hotelApi } from "@/lib/api/hotel";
 import { amenityIdForName } from "@/lib/amenity-catalog";
-import {
-  numberToInput,
-  sanitizeEnvironments,
-  type AirportTransfer,
-  type Environment,
-  type PropertyType,
-} from "@/lib/property-catalog";
+import { numberToInput, sanitizeEnvironments } from "@/lib/property-catalog";
+import { EMPTY_PROPERTY_FORM, type PropertyFormValues } from "@/lib/property-form";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type AvailabilityBlock = {
@@ -41,54 +36,19 @@ export type RoomTypeEntry = {
   availability: AvailabilityBlock[];
 };
 
-export type HotelWizardState = {
+/** The wizard state is the shared property form plus the owner/identity fields
+ *  and the per-step collections the wizard owns. */
+export type HotelWizardState = PropertyFormValues & {
   /* Personal data */
   ownerFirstName: string;
   ownerLastName: string;
   ownerPhone: string;
   /* Property identity */
-  propertyType: PropertyType | "";
-  propertyTypeOther: string;
   hotelName: string;
   address: string;
   description: string;
   phone: string;
   contactEmail: string;
-  /* Location — numeric fields are held as text while editing */
-  city: string;
-  stateRegion: string;
-  country: string;
-  countryCode: string;
-  postalCode: string;
-  latitude: string;
-  longitude: string;
-  website: string;
-  instagram: string;
-  /* Getting here */
-  nearestAirport: string;
-  airportDistanceKm: string;
-  airportTimeMin: string;
-  airportTransfer: AirportTransfer | "";
-  airportTransferNotes: string;
-  distanceToCenterKm: string;
-  /* Environment */
-  environments: Environment[];
-  /* Schedule — "HH:MM" or "flexible" */
-  checkInTime: string;
-  checkOutTime: string;
-  /* Pet policy */
-  petFriendly: boolean | null;
-  petDogs: boolean | null;
-  petCats: boolean | null;
-  petSizeRestriction: boolean | null;
-  petSizeRestrictionNotes: string;
-  petExtraCost: boolean | null;
-  petExtraCostNotes: string;
-  petCommonAreas: boolean | null;
-  petSpecificRooms: boolean | null;
-  /* Group capacity */
-  groupMinGuests: string;
-  groupMaxGuests: string;
   /* Room types */
   roomTypes: RoomTypeEntry[];
   /* Amenities */
@@ -101,45 +61,15 @@ export type HotelWizardState = {
 };
 
 const initial: HotelWizardState = {
+  ...EMPTY_PROPERTY_FORM,
   ownerFirstName: "",
   ownerLastName: "",
   ownerPhone: "",
-  propertyType: "",
-  propertyTypeOther: "",
   hotelName: "",
   address: "",
   description: "",
   phone: "",
   contactEmail: "",
-  city: "",
-  stateRegion: "",
-  country: "",
-  countryCode: "",
-  postalCode: "",
-  latitude: "",
-  longitude: "",
-  website: "",
-  instagram: "",
-  nearestAirport: "",
-  airportDistanceKm: "",
-  airportTimeMin: "",
-  airportTransfer: "",
-  airportTransferNotes: "",
-  distanceToCenterKm: "",
-  environments: [],
-  checkInTime: "15:00",
-  checkOutTime: "11:00",
-  petFriendly: null,
-  petDogs: null,
-  petCats: null,
-  petSizeRestriction: null,
-  petSizeRestrictionNotes: "",
-  petExtraCost: null,
-  petExtraCostNotes: "",
-  petCommonAreas: null,
-  petSpecificRooms: null,
-  groupMinGuests: "",
-  groupMaxGuests: "",
   roomTypes: [],
   amenities: [],
   customAmenities: [],
@@ -205,6 +135,11 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
       }
       if (user.phone && !prev.ownerPhone) {
         patch.ownerPhone = user.phone;
+      }
+      // The property's public email defaults to the account email until the
+      // owner overrides it in step 1.
+      if (user.email && !prev.contactEmail) {
+        patch.contactEmail = user.email;
       }
       return Object.keys(patch).length > 0 ? { ...prev, ...patch } : prev;
     });

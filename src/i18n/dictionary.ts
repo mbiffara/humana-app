@@ -1916,6 +1916,9 @@ const sharedPerGuest = {
   pt: " / hóspede",
 };
 
+/** Copy for the shared property form blocks and their read-only summaries. */
+export type PropertyFormCopy = Dictionary["propertyForm"];
+
 export const dictionary: Record<Locale, Dictionary> = {
   /* ───────────────────── ENGLISH ───────────────────── */
   en: {
