@@ -81,6 +81,7 @@ function TextField({
   type = "text",
   step,
   min,
+  max,
   maxLength,
   className,
 }: {
@@ -92,6 +93,7 @@ function TextField({
   type?: "text" | "number" | "url";
   step?: string;
   min?: string;
+  max?: string;
   maxLength?: number;
   className?: string;
 }) {
@@ -101,6 +103,7 @@ function TextField({
         type={type}
         step={step}
         min={min}
+        max={max}
         maxLength={maxLength}
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
@@ -243,6 +246,8 @@ export function LocationBlock({ values, onChange, variant = "wizard" }: Property
           variant={variant}
           type="number"
           step="any"
+          min="-90"
+          max="90"
           placeholder="-34.6037"
         />
         <TextField
@@ -252,6 +257,8 @@ export function LocationBlock({ values, onChange, variant = "wizard" }: Property
           variant={variant}
           type="number"
           step="any"
+          min="-180"
+          max="180"
           placeholder="-58.3816"
         />
         {mapsUrl && (
@@ -276,6 +283,7 @@ export function LocationBlock({ values, onChange, variant = "wizard" }: Property
           value={values.instagram}
           onValueChange={(v) => onChange({ instagram: v })}
           variant={variant}
+          maxLength={100}
           placeholder={p.instagramPlaceholder}
         />
       </div>

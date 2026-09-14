@@ -435,8 +435,6 @@ type Dictionary = {
         title: string;
         subtitle: string;
         descriptionLabel: string;
-        checkInLabel: string;
-        checkOutLabel: string;
         amenitiesTitle: string;
         amenitiesHint: string;
         customAmenities: string;
@@ -1627,8 +1625,6 @@ type Dictionary = {
       hotelPhoneLabel: string;
       contactEmailLabel: string;
       websiteLabel: string;
-      checkInLabel: string;
-      checkOutLabel: string;
       verificationTitle: string;
       verificationDescription: string;
       /* Step 2 — Room Inventory */
@@ -2381,8 +2377,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Property details",
           subtitle: "Keep your description, schedule, amenities, and photos up to date.",
           descriptionLabel: "Description",
-          checkInLabel: "Check-in time",
-          checkOutLabel: "Check-out time",
           amenitiesTitle: "Amenities",
           amenitiesHint: "Select everything your property offers.",
           customAmenities: "Custom amenities",
@@ -3843,8 +3837,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         hotelPhoneLabel: "Hotel Phone",
         contactEmailLabel: "Contact Email",
         websiteLabel: "Website",
-        checkInLabel: "Check-in Time",
-        checkOutLabel: "Check-out Time",
         verificationTitle: "Verification required",
         verificationDescription: "After submission, our team will verify your property details within 24\u201348 hours before listing it on the network.",
         step2Eyebrow: "Step 2 of 5 \u00B7 Room Inventory",
@@ -4583,8 +4575,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Detalles de la propiedad",
           subtitle: "Mantén al día tu descripción, horarios, amenidades y fotos.",
           descriptionLabel: "Descripción",
-          checkInLabel: "Hora de check-in",
-          checkOutLabel: "Hora de check-out",
           amenitiesTitle: "Amenidades",
           amenitiesHint: "Selecciona todo lo que ofrece tu propiedad.",
           customAmenities: "Amenidades personalizadas",
@@ -6045,8 +6035,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         hotelPhoneLabel: "Tel\u00E9fono del Hotel",
         contactEmailLabel: "Email de Contacto",
         websiteLabel: "Sitio Web",
-        checkInLabel: "Hora de Check-in",
-        checkOutLabel: "Hora de Check-out",
         verificationTitle: "Verificaci\u00F3n requerida",
         verificationDescription: "Despu\u00E9s del env\u00EDo, nuestro equipo verificar\u00E1 los detalles de tu propiedad en 24\u201348 horas antes de listarla en la red.",
         step2Eyebrow: "Paso 2 de 5 \u00B7 Inventario de Habitaciones",
@@ -6785,8 +6773,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Detalhes da propriedade",
           subtitle: "Mantenha sua descrição, horários, comodidades e fotos em dia.",
           descriptionLabel: "Descrição",
-          checkInLabel: "Horário de check-in",
-          checkOutLabel: "Horário de check-out",
           amenitiesTitle: "Comodidades",
           amenitiesHint: "Selecione tudo o que sua propriedade oferece.",
           customAmenities: "Comodidades personalizadas",
@@ -8248,8 +8234,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         hotelPhoneLabel: "Telefone do Hotel",
         contactEmailLabel: "Email de Contato",
         websiteLabel: "Site",
-        checkInLabel: "Hor\u00E1rio de Check-in",
-        checkOutLabel: "Hor\u00E1rio de Check-out",
         verificationTitle: "Verifica\u00E7\u00E3o necess\u00E1ria",
         verificationDescription: "Ap\u00F3s o envio, nossa equipe verificar\u00E1 os detalhes da sua propriedade em 24\u201348 horas antes de list\u00E1-la na rede.",
         step2Eyebrow: "Passo 2 de 5 \u00B7 Invent\u00E1rio de Quartos",

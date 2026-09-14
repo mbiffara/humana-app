@@ -72,7 +72,9 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {hotels.map((h) => {
             const typeLabel = propertyTypeLabel(t.propertyForm, h.property_type, h.property_type_other);
-            const eyebrow = [typeLabel, h.city].filter(Boolean).join(" · ");
+            const eyebrow = [h.certified ? t.hotelDetail.certifiedHotel : null, typeLabel, h.city]
+              .filter(Boolean)
+              .join(" · ");
             return (
             <article
               key={h.id}

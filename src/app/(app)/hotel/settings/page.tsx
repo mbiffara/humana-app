@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
-import { api } from "@/lib/api";
+import { api, apiErrorMessage } from "@/lib/api";
 import { hotelApi, type HotelProfile, type OrgProfile } from "@/lib/api/hotel";
 import { uploadImage } from "@/lib/upload";
 import PlacesAutocomplete, { type PlaceResult } from "@/components/PlacesAutocomplete";
@@ -29,6 +29,7 @@ import {
   type PropertyFormValues,
 } from "@/lib/property-form";
 import { AMENITY_CATALOG, amenityIdForName } from "@/lib/amenity-catalog";
+import { decimalOrNull } from "@/lib/property-catalog";
 import type { SubscriptionPlan, Subscription } from "@/lib/types";
 
 type SettingsTab = "profile" | "property" | "account" | "subscription" | "payments";
@@ -427,11 +428,16 @@ export default function HotelSettingsPage() {
   async function saveProfile() {
     setSaving(true);
     try {
+      // handlePlaceSelect also refreshes the postal code and coordinates, so
+      // they travel with this save instead of waiting for the Property tab.
       await hotelApi.updateProfile({
         name,
         city: propertyForm.city,
         country: propertyForm.country,
         country_code: propertyForm.countryCode,
+        postal_code: propertyForm.postalCode,
+        latitude: decimalOrNull(propertyForm.latitude, 6),
+        longitude: decimalOrNull(propertyForm.longitude, 6),
         address,
         contact_email: contactEmail,
         phone,
@@ -476,8 +482,8 @@ export default function HotelSettingsPage() {
       showSaved();
     } catch (err) {
       // A rejected save (e.g. a 422 on the group range) keeps the form intact
-      // and shows the API message instead of failing silently.
-      setPropertyError(err instanceof Error ? err.message : ts.profile.save);
+      // and shows the field-level reasons instead of failing silently.
+      setPropertyError(apiErrorMessage(err, ts.profile.save));
     } finally {
       setPropertySaving(false);
     }
@@ -985,7 +991,13 @@ export default function HotelSettingsPage() {
                 )}
                 <button
                   onClick={saveProperty}
-                  disabled={propertySaving || uploadingPhotos || groupRangeInvalid(propertyForm)}
+                  disabled={
+                    propertySaving ||
+                    uploadingPhotos ||
+                    groupRangeInvalid(propertyForm) ||
+                    (propertyForm.propertyType === "other" &&
+                      !propertyForm.propertyTypeOther.trim())
+                  }
                   className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {propertySaving ? ts.profile.saving : ts.profile.save}
