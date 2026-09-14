@@ -21,6 +21,7 @@ import {
   ScheduleBlock,
 } from "@/components/hotel/PropertyFormBlocks";
 import {
+  CLEARED_PLACE_COORDINATES,
   EMPTY_PROPERTY_FORM,
   groupRangeInvalid,
   placeToPropertyForm,
@@ -430,8 +431,9 @@ export default function HotelSettingsPage() {
   async function saveProfile() {
     setSaving(true);
     try {
-      // handlePlaceSelect also refreshes the postal code and coordinates, so
-      // they travel with this save instead of waiting for the Property tab.
+      // handlePlaceSelect refreshes the postal code and coordinates, and a
+      // hand-edited address clears the coordinates, so both travel with this
+      // save instead of waiting for the Property tab.
       await hotelApi.updateProfile({
         name,
         city: propertyForm.city,
@@ -751,7 +753,10 @@ export default function HotelSettingsPage() {
                       </label>
                       <PlacesAutocomplete
                         value={address}
-                        onChange={(val) => setAddress(val)}
+                        onChange={(val) => {
+                          setAddress(val);
+                          patchPropertyForm(CLEARED_PLACE_COORDINATES);
+                        }}
                         onPlaceSelect={handlePlaceSelect}
                         placeholder="Search location..."
                       />

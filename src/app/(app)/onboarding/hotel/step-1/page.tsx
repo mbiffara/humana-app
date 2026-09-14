@@ -12,7 +12,7 @@ import {
   PropertyTypeBlock,
   ScheduleBlock,
 } from "@/components/hotel/PropertyFormBlocks";
-import { placeToPropertyForm } from "@/lib/property-form";
+import { CLEARED_PLACE_COORDINATES, placeToPropertyForm } from "@/lib/property-form";
 
 /* ─── Reusable white input class ─── */
 const INPUT =
@@ -126,7 +126,7 @@ export default function HotelWizardStep1() {
               <label className={LABEL}>{h.addressLabel}</label>
               <PlacesAutocomplete
                 value={state.address}
-                onChange={(val) => set({ address: val })}
+                onChange={(val) => set({ address: val, ...CLEARED_PLACE_COORDINATES })}
                 onPlaceSelect={handlePlaceSelect}
                 placeholder={h.addressPlaceholder}
               />

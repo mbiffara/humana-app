@@ -11,8 +11,12 @@ import {
 } from "react";
 import { hotelApi } from "@/lib/api/hotel";
 import { amenityIdForName } from "@/lib/amenity-catalog";
-import { numberToInput, sanitizeEnvironments } from "@/lib/property-catalog";
-import { EMPTY_PROPERTY_FORM, type PropertyFormValues } from "@/lib/property-form";
+import { sanitizeEnvironments } from "@/lib/property-catalog";
+import {
+  EMPTY_PROPERTY_FORM,
+  propertyFormFromProfile,
+  type PropertyFormValues,
+} from "@/lib/property-form";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type AvailabilityBlock = {
@@ -185,50 +189,18 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
 
         const patch: Partial<HotelWizardState> = {};
 
-        if (h.property_type) patch.propertyType = h.property_type;
-        if (h.property_type_other) patch.propertyTypeOther = h.property_type_other;
+        // The property block is assigned wholesale, including the values the
+        // server cleared (null / [] / ""): a truthy-only merge would keep a
+        // stale sessionStorage answer and write it straight back on save.
+        Object.assign(patch, propertyFormFromProfile(h));
+
+        // Wizard-only identity fields keep the "only if present" merge so an
+        // in-progress draft (and the account email prefill) is not wiped.
         if (h.name) patch.hotelName = h.name;
         if (h.address) patch.address = h.address;
         if (h.description) patch.description = h.description;
         if (h.phone) patch.phone = h.phone;
         if (h.contact_email) patch.contactEmail = h.contact_email;
-        if (h.city) patch.city = h.city;
-        if (h.state_region) patch.stateRegion = h.state_region;
-        if (h.country) patch.country = h.country;
-        if (h.country_code) patch.countryCode = h.country_code;
-        if (h.postal_code) patch.postalCode = h.postal_code;
-        if (h.latitude != null) patch.latitude = numberToInput(h.latitude);
-        if (h.longitude != null) patch.longitude = numberToInput(h.longitude);
-        if (h.website) patch.website = h.website;
-        if (h.instagram) patch.instagram = h.instagram;
-        if (h.nearest_airport) patch.nearestAirport = h.nearest_airport;
-        if (h.airport_distance_km != null)
-          patch.airportDistanceKm = numberToInput(h.airport_distance_km);
-        if (h.airport_time_min != null)
-          patch.airportTimeMin = numberToInput(h.airport_time_min);
-        if (h.airport_transfer) patch.airportTransfer = h.airport_transfer;
-        if (h.airport_transfer_notes) patch.airportTransferNotes = h.airport_transfer_notes;
-        if (h.distance_to_center_km != null)
-          patch.distanceToCenterKm = numberToInput(h.distance_to_center_km);
-        const environments = sanitizeEnvironments(h.environments);
-        if (environments.length > 0) patch.environments = environments;
-        if (h.check_in_time) patch.checkInTime = h.check_in_time;
-        if (h.check_out_time) patch.checkOutTime = h.check_out_time;
-        if (h.pet_friendly != null) patch.petFriendly = h.pet_friendly;
-        if (h.pet_dogs != null) patch.petDogs = h.pet_dogs;
-        if (h.pet_cats != null) patch.petCats = h.pet_cats;
-        if (h.pet_size_restriction != null)
-          patch.petSizeRestriction = h.pet_size_restriction;
-        if (h.pet_size_restriction_notes)
-          patch.petSizeRestrictionNotes = h.pet_size_restriction_notes;
-        if (h.pet_extra_cost != null) patch.petExtraCost = h.pet_extra_cost;
-        if (h.pet_extra_cost_notes) patch.petExtraCostNotes = h.pet_extra_cost_notes;
-        if (h.pet_common_areas != null) patch.petCommonAreas = h.pet_common_areas;
-        if (h.pet_specific_rooms != null) patch.petSpecificRooms = h.pet_specific_rooms;
-        if (h.group_min_guests != null)
-          patch.groupMinGuests = numberToInput(h.group_min_guests);
-        if (h.group_max_guests != null)
-          patch.groupMaxGuests = numberToInput(h.group_max_guests);
 
         // Hydrate room types, including their saved photos and blocked dates
         if (h.room_types && h.room_types.length > 0) {

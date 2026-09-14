@@ -195,6 +195,18 @@ export function groupRangeInvalid(v: Pick<PropertyFormValues, "groupMinGuests" |
   return max < min;
 }
 
+/**
+ * Coordinates belong to the place that was picked, so typing over the address
+ * by hand (or using the plain-text fallback) invalidates them until another
+ * place is selected. The region and postal code are left alone — the owner may
+ * have corrected those by hand — and the latitude/longitude inputs stay visible
+ * so they can be typed back in.
+ */
+export const CLEARED_PLACE_COORDINATES: Partial<PropertyFormValues> = {
+  latitude: "",
+  longitude: "",
+};
+
 /** Location fields filled in from a Google Places selection. */
 export function placeToPropertyForm(place: PlaceResult): Partial<PropertyFormValues> {
   const patch: Partial<PropertyFormValues> = {
