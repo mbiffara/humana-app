@@ -1457,6 +1457,7 @@ type Dictionary = {
     };
   };
   propertyForm: {
+    loadFailed: string;
     yes: string;
     no: string;
     typeSection: string;
@@ -3650,6 +3651,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
     },
     propertyForm: {
+      loadFailed: "We could not load your property profile. Reload the page before editing so nothing gets overwritten.",
       yes: "Yes",
       no: "No",
       typeSection: "Property type",
@@ -5848,6 +5850,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
     },
     propertyForm: {
+      loadFailed: "No pudimos cargar el perfil de tu propiedad. Recargá la página antes de editar para no pisar datos.",
       yes: "Sí",
       no: "No",
       typeSection: "Tipo de propiedad",
@@ -8047,6 +8050,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       },
     },
     propertyForm: {
+      loadFailed: "Não foi possível carregar o perfil da sua propriedade. Recarregue a página antes de editar para não sobrescrever dados.",
       yes: "Sim",
       no: "Não",
       typeSection: "Tipo de propriedade",

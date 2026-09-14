@@ -280,6 +280,7 @@ export default function HotelSettingsPage() {
   const [profile, setProfile] = useState<HotelProfile | null>(null);
   const [orgProfile, setOrgProfile] = useState<OrgProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
 
@@ -362,7 +363,8 @@ export default function HotelSettingsPage() {
         setBankStatus(org.bank_status ?? "pending");
       }
     } catch {
-      // ignore
+      // Without the profile every field would look empty and Save would wipe it.
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -619,6 +621,14 @@ export default function HotelSettingsPage() {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center px-6 text-center text-sm text-red-600">
+        {t.propertyForm.loadFailed}
       </div>
     );
   }
