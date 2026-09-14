@@ -753,10 +753,8 @@ export default function HotelSettingsPage() {
                       </label>
                       <PlacesAutocomplete
                         value={address}
-                        onChange={(val) => {
-                          setAddress(val);
-                          patchPropertyForm(CLEARED_PLACE_COORDINATES);
-                        }}
+                        onChange={(val) => setAddress(val)}
+                        onUserInput={() => patchPropertyForm(CLEARED_PLACE_COORDINATES)}
                         onPlaceSelect={handlePlaceSelect}
                         placeholder="Search location..."
                       />

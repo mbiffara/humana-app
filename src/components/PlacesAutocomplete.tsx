@@ -17,6 +17,10 @@ export interface PlaceResult {
 interface PlacesAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
+  /** Fires only when the user types, never on the programmatic updates that
+   *  precede onPlaceSelect: use it to drop derived data (coordinates) that a
+   *  hand-edited address invalidates. */
+  onUserInput?: (value: string) => void;
   onPlaceSelect: (place: PlaceResult) => void;
   placeholder?: string;
   required?: boolean;
@@ -73,6 +77,7 @@ interface Prediction {
 export default function PlacesAutocomplete({
   value,
   onChange,
+  onUserInput,
   onPlaceSelect,
   placeholder = "Start typing an address...",
   required = false,
@@ -145,6 +150,7 @@ export default function PlacesAutocomplete({
 
   function handleInputChange(val: string) {
     onChange(val);
+    onUserInput?.(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (val.trim().length > 1) {
       setShowDropdown(true);

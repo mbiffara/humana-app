@@ -126,7 +126,8 @@ export default function HotelWizardStep1() {
               <label className={LABEL}>{h.addressLabel}</label>
               <PlacesAutocomplete
                 value={state.address}
-                onChange={(val) => set({ address: val, ...CLEARED_PLACE_COORDINATES })}
+                onChange={(val) => set({ address: val })}
+                onUserInput={() => set({ ...CLEARED_PLACE_COORDINATES })}
                 onPlaceSelect={handlePlaceSelect}
                 placeholder={h.addressPlaceholder}
               />
