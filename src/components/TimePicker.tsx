@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useLocale } from "@/i18n/LocaleProvider";
+import { FLEXIBLE_TIME } from "@/lib/property-catalog";
 
 const INPUT =
   "w-full bg-white rounded-[6px] border border-humana-line px-4 py-3 text-[15px] text-humana-ink outline-none transition-all duration-200 placeholder:text-humana-subtle/50 focus:border-humana-gold focus:ring-1 focus:ring-humana-gold/20";
@@ -71,13 +73,24 @@ function formatTime12(val: string): string {
   return `${h12}:${String(m).padStart(2, "0")} ${period}`;
 }
 
+/** Renders a stored value: "flexible" keeps its translated label, "HH:mm" is
+ *  shown in 12h form. */
+export function formatCheckTime(value: string | null | undefined, flexibleLabel: string): string {
+  if (!value) return "";
+  if (value === FLEXIBLE_TIME) return flexibleLabel;
+  return formatTime12(value);
+}
+
 export function TimePicker({
   value,
   onChange,
+  className,
 }: {
   value: string;
   onChange: (v: string) => void;
+  className?: string;
 }) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [inputText, setInputText] = useState("");
   const [editing, setEditing] = useState(false);
@@ -85,20 +98,29 @@ export function TimePicker({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const displayText = formatTime12(value);
+  const flexibleLabel = t.propertyForm.flexible;
+  // "Flexible" leads the list and never goes through the time parser
+  const options = [{ label: flexibleLabel, value: FLEXIBLE_TIME }, ...PRESET_TIMES];
+  const displayText = formatCheckTime(value, flexibleLabel);
 
-  // Filter presets based on what user is typing
+  // Filter options based on what user is typing
   const filtered =
     editing && inputText
-      ? PRESET_TIMES.filter((t) => {
+      ? options.filter((t) => {
           const q = inputText.toLowerCase().replace(/\s/g, "");
           const l = t.label.toLowerCase().replace(/\s/g, "");
           return l.includes(q) || t.value.includes(q);
         })
-      : PRESET_TIMES;
+      : options;
 
   function commitInput() {
     if (!inputText) return;
+    const typed = inputText.trim().toLowerCase();
+    if (typed && flexibleLabel.toLowerCase().startsWith(typed)) {
+      onChange(FLEXIBLE_TIME);
+      setInputText("");
+      return;
+    }
     const parsed = parseTimeInput(inputText);
     if (parsed) onChange(parsed);
     setInputText("");
@@ -174,7 +196,7 @@ export function TimePicker({
           }}
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
-          className={INPUT}
+          className={className ?? INPUT}
         />
         <button
           type="button"
