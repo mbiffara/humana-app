@@ -6,6 +6,7 @@
  */
 import type { PropertyFormCopy } from "@/i18n/dictionary";
 import {
+  isAirportTransfer,
   type AirportTransfer,
   type Environment,
   type PropertyType,
@@ -33,7 +34,7 @@ export function airportTransferLabel(
   p: PropertyFormCopy,
   transfer: AirportTransfer | null | undefined,
 ): string | null {
-  return transfer ? p.transfers[transfer] : null;
+  return isAirportTransfer(transfer) ? p.transfers[transfer] : null;
 }
 
 export type PetPolicyFields = {

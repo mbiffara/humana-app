@@ -12,6 +12,7 @@ import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
 import { formatCheckTime } from "@/components/TimePicker";
 import { decimalOrNull, googleMapsUrl, integerOrNull } from "@/lib/property-catalog";
 import {
+  airportTransferLabel,
   distanceAndTime,
   environmentLabels,
   groupCapacitySummary,
@@ -81,7 +82,7 @@ export default function HotelWizardStep5() {
     decimalOrNull(state.airportDistanceKm, 1),
     integerOrNull(state.airportTimeMin),
   );
-  const transferLabel = state.airportTransfer ? p.transfers[state.airportTransfer] : null;
+  const transferLabel = airportTransferLabel(p, state.airportTransfer || null);
   const centreDistance = decimalOrNull(state.distanceToCenterKm, 1);
   const petSummary = petPolicySummary(p, {
     pet_friendly: state.petFriendly,

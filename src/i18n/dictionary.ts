@@ -1464,6 +1464,7 @@ type Dictionary = {
     typeSection: string;
     typeLabel: string;
     typePlaceholder: string;
+    selectPlaceholder: string;
     typeOtherLabel: string;
     typeOtherPlaceholder: string;
     types: Record<PropertyType, string>;
@@ -3660,6 +3661,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       typeSection: "Property type",
       typeLabel: "Property type",
       typePlaceholder: "Select a type",
+      selectPlaceholder: "Select\u2026",
       typeOtherLabel: "Which one?",
       typeOtherPlaceholder: "Describe your property",
       types: {
@@ -5861,6 +5863,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       typeSection: "Tipo de propiedad",
       typeLabel: "Tipo de propiedad",
       typePlaceholder: "Elegí un tipo",
+      selectPlaceholder: "Elegí una opción",
       typeOtherLabel: "¿Cuál?",
       typeOtherPlaceholder: "Describí tu propiedad",
       types: {
@@ -8063,6 +8066,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       typeSection: "Tipo de propriedade",
       typeLabel: "Tipo de propriedade",
       typePlaceholder: "Escolha um tipo",
+      selectPlaceholder: "Escolha uma opção",
       typeOtherLabel: "Qual?",
       typeOtherPlaceholder: "Descreva sua propriedade",
       types: {

@@ -322,7 +322,7 @@ export function LocationBlock({ values, onChange, variant = "wizard" }: Property
               }}
               className={`${INPUT_CLASS[variant]} cursor-pointer`}
             >
-              <option value="">{p.typePlaceholder}</option>
+              <option value="">{p.selectPlaceholder}</option>
               {AIRPORT_TRANSFERS.map((key) => (
                 <option key={key} value={key}>
                   {p.transfers[key]}
