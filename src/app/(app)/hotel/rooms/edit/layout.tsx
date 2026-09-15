@@ -57,6 +57,7 @@ function WizardShell({ children }: { children: ReactNode }) {
       capacity: state.capacity,
       total_rooms: state.totalRooms,
       bed_type: state.bedType,
+      beds_count: state.bedsCount,
       area_sqm: state.areaSqm ? parseFloat(state.areaSqm) : null,
       status: state.status,
       price_per_night_cents: toCents(state.baseRate),

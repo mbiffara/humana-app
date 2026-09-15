@@ -324,6 +324,7 @@ export interface RoomType {
   image_url: string | null;
   total_rooms: number | null;
   bed_type: string | null;
+  beds_count: number | null;
   view_type: string | null;
   amenities_list: string[];
 }
@@ -368,6 +369,7 @@ export interface RoomTypeCreate {
   description?: string;
   total_rooms?: number;
   bed_type?: string;
+  beds_count?: number;
   view_type?: string;
   amenities?: string[];
 }

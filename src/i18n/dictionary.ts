@@ -168,6 +168,7 @@ type Dictionary = {
           bunk: string;
           sofa_bed: string;
         };
+        bedsCount: string;
         roomSize: string;
         status: string;
       };
@@ -175,7 +176,7 @@ type Dictionary = {
         title: string;
         subtitle: string;
         selected: (n: number) => string;
-        groups: { features: string; bathroom: string; technology: string; outdoor: string };
+        groups: { comfort: string; equipment: string; accessibility: string; extras: string };
         items: Record<string, string>;
         customGroup: string;
         customPlaceholder: string;
@@ -1136,6 +1137,8 @@ type Dictionary = {
     info: string;
     capacity: string;
     personCount: (n: number) => string;
+    bedsLabel: string;
+    beds: (n: number) => string;
     bookNow: string;
     roomCount: (n: number) => string;
     activeRetreats: (n: number) => string;
@@ -1663,6 +1666,8 @@ type Dictionary = {
       baseRate: string;
       roomSize: string;
       bedTypeLabel: string;
+      bedsCount: string;
+      roomAmenitiesTitle: string;
       backToRooms: string;
       saveChanges: string;
       describeRoom: string;
@@ -2095,6 +2100,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             bunk: "Bunk",
             sofa_bed: "Sofa bed",
           },
+          bedsCount: "Bed count",
           roomSize: "Room size (m²)",
           status: "Status",
         },
@@ -2106,13 +2112,16 @@ export const dictionary: Record<Locale, Dictionary> = {
           customPlaceholder: "e.g. Fireplace, Tea ceremony set…",
           addCustom: "Add",
           groups: {
-            features: "Room features",
-            bathroom: "Bathroom",
-            technology: "Technology",
-            outdoor: "Outdoor & views",
+            comfort: "Comfort",
+            equipment: "Equipment",
+            accessibility: "Accessibility",
+            extras: "Other amenities",
           },
           items: {
+            fan: "Fan",
             air_conditioning: "Air conditioning",
+            heating: "Heating",
+            wheelchair_accessible: "Wheelchair accessible",
             private_terrace: "Private terrace",
             king_bed: "King bed",
             minibar: "Minibar",
@@ -2126,7 +2135,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             bidet: "Bidet",
             hair_dryer: "Hair dryer",
             free_wifi: "Free Wi-Fi",
-            smart_tv: "Smart TV",
+            smart_tv: "TV",
             bluetooth_speaker: "Bluetooth speaker",
             usb_charging: "USB charging",
             garden_view: "Garden view",
@@ -2134,6 +2143,21 @@ export const dictionary: Record<Locale, Dictionary> = {
             ocean_view: "Ocean view",
             pool_access: "Pool access",
             private_plunge_pool: "Private plunge pool",
+            /* Label-only ids: not offered by ROOM_AMENITIES, kept so rooms
+               saved with them still read in the guest's language. */
+            wifi: "Wi-Fi",
+            safe: "Safe",
+            bathrobe: "Bathrobe",
+            terrace: "Terrace",
+            tv: "TV",
+            balcony: "Balcony",
+            jacuzzi: "Jacuzzi",
+            pool: "Pool",
+            kitchen: "Kitchen",
+            mountain_view: "Mountain View",
+            room_service: "Room Service",
+            coffee_maker: "Coffee Maker",
+            iron: "Iron",
           },
         },
         photos: {
@@ -3287,6 +3311,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       info: "Info",
       capacity: "Capacity",
       personCount: (n) => n === 1 ? "1 person" : `${n} people`,
+      bedsLabel: "Beds",
+      beds: (n) => n === 1 ? "1 bed" : `${n} beds`,
       bookNow: "Book now",
       roomCount: (n) => n === 1 ? "1 room" : `${n} rooms`,
       activeRetreats: (n) => n === 1 ? "1 active retreat" : `${n} active retreats`,
@@ -3894,6 +3920,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         baseRate: "Base Rate",
         roomSize: "Room Size",
         bedTypeLabel: "Bed Type",
+        bedsCount: "Bed count",
+        roomAmenitiesTitle: "Room amenities",
         backToRooms: "Back to rooms",
         saveChanges: "Save Changes",
         describeRoom: "Describe this room.",
@@ -4310,9 +4338,10 @@ export const dictionary: Record<Locale, Dictionary> = {
             queen: "Queen",
             king: "King",
             twin: "Twin",
-            bunk: "Litera",
+            bunk: "Superpuesta",
             sofa_bed: "Sofá cama",
           },
+          bedsCount: "Cantidad de camas",
           roomSize: "Tamaño (m²)",
           status: "Estado",
         },
@@ -4324,13 +4353,16 @@ export const dictionary: Record<Locale, Dictionary> = {
           customPlaceholder: "ej. Chimenea, Set de ceremonia de té…",
           addCustom: "Agregar",
           groups: {
-            features: "Características",
-            bathroom: "Baño",
-            technology: "Tecnología",
-            outdoor: "Exterior y vistas",
+            comfort: "Confort",
+            equipment: "Equipamiento",
+            accessibility: "Accesibilidad",
+            extras: "Otras amenities",
           },
           items: {
+            fan: "Ventilador",
             air_conditioning: "Aire acondicionado",
+            heating: "Calefacción",
+            wheelchair_accessible: "Accesible para personas con discapacidad",
             private_terrace: "Terraza privada",
             king_bed: "Cama king",
             minibar: "Minibar",
@@ -4344,7 +4376,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             bidet: "Bidet",
             hair_dryer: "Secador de pelo",
             free_wifi: "Wi-Fi gratis",
-            smart_tv: "Smart TV",
+            smart_tv: "TV",
             bluetooth_speaker: "Parlante Bluetooth",
             usb_charging: "Carga USB",
             garden_view: "Vista al jardín",
@@ -4352,6 +4384,21 @@ export const dictionary: Record<Locale, Dictionary> = {
             ocean_view: "Vista al mar",
             pool_access: "Acceso a piscina",
             private_plunge_pool: "Piscina privada",
+            /* Label-only ids: not offered by ROOM_AMENITIES, kept so rooms
+               saved with them still read in the guest's language. */
+            wifi: "Wi-Fi",
+            safe: "Caja Fuerte",
+            bathrobe: "Albornoz",
+            terrace: "Terraza",
+            tv: "TV",
+            balcony: "Balcón",
+            jacuzzi: "Jacuzzi",
+            pool: "Piscina",
+            kitchen: "Cocina",
+            mountain_view: "Vista a la Montaña",
+            room_service: "Servicio a la Habitación",
+            coffee_maker: "Cafetera",
+            iron: "Plancha",
           },
         },
         photos: {
@@ -5505,6 +5552,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       info: "Info",
       capacity: "Capacidad",
       personCount: (n) => n === 1 ? "1 persona" : `${n} personas`,
+      bedsLabel: "Camas",
+      beds: (n) => n === 1 ? "1 cama" : `${n} camas`,
       bookNow: "Reservar ahora",
       roomCount: (n) => n === 1 ? "1 hospedaje" : `${n} hospedajes`,
       activeRetreats: (n) => n === 1 ? "1 retiro activo" : `${n} retiros activos`,
@@ -6112,6 +6161,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         baseRate: "Tarifa Base",
         roomSize: "Tama\u00F1o",
         bedTypeLabel: "Tipo de Cama",
+        bedsCount: "Cantidad de camas",
+        roomAmenitiesTitle: "Amenities de la habitaci\u00F3n",
         backToRooms: "Volver a habitaciones",
         saveChanges: "Guardar Cambios",
         describeRoom: "Describe esta habitaci\u00F3n.",
@@ -6531,6 +6582,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             bunk: "Beliche",
             sofa_bed: "Sofá-cama",
           },
+          bedsCount: "Quantidade de camas",
           roomSize: "Tamanho (m²)",
           status: "Status",
         },
@@ -6542,13 +6594,16 @@ export const dictionary: Record<Locale, Dictionary> = {
           customPlaceholder: "ex. Lareira, Kit de cerimônia do chá…",
           addCustom: "Adicionar",
           groups: {
-            features: "Características",
-            bathroom: "Banheiro",
-            technology: "Tecnologia",
-            outdoor: "Exterior e vistas",
+            comfort: "Conforto",
+            equipment: "Equipamentos",
+            accessibility: "Acessibilidade",
+            extras: "Outras comodidades",
           },
           items: {
+            fan: "Ventilador",
             air_conditioning: "Ar-condicionado",
+            heating: "Aquecimento",
+            wheelchair_accessible: "Acessível para pessoas com deficiência",
             private_terrace: "Terraço privativo",
             king_bed: "Cama king",
             minibar: "Frigobar",
@@ -6562,7 +6617,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             bidet: "Bidê",
             hair_dryer: "Secador de cabelo",
             free_wifi: "Wi-Fi grátis",
-            smart_tv: "Smart TV",
+            smart_tv: "TV",
             bluetooth_speaker: "Caixa de som Bluetooth",
             usb_charging: "Carregamento USB",
             garden_view: "Vista para o jardim",
@@ -6570,6 +6625,21 @@ export const dictionary: Record<Locale, Dictionary> = {
             ocean_view: "Vista para o mar",
             pool_access: "Acesso à piscina",
             private_plunge_pool: "Piscina privativa",
+            /* Label-only ids: not offered by ROOM_AMENITIES, kept so rooms
+               saved with them still read in the guest's language. */
+            wifi: "Wi-Fi",
+            safe: "Cofre",
+            bathrobe: "Roupão",
+            terrace: "Terraço",
+            tv: "TV",
+            balcony: "Varanda",
+            jacuzzi: "Jacuzzi",
+            pool: "Piscina",
+            kitchen: "Cozinha",
+            mountain_view: "Vista para a Montanha",
+            room_service: "Serviço de Quarto",
+            coffee_maker: "Cafeteira",
+            iron: "Ferro de Passar",
           },
         },
         photos: {
@@ -7724,6 +7794,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       info: "Info",
       capacity: "Capacidade",
       personCount: (n) => n === 1 ? "1 pessoa" : `${n} pessoas`,
+      bedsLabel: "Camas",
+      beds: (n) => n === 1 ? "1 cama" : `${n} camas`,
       bookNow: "Reservar agora",
       roomCount: (n) => n === 1 ? "1 hospedagem" : `${n} hospedagens`,
       activeRetreats: (n) => n === 1 ? "1 retiro ativo" : `${n} retiros ativos`,
@@ -8331,6 +8403,8 @@ export const dictionary: Record<Locale, Dictionary> = {
         baseRate: "Tarifa Base",
         roomSize: "Tamanho",
         bedTypeLabel: "Tipo de Cama",
+        bedsCount: "Quantidade de camas",
+        roomAmenitiesTitle: "Comodidades do quarto",
         backToRooms: "Voltar aos quartos",
         saveChanges: "Salvar Altera\u00E7\u00F5es",
         describeRoom: "Descreva este quarto.",

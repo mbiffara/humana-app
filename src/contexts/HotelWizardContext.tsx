@@ -41,6 +41,8 @@ export type RoomTypeEntry = {
   baseRate: number;
   roomSize: number;
   bedType: string;
+  bedsCount: number;
+  amenities: string[];
   photos: string[];
   availability: AvailabilityBlock[];
 };
@@ -196,12 +198,17 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Ensure room types have the new fields (photos, availability)
+        // Ensure room types have the fields added after the first release
         if (Array.isArray(parsed.roomTypes)) {
           parsed.roomTypes = parsed.roomTypes.map((rt: Record<string, unknown>) => ({
             photos: [],
             availability: [],
             ...rt,
+            // Drafts saved before this form used the API's ids kept the bed
+            // type capitalised ("King") — the payload wants it lowercase
+            bedType: typeof rt.bedType === "string" ? rt.bedType.toLowerCase() : "double",
+            bedsCount: typeof rt.bedsCount === "number" ? rt.bedsCount : 1,
+            amenities: Array.isArray(rt.amenities) ? rt.amenities : [],
           }));
         }
         const merged = { ...initial, ...parsed };
@@ -253,7 +260,9 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
             totalUnits: rt.total_rooms || 1,
             baseRate: rt.price_per_night_cents / 100,
             roomSize: rt.area_sqm || 0,
-            bedType: rt.bed_type || "King",
+            bedType: rt.bed_type || "double",
+            bedsCount: rt.beds_count ?? 1,
+            amenities: rt.amenities_list ?? [],
             photos: (rt.images ?? []).map((img) => img.image_url),
             availability: blocks
               .filter((b) => b.room_type_id === rt.id)

@@ -162,6 +162,8 @@ function BottomBar() {
         total_rooms: room.totalUnits,
         description: room.description || undefined,
         bed_type: room.bedType.toLowerCase(),
+        beds_count: room.bedsCount,
+        amenities: room.amenities,
       };
       const created = await hotelApi.createRoomType(payload);
 

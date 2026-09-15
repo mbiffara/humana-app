@@ -33,6 +33,7 @@ export type RoomTypeEditorState = {
   capacity: number;
   totalRooms: number;
   bedType: string;
+  bedsCount: number;
   areaSqm: string;
   status: RoomTypeStatus;
   amenities: string[];
@@ -50,7 +51,8 @@ const initial: RoomTypeEditorState = {
   description: "",
   capacity: 2,
   totalRooms: 1,
-  bedType: "king",
+  bedType: "double",
+  bedsCount: 1,
   areaSqm: "",
   status: "active",
   amenities: [],
@@ -74,7 +76,8 @@ function stateFromApi(rt: RoomTypeDetail): RoomTypeEditorState {
     description: rt.description ?? "",
     capacity: rt.capacity,
     totalRooms: rt.total_rooms ?? 0,
-    bedType: rt.bed_type ?? "king",
+    bedType: rt.bed_type ?? "double",
+    bedsCount: rt.beds_count ?? 1,
     areaSqm: rt.area_sqm != null ? String(rt.area_sqm) : "",
     status: rt.status,
     amenities: rt.amenities_list ?? [],
@@ -123,6 +126,8 @@ export function RoomTypeEditorProvider({ children }: { children: ReactNode }) {
         // blob: URLs don't survive a reload
         merged.photos = (merged.photos ?? []).filter((url) => url.startsWith("http"));
         merged.failedUploads = [];
+        // Sessions saved before the bed count existed carry a single bed
+        if (typeof merged.bedsCount !== "number") merged.bedsCount = 1;
         setState(merged);
       }
     } catch {

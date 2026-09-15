@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useRoomTypeEditor } from "@/contexts/RoomTypeEditorContext";
 import type { RoomTypeStatus } from "@/lib/api/hotel";
+import { bedTypeOptions } from "@/lib/room-catalog";
 
-const BED_TYPES = ["single", "double", "queen", "king", "twin", "bunk", "sofa_bed"] as const;
 const STATUSES: RoomTypeStatus[] = ["active", "draft", "inactive"];
 
 const STATUS_DOTS: Record<RoomTypeStatus, string> = {
@@ -100,19 +100,32 @@ export default function RoomDetailsStep() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-3 gap-6">
           <Field label={te.details.bedType}>
             <select
               value={state.bedType}
               onChange={(e) => set({ bedType: e.target.value })}
               className={`${inputClass} cursor-pointer`}
             >
-              {BED_TYPES.map((bed) => (
+              {bedTypeOptions(state.bedType).map((bed) => (
                 <option key={bed} value={bed}>
-                  {te.details.bedTypes[bed]}
+                  {te.details.bedTypes[bed as keyof typeof te.details.bedTypes] ?? bed}
                 </option>
               ))}
             </select>
+          </Field>
+          <Field label={te.details.bedsCount}>
+            <input
+              type="number"
+              min={1}
+              max={10}
+              step={1}
+              value={state.bedsCount || ""}
+              onChange={(e) =>
+                set({ bedsCount: Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 1)) })
+              }
+              className={inputClass}
+            />
           </Field>
           <Field label={te.details.roomSize}>
             <input
