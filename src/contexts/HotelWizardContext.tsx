@@ -11,6 +11,12 @@ import {
 } from "react";
 import { hotelApi } from "@/lib/api/hotel";
 import { amenityIdForName } from "@/lib/amenity-catalog";
+import { sanitizeEnvironments } from "@/lib/property-catalog";
+import {
+  EMPTY_PROPERTY_FORM,
+  propertyFormFromProfile,
+  type PropertyFormValues,
+} from "@/lib/property-form";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type AvailabilityBlock = {
@@ -34,7 +40,9 @@ export type RoomTypeEntry = {
   availability: AvailabilityBlock[];
 };
 
-export type HotelWizardState = {
+/** The wizard state is the shared property form plus the owner/identity fields
+ *  and the per-step collections the wizard owns. */
+export type HotelWizardState = PropertyFormValues & {
   /* Personal data */
   ownerFirstName: string;
   ownerLastName: string;
@@ -42,16 +50,9 @@ export type HotelWizardState = {
   /* Property identity */
   hotelName: string;
   address: string;
-  city: string;
-  country: string;
-  countryCode: string;
   description: string;
-  stars: number;
   phone: string;
   contactEmail: string;
-  website: string;
-  checkInTime: string;
-  checkOutTime: string;
   /* Room types */
   roomTypes: RoomTypeEntry[];
   /* Amenities */
@@ -64,21 +65,15 @@ export type HotelWizardState = {
 };
 
 const initial: HotelWizardState = {
+  ...EMPTY_PROPERTY_FORM,
   ownerFirstName: "",
   ownerLastName: "",
   ownerPhone: "",
   hotelName: "",
   address: "",
-  city: "",
-  country: "",
-  countryCode: "",
   description: "",
-  stars: 0,
   phone: "",
   contactEmail: "",
-  website: "",
-  checkInTime: "15:00",
-  checkOutTime: "11:00",
   roomTypes: [],
   amenities: [],
   customAmenities: [],
@@ -145,6 +140,11 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
       if (user.phone && !prev.ownerPhone) {
         patch.ownerPhone = user.phone;
       }
+      // The property's public email defaults to the account email until the
+      // owner overrides it in step 1.
+      if (user.email && !prev.contactEmail) {
+        patch.contactEmail = user.email;
+      }
       return Object.keys(patch).length > 0 ? { ...prev, ...patch } : prev;
     });
   }, [user]);
@@ -167,6 +167,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
           }));
         }
         const merged = { ...initial, ...parsed };
+        // Sessions saved before the property contract may carry a stale shape
+        merged.environments = sanitizeEnvironments(merged.environments);
         if (merged.hotelName || merged.ownerFirstName || merged.roomTypes.length > 0) {
           setState(merged);
         }
@@ -187,18 +189,18 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
 
         const patch: Partial<HotelWizardState> = {};
 
+        // The property block is assigned wholesale, including the values the
+        // server cleared (null / [] / ""): a truthy-only merge would keep a
+        // stale sessionStorage answer and write it straight back on save.
+        Object.assign(patch, propertyFormFromProfile(h));
+
+        // Wizard-only identity fields keep the "only if present" merge so an
+        // in-progress draft (and the account email prefill) is not wiped.
         if (h.name) patch.hotelName = h.name;
         if (h.address) patch.address = h.address;
-        if (h.city) patch.city = h.city;
-        if (h.country) patch.country = h.country;
-        if (h.country_code) patch.countryCode = h.country_code;
         if (h.description) patch.description = h.description;
-        if (h.stars) patch.stars = h.stars;
         if (h.phone) patch.phone = h.phone;
         if (h.contact_email) patch.contactEmail = h.contact_email;
-        if (h.website) patch.website = h.website;
-        if (h.check_in_time) patch.checkInTime = h.check_in_time;
-        if (h.check_out_time) patch.checkOutTime = h.check_out_time;
 
         // Hydrate room types, including their saved photos and blocked dates
         if (h.room_types && h.room_types.length > 0) {

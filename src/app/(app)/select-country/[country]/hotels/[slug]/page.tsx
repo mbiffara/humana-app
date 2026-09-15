@@ -12,10 +12,31 @@ import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type PublicHotelFull, type PublicRoomType, type HotelAvailabilityRoomType, type ApiExperience } from "@/lib/api/agency";
 import { retreatToExperience } from "@/lib/retreat-experience";
 import { amenityIdForName } from "@/lib/amenity-catalog";
+import { formatCheckTime } from "@/components/TimePicker";
+import { googleMapsUrl, instagramUrl } from "@/lib/property-catalog";
+import {
+  airportTransferSummary,
+  distanceAndTime,
+  environmentLabels,
+  groupCapacitySummary,
+  petPolicySummary,
+  propertyTypeLabel,
+} from "@/lib/property-summary";
 import {
   MONTH_NAMES, WEEKDAY_NAMES, daysInMonth, firstDayOfMonth, toDateStr,
   formatDateShort, diffDays, todayStr,
 } from "@/lib/calendar-utils";
+
+/** One label/value row in the Info tab; hidden when the hotel left it empty. */
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (value == null || value === "") return null;
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">{label}</span>
+      <span className="text-[14px] text-humana-muted">{value}</span>
+    </div>
+  );
+}
 
 export default function HotelDetailPage({ params }: { params: Promise<{ country: string; slug: string }> }) {
   const { country, slug } = React.use(params);
@@ -46,6 +67,24 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
   const countryId = countrySlugToId[country] ?? country;
   const countryData = countries.find((c) => c.id === countryId);
   const countryName = countryData?.name ?? country.charAt(0).toUpperCase() + country.slice(1);
+
+  const p = t.propertyForm;
+  const typeLabel = hotel ? propertyTypeLabel(p, hotel.property_type, hotel.property_type_other) : null;
+  const environments = hotel ? environmentLabels(p, hotel.environments) : [];
+  const mapsUrl = hotel ? googleMapsUrl(hotel.latitude, hotel.longitude) : null;
+  const instagram = hotel ? instagramUrl(hotel.instagram) : null;
+  const airportDistance = hotel
+    ? distanceAndTime(p, hotel.airport_distance_km, hotel.airport_time_min)
+    : null;
+  const transferLabel = airportTransferSummary(
+    p,
+    hotel?.airport_transfer,
+    hotel?.airport_transfer_notes,
+  );
+  const petSummary = hotel ? petPolicySummary(p, hotel) : null;
+  const groupsSummary = hotel
+    ? groupCapacitySummary(p, hotel.group_min_guests, hotel.group_max_guests)
+    : null;
 
   const localeIdx = locale === "es" ? 1 : locale === "pt" ? 2 : 0;
   const months = MONTH_NAMES[localeIdx];
@@ -368,7 +407,26 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
           <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
             {t.hotelDetail.certifiedHotel.toUpperCase()} &middot; {location.toUpperCase()}
           </span>
-          <h1 className="text-[36px] font-light leading-[1.1] tracking-[-0.02em] text-humana-ink">{hotel.name}</h1>
+          <div className="flex flex-wrap items-baseline gap-3">
+            <h1 className="text-[36px] font-light leading-[1.1] tracking-[-0.02em] text-humana-ink">{hotel.name}</h1>
+            {typeLabel && (
+              <span className="rounded-full border border-humana-line px-3 py-1 text-[12px] font-medium text-humana-muted">
+                {typeLabel}
+              </span>
+            )}
+          </div>
+          {environments.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {environments.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full bg-humana-stone px-3 py-1 text-[12px] text-humana-ink"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          )}
           {hotel.description && (
             <p className="max-w-[960px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
           )}
@@ -524,30 +582,17 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
           <div className="flex flex-col gap-8">
             {/* Hotel details grid */}
             <div className="grid grid-cols-2 gap-x-12 gap-y-6">
-              {hotel.stars && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">Estrellas</span>
-                  <span className="text-[14px] text-humana-muted">{"★".repeat(hotel.stars)}{"☆".repeat(5 - hotel.stars)}</span>
-                </div>
-              )}
+              <InfoRow label={p.typeLabel} value={typeLabel} />
               {hotel.total_rooms && (
                 <div className="flex flex-col gap-1">
                   <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">Habitaciones totales</span>
                   <span className="text-[14px] text-humana-muted">{hotel.total_rooms}</span>
                 </div>
               )}
-              {hotel.check_in_time && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">Check-in</span>
-                  <span className="text-[14px] text-humana-muted">{hotel.check_in_time}</span>
-                </div>
-              )}
-              {hotel.check_out_time && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">Check-out</span>
-                  <span className="text-[14px] text-humana-muted">{hotel.check_out_time}</span>
-                </div>
-              )}
+              <InfoRow label={p.checkInLabel} value={formatCheckTime(hotel.check_in_time, p.flexible)} />
+              <InfoRow label={p.checkOutLabel} value={formatCheckTime(hotel.check_out_time, p.flexible)} />
+              <InfoRow label={p.policiesSection} value={petSummary} />
+              <InfoRow label={p.groupsSection} value={groupsSummary} />
               {hotel.address && (
                 <div className="flex flex-col gap-1">
                   <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">Direccion</span>
@@ -572,6 +617,44 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                   <a href={hotel.website} target="_blank" rel="noopener noreferrer" className="text-[14px] text-humana-gold hover:underline">{hotel.website}</a>
                 </div>
               )}
+              <InfoRow
+                label={p.instagramLabel}
+                value={
+                  instagram ? (
+                    <a href={instagram} target="_blank" rel="noopener noreferrer" className="text-humana-gold hover:underline">
+                      {hotel.instagram}
+                    </a>
+                  ) : null
+                }
+              />
+            </div>
+
+            {/* Location & access */}
+            <div className="h-px bg-humana-line" />
+            <div className="flex flex-col gap-4">
+              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">
+                {p.locationSection}
+              </span>
+              <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+                <InfoRow label={p.stateRegionLabel} value={hotel.state_region} />
+                <InfoRow
+                  label={`${p.latitudeLabel} / ${p.longitudeLabel}`}
+                  value={
+                    mapsUrl ? (
+                      <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="text-humana-gold hover:underline">
+                        {hotel.latitude}, {hotel.longitude} — {p.viewOnMaps}
+                      </a>
+                    ) : null
+                  }
+                />
+                <InfoRow label={p.nearestAirportLabel} value={hotel.nearest_airport} />
+                <InfoRow label={p.airportDistanceLabel} value={airportDistance} />
+                <InfoRow label={p.airportTransferLabel} value={transferLabel} />
+                <InfoRow
+                  label={p.distanceToCenterLabel}
+                  value={hotel.distance_to_center_km != null ? `${hotel.distance_to_center_km} ${p.kmSuffix}` : null}
+                />
+              </div>
             </div>
 
             {/* Amenities */}

@@ -7,10 +7,31 @@ import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { adminApi } from "@/lib/api/admin";
 import type { AdminHotelPreview, AdminRoomType, AdminRoomImage, Organization, User } from "@/lib/types";
+import { formatCheckTime } from "@/components/TimePicker";
+import { googleMapsUrl, instagramUrl } from "@/lib/property-catalog";
+import {
+  airportTransferSummary,
+  distanceAndTime,
+  environmentLabels,
+  groupCapacitySummary,
+  petPolicySummary,
+  propertyTypeLabel,
+} from "@/lib/property-summary";
+
+/** One label/value row; renders nothing when the hotel never filled the field. */
+function PreviewRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (value == null || value === "") return null;
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">{label}</span>
+      <span className="text-[14px] text-humana-ink">{value}</span>
+    </div>
+  );
+}
 
 export default function HotelPreviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
 
   const [hotel, setHotel] = useState<AdminHotelPreview | null>(null);
   const [org, setOrg] = useState<Organization | null>(null);
@@ -83,7 +104,23 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
     return name.replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
-  const stars = hotel?.stars ? "★".repeat(hotel.stars) + "☆".repeat(5 - hotel.stars) : null;
+  const p = t.propertyForm;
+  const typeLabel = hotel ? propertyTypeLabel(p, hotel.property_type, hotel.property_type_other) : null;
+  const environments = hotel ? environmentLabels(p, hotel.environments) : [];
+  const mapsUrl = hotel ? googleMapsUrl(hotel.latitude, hotel.longitude) : null;
+  const instagram = hotel ? instagramUrl(hotel.instagram) : null;
+  const airportDistance = hotel
+    ? distanceAndTime(p, hotel.airport_distance_km, hotel.airport_time_min)
+    : null;
+  const transferLabel = airportTransferSummary(
+    p,
+    hotel?.airport_transfer,
+    hotel?.airport_transfer_notes,
+  );
+  const petSummary = hotel ? petPolicySummary(p, hotel) : null;
+  const groupsSummary = hotel
+    ? groupCapacitySummary(p, hotel.group_min_guests, hotel.group_max_guests)
+    : null;
   const galleryImages = hotel?.images || [];
   const allAmenities = hotel?.amenities || [];
   const totalRooms = hotel?.total_rooms || hotel?.room_types.reduce((sum, rt) => sum + (rt.total_rooms || 1), 0) || 0;
@@ -207,7 +244,21 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
             )}
           </div>
           <h1 className="text-[36px] font-light leading-[1.1] tracking-[-0.02em] text-humana-ink">{hotel.name}</h1>
-          {stars && <span className="text-[16px] tracking-[0.1em] text-humana-gold">{stars}</span>}
+          {typeLabel && (
+            <span className="text-[14px] font-medium text-humana-ink">{typeLabel}</span>
+          )}
+          {environments.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {environments.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full border border-humana-line bg-white px-3 py-1 text-[12px] text-humana-muted"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          )}
           <p className="max-w-[720px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
         </div>
 
@@ -226,11 +277,15 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="flex flex-col gap-1 rounded-lg border border-humana-line bg-white px-5 py-4">
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">Check-in</span>
-            <span className="text-[20px] font-light text-humana-ink">{hotel.check_in_time || "—"}</span>
+            <span className="text-[20px] font-light text-humana-ink">
+              {formatCheckTime(hotel.check_in_time, p.flexible) || "—"}
+            </span>
           </div>
           <div className="flex flex-col gap-1 rounded-lg border border-humana-line bg-white px-5 py-4">
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">Check-out</span>
-            <span className="text-[20px] font-light text-humana-ink">{hotel.check_out_time || "—"}</span>
+            <span className="text-[20px] font-light text-humana-ink">
+              {formatCheckTime(hotel.check_out_time, p.flexible) || "—"}
+            </span>
           </div>
           <div className="flex flex-col gap-1 rounded-lg border border-humana-line bg-white px-5 py-4">
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
@@ -238,6 +293,41 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
             </span>
             <span className="text-[14px] leading-snug text-humana-ink">{hotel.address || "—"}</span>
           </div>
+        </div>
+
+        {/* Location, access, pets and groups — rows stay hidden when empty */}
+        <div className="grid grid-cols-2 gap-x-12 gap-y-4 rounded-lg border border-humana-line bg-white px-6 py-5">
+          <PreviewRow label={p.stateRegionLabel} value={hotel.state_region} />
+          <PreviewRow label={p.postalCodeLabel} value={hotel.postal_code} />
+          <PreviewRow label={p.nearestAirportLabel} value={hotel.nearest_airport} />
+          <PreviewRow label={p.airportDistanceLabel} value={airportDistance} />
+          <PreviewRow label={p.airportTransferLabel} value={transferLabel} />
+          <PreviewRow
+            label={p.distanceToCenterLabel}
+            value={hotel.distance_to_center_km != null ? `${hotel.distance_to_center_km} ${p.kmSuffix}` : null}
+          />
+          <PreviewRow label={p.policiesSection} value={petSummary} />
+          <PreviewRow label={p.groupsSection} value={groupsSummary} />
+          {mapsUrl && (
+            <PreviewRow
+              label={p.viewOnMaps}
+              value={
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="text-humana-gold hover:underline">
+                  {hotel.latitude}, {hotel.longitude}
+                </a>
+              }
+            />
+          )}
+          {instagram && (
+            <PreviewRow
+              label={p.instagramLabel}
+              value={
+                <a href={instagram} target="_blank" rel="noopener noreferrer" className="text-humana-gold hover:underline">
+                  {hotel.instagram}
+                </a>
+              }
+            />
+          )}
         </div>
 
         {/* Amenities */}

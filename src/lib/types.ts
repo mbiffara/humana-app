@@ -1,5 +1,7 @@
 /** API response types — matches Rails serializer output. */
 
+import type { PropertyProfileFields } from "@/lib/property-catalog";
+
 export interface Organization {
   id: number;
   name: string;
@@ -274,7 +276,7 @@ export interface OfficeRetreatSummary {
   created_at: string;
 }
 
-export interface AdminHotelPreview {
+export interface AdminHotelPreview extends PropertyProfileFields {
   id: number;
   name: string;
   city: string;
@@ -288,9 +290,10 @@ export interface AdminHotelPreview {
   address: string | null;
   postal_code: string | null;
   phone: string | null;
-  stars: number | null;
   total_rooms: number | null;
+  /** "HH:MM" or "flexible". */
   check_in_time: string | null;
+  /** "HH:MM" or "flexible". */
   check_out_time: string | null;
   logo_url: string | null;
   website: string | null;

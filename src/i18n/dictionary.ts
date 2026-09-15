@@ -1,3 +1,5 @@
+import type { AirportTransfer, Environment, PropertyType } from "@/lib/property-catalog";
+
 export type Locale = "en" | "es" | "pt";
 
 export const locales: Locale[] = ["en", "es", "pt"];
@@ -433,9 +435,6 @@ type Dictionary = {
         title: string;
         subtitle: string;
         descriptionLabel: string;
-        starsLabel: string;
-        checkInLabel: string;
-        checkOutLabel: string;
         amenitiesTitle: string;
         amenitiesHint: string;
         customAmenities: string;
@@ -1457,6 +1456,76 @@ type Dictionary = {
       completed: string;
     };
   };
+  propertyForm: {
+    loadFailed: string;
+    yes: string;
+    no: string;
+    typeSection: string;
+    typeLabel: string;
+    typePlaceholder: string;
+    selectPlaceholder: string;
+    typeOtherLabel: string;
+    typeOtherPlaceholder: string;
+    types: Record<PropertyType, string>;
+    basicsSection: string;
+    emailLabel: string;
+    locationSection: string;
+    cityLabel: string;
+    stateRegionLabel: string;
+    countryLabel: string;
+    postalCodeLabel: string;
+    latitudeLabel: string;
+    longitudeLabel: string;
+    viewOnMaps: string;
+    websiteLabel: string;
+    instagramLabel: string;
+    instagramPlaceholder: string;
+    gettingHereSection: string;
+    nearestAirportLabel: string;
+    nearestAirportPlaceholder: string;
+    airportDistanceLabel: string;
+    airportTimeLabel: string;
+    airportTransferLabel: string;
+    airportTransferNotesLabel: string;
+    distanceToCenterLabel: string;
+    transfers: Record<AirportTransfer, string>;
+    environmentSection: string;
+    environmentHint: string;
+    environments: Record<Environment, string>;
+    scheduleSection: string;
+    checkInLabel: string;
+    checkOutLabel: string;
+    flexible: string;
+    policiesSection: string;
+    petFriendlyLabel: string;
+    petDogsLabel: string;
+    petCatsLabel: string;
+    petSizeRestrictionLabel: string;
+    petSizeRestrictionNotesLabel: string;
+    petExtraCostLabel: string;
+    petExtraCostNotesLabel: string;
+    petCommonAreasLabel: string;
+    petSpecificRoomsLabel: string;
+    petsNotAllowed: string;
+    petSummary: {
+      dogs: string;
+      cats: string;
+      sizeRestriction: string;
+      extraCost: string;
+      noExtraCost: string;
+      commonAreas: string;
+      specificRooms: string;
+    };
+    groupsSection: string;
+    groupMinLabel: string;
+    groupMaxLabel: string;
+    groupRangeError: string;
+    groupsRange: (min: number, max: number) => string;
+    groupsFrom: (min: number) => string;
+    groupsUpTo: (max: number) => string;
+    kmSuffix: string;
+    minSuffix: string;
+  };
   comingSoon: {
     eyebrow: string;
     title: string;
@@ -1552,14 +1621,11 @@ type Dictionary = {
       addressLabel: string;
       descriptionLabel: string;
       descriptionPlaceholder: string;
-      starsLabel: string;
       propertySection: string;
       contactSection: string;
       hotelPhoneLabel: string;
       contactEmailLabel: string;
       websiteLabel: string;
-      checkInLabel: string;
-      checkOutLabel: string;
       verificationTitle: string;
       verificationDescription: string;
       /* Step 2 — Room Inventory */
@@ -1643,7 +1709,6 @@ type Dictionary = {
       availabilityLabel: string;
       photosLabel: string;
       perNight: string;
-      starLabel: (n: number) => string;
       addressPlaceholder: string;
       amenityNames: Record<string, string>;
       /* Under Review */
@@ -1848,6 +1913,9 @@ const sharedPerGuest = {
   es: " / huésped",
   pt: " / hóspede",
 };
+
+/** Copy for the shared property form blocks and their read-only summaries. */
+export type PropertyFormCopy = Dictionary["propertyForm"];
 
 export const dictionary: Record<Locale, Dictionary> = {
   /* ───────────────────── ENGLISH ───────────────────── */
@@ -2310,9 +2378,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Property details",
           subtitle: "Keep your description, schedule, amenities, and photos up to date.",
           descriptionLabel: "Description",
-          starsLabel: "Star rating",
-          checkInLabel: "Check-in time",
-          checkOutLabel: "Check-out time",
           amenitiesTitle: "Amenities",
           amenitiesHint: "Select everything your property offers.",
           customAmenities: "Custom amenities",
@@ -3585,6 +3650,97 @@ export const dictionary: Record<Locale, Dictionary> = {
         completed: "Completed",
       },
     },
+    propertyForm: {
+      loadFailed: "We could not load your property profile. Reload the page before editing so nothing gets overwritten.",
+      yes: "Yes",
+      no: "No",
+      typeSection: "Property type",
+      typeLabel: "Property type",
+      typePlaceholder: "Select a type",
+      selectPlaceholder: "Select\u2026",
+      typeOtherLabel: "Which one?",
+      typeOtherPlaceholder: "Describe your property",
+      types: {
+        hotel: "Hotel",
+        resort: "Resort",
+        retreat_center: "Retreat Center",
+        eco_lodge: "Eco Lodge",
+        boutique_hotel: "Boutique Hotel",
+        villa: "Villa",
+        hacienda: "Hacienda / Finca",
+        other: "Other",
+      },
+      basicsSection: "Basic details",
+      emailLabel: "Email",
+      locationSection: "Location",
+      cityLabel: "City",
+      stateRegionLabel: "State / Region",
+      countryLabel: "Country",
+      postalCodeLabel: "Postal code",
+      latitudeLabel: "Latitude",
+      longitudeLabel: "Longitude",
+      viewOnMaps: "View on Google Maps",
+      websiteLabel: "Website",
+      instagramLabel: "Instagram",
+      instagramPlaceholder: "@yourhotel",
+      gettingHereSection: "Getting here",
+      nearestAirportLabel: "Nearest airport",
+      nearestAirportPlaceholder: "e.g. Madrid Barajas (MAD)",
+      airportDistanceLabel: "Distance to airport (km)",
+      airportTimeLabel: "Estimated time (min)",
+      airportTransferLabel: "Airport transfer",
+      airportTransferNotesLabel: "Transfer details",
+      distanceToCenterLabel: "Distance to city centre (km)",
+      transfers: {
+        none: "Not offered",
+        included: "Yes, included",
+        paid: "Yes, at a cost",
+      },
+      environmentSection: "Environment",
+      environmentHint: "Select every setting that describes your property.",
+      environments: {
+        countryside: "Countryside",
+        beach: "Beach",
+        jungle: "Jungle",
+        urban: "Urban",
+        mountain: "Mountain",
+        hills: "Hills",
+        island: "Island",
+      },
+      scheduleSection: "Check-in / Check-out",
+      checkInLabel: "Check-in time",
+      checkOutLabel: "Check-out time",
+      flexible: "Flexible",
+      policiesSection: "Policies & services",
+      petFriendlyLabel: "Pet friendly",
+      petDogsLabel: "Do you accept dogs?",
+      petCatsLabel: "Do you accept cats?",
+      petSizeRestrictionLabel: "Are there size restrictions?",
+      petSizeRestrictionNotesLabel: "Which ones?",
+      petExtraCostLabel: "Is there an extra cost?",
+      petExtraCostNotesLabel: "How much?",
+      petCommonAreasLabel: "Are there common areas where pets are allowed?",
+      petSpecificRoomsLabel: "Are there specific rooms for pets?",
+      petsNotAllowed: "Pets not allowed",
+      petSummary: {
+        dogs: "dogs",
+        cats: "cats",
+        sizeRestriction: "size restrictions",
+        extraCost: "extra cost",
+        noExtraCost: "no extra cost",
+        commonAreas: "common areas",
+        specificRooms: "pet rooms",
+      },
+      groupsSection: "Group capacity",
+      groupMinLabel: "Minimum guests",
+      groupMaxLabel: "Maximum guests",
+      groupRangeError: "The maximum must be greater than or equal to the minimum.",
+      groupsRange: (min, max) => `Groups of ${min} to ${max} guests`,
+      groupsFrom: (min) => `Groups from ${min} guests`,
+      groupsUpTo: (max) => `Groups of up to ${max} guests`,
+      kmSuffix: "km",
+      minSuffix: "min",
+    },
     comingSoon: {
       eyebrow: "COMING SOON",
       title: "Welcome",
@@ -3678,14 +3834,11 @@ export const dictionary: Record<Locale, Dictionary> = {
         addressLabel: "Physical Address",
         descriptionLabel: "Description",
         descriptionPlaceholder: "A brief description of your property and its wellness philosophy...",
-        starsLabel: "Star Rating",
         propertySection: "Property Details",
         contactSection: "Contact & Operations",
         hotelPhoneLabel: "Hotel Phone",
         contactEmailLabel: "Contact Email",
         websiteLabel: "Website",
-        checkInLabel: "Check-in Time",
-        checkOutLabel: "Check-out Time",
         verificationTitle: "Verification required",
         verificationDescription: "After submission, our team will verify your property details within 24\u201348 hours before listing it on the network.",
         step2Eyebrow: "Step 2 of 5 \u00B7 Room Inventory",
@@ -3763,7 +3916,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         availabilityLabel: "Availability",
         photosLabel: "Photos",
         perNight: "/night",
-        starLabel: (n: number) => `${n} star${n !== 1 ? "s" : ""}`,
         addressPlaceholder: "Start typing an address...",
         amenityNames: {
           wifi: "Wifi", pool: "Pool", spa: "Spa & Sauna", breakfast: "Breakfast",
@@ -4425,9 +4577,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Detalles de la propiedad",
           subtitle: "Mantén al día tu descripción, horarios, amenidades y fotos.",
           descriptionLabel: "Descripción",
-          starsLabel: "Clasificación por estrellas",
-          checkInLabel: "Hora de check-in",
-          checkOutLabel: "Hora de check-out",
           amenitiesTitle: "Amenidades",
           amenitiesHint: "Selecciona todo lo que ofrece tu propiedad.",
           customAmenities: "Amenidades personalizadas",
@@ -5700,6 +5849,97 @@ export const dictionary: Record<Locale, Dictionary> = {
         completed: "Completada",
       },
     },
+    propertyForm: {
+      loadFailed: "No pudimos cargar el perfil de tu propiedad. Recargá la página antes de editar para no pisar datos.",
+      yes: "Sí",
+      no: "No",
+      typeSection: "Tipo de propiedad",
+      typeLabel: "Tipo de propiedad",
+      typePlaceholder: "Elegí un tipo",
+      selectPlaceholder: "Elegí una opción",
+      typeOtherLabel: "¿Cuál?",
+      typeOtherPlaceholder: "Describí tu propiedad",
+      types: {
+        hotel: "Hotel",
+        resort: "Resort",
+        retreat_center: "Retreat Center",
+        eco_lodge: "Eco Lodge",
+        boutique_hotel: "Boutique Hotel",
+        villa: "Villa",
+        hacienda: "Hacienda / Finca",
+        other: "Otro",
+      },
+      basicsSection: "Datos básicos",
+      emailLabel: "Email",
+      locationSection: "Ubicación",
+      cityLabel: "Ciudad",
+      stateRegionLabel: "Provincia / Estado / Región",
+      countryLabel: "País",
+      postalCodeLabel: "Código postal",
+      latitudeLabel: "Latitud",
+      longitudeLabel: "Longitud",
+      viewOnMaps: "Ver en Google Maps",
+      websiteLabel: "Sitio web",
+      instagramLabel: "Instagram",
+      instagramPlaceholder: "@tuhotel",
+      gettingHereSection: "Cómo llegar",
+      nearestAirportLabel: "Aeropuerto más cercano",
+      nearestAirportPlaceholder: "ej. Ezeiza (EZE)",
+      airportDistanceLabel: "Distancia al aeropuerto (km)",
+      airportTimeLabel: "Tiempo estimado (min)",
+      airportTransferLabel: "Traslado desde el aeropuerto",
+      airportTransferNotesLabel: "Detalle del traslado",
+      distanceToCenterLabel: "Distancia al centro (km)",
+      transfers: {
+        none: "No ofrece",
+        included: "Sí, incluido",
+        paid: "Sí, con costo",
+      },
+      environmentSection: "Entorno",
+      environmentHint: "Elegí todos los entornos que describan tu propiedad.",
+      environments: {
+        countryside: "Campo",
+        beach: "Playa",
+        jungle: "Selva",
+        urban: "Urbano",
+        mountain: "Montaña",
+        hills: "Sierras",
+        island: "Isla",
+      },
+      scheduleSection: "Check-in / Check-out",
+      checkInLabel: "Horario de check-in",
+      checkOutLabel: "Horario de check-out",
+      flexible: "Flexible",
+      policiesSection: "Políticas y servicios",
+      petFriendlyLabel: "Pet friendly",
+      petDogsLabel: "¿Aceptás perros?",
+      petCatsLabel: "¿Aceptás gatos?",
+      petSizeRestrictionLabel: "¿Hay restricciones de tamaño?",
+      petSizeRestrictionNotesLabel: "¿Cuáles?",
+      petExtraCostLabel: "¿Tiene costo adicional?",
+      petExtraCostNotesLabel: "¿Cuánto?",
+      petCommonAreasLabel: "¿Hay áreas comunes donde pueden estar?",
+      petSpecificRoomsLabel: "¿Hay habitaciones específicas para mascotas?",
+      petsNotAllowed: "No admite mascotas",
+      petSummary: {
+        dogs: "perros",
+        cats: "gatos",
+        sizeRestriction: "con restricción de tamaño",
+        extraCost: "con costo adicional",
+        noExtraCost: "sin costo adicional",
+        commonAreas: "áreas comunes",
+        specificRooms: "habitaciones para mascotas",
+      },
+      groupsSection: "Capacidad para grupos",
+      groupMinLabel: "Mínimo de personas",
+      groupMaxLabel: "Máximo de personas",
+      groupRangeError: "El máximo debe ser mayor o igual que el mínimo.",
+      groupsRange: (min, max) => `Grupos de ${min} a ${max} personas`,
+      groupsFrom: (min) => `Grupos desde ${min} personas`,
+      groupsUpTo: (max) => `Grupos de hasta ${max} personas`,
+      kmSuffix: "km",
+      minSuffix: "min",
+    },
     comingSoon: {
       eyebrow: "PRÓXIMAMENTE",
       title: "Bienvenido",
@@ -5793,14 +6033,11 @@ export const dictionary: Record<Locale, Dictionary> = {
         addressLabel: "Direcci\u00F3n F\u00EDsica",
         descriptionLabel: "Descripci\u00F3n",
         descriptionPlaceholder: "Una breve descripci\u00F3n de tu propiedad y su filosof\u00EDa de bienestar...",
-        starsLabel: "Clasificaci\u00F3n por Estrellas",
         propertySection: "Datos del Hotel",
         contactSection: "Contacto y Operaciones",
         hotelPhoneLabel: "Tel\u00E9fono del Hotel",
         contactEmailLabel: "Email de Contacto",
         websiteLabel: "Sitio Web",
-        checkInLabel: "Hora de Check-in",
-        checkOutLabel: "Hora de Check-out",
         verificationTitle: "Verificaci\u00F3n requerida",
         verificationDescription: "Despu\u00E9s del env\u00EDo, nuestro equipo verificar\u00E1 los detalles de tu propiedad en 24\u201348 horas antes de listarla en la red.",
         step2Eyebrow: "Paso 2 de 5 \u00B7 Inventario de Habitaciones",
@@ -5878,7 +6115,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         availabilityLabel: "Disponibilidad",
         photosLabel: "Fotos",
         perNight: "/noche",
-        starLabel: (n: number) => `${n} estrella${n !== 1 ? "s" : ""}`,
         addressPlaceholder: "Comienza a escribir una direcci\u00F3n...",
         amenityNames: {
           wifi: "Wifi", pool: "Piscina", spa: "Spa y Sauna", breakfast: "Desayuno",
@@ -6540,9 +6776,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           title: "Detalhes da propriedade",
           subtitle: "Mantenha sua descrição, horários, comodidades e fotos em dia.",
           descriptionLabel: "Descrição",
-          starsLabel: "Classificação por estrelas",
-          checkInLabel: "Horário de check-in",
-          checkOutLabel: "Horário de check-out",
           amenitiesTitle: "Comodidades",
           amenitiesHint: "Selecione tudo o que sua propriedade oferece.",
           customAmenities: "Comodidades personalizadas",
@@ -7816,6 +8049,97 @@ export const dictionary: Record<Locale, Dictionary> = {
         completed: "Concluída",
       },
     },
+    propertyForm: {
+      loadFailed: "Não foi possível carregar o perfil da sua propriedade. Recarregue a página antes de editar para não sobrescrever dados.",
+      yes: "Sim",
+      no: "Não",
+      typeSection: "Tipo de propriedade",
+      typeLabel: "Tipo de propriedade",
+      typePlaceholder: "Escolha um tipo",
+      selectPlaceholder: "Escolha uma opção",
+      typeOtherLabel: "Qual?",
+      typeOtherPlaceholder: "Descreva sua propriedade",
+      types: {
+        hotel: "Hotel",
+        resort: "Resort",
+        retreat_center: "Retreat Center",
+        eco_lodge: "Eco Lodge",
+        boutique_hotel: "Boutique Hotel",
+        villa: "Villa",
+        hacienda: "Hacienda / Finca",
+        other: "Outro",
+      },
+      basicsSection: "Dados básicos",
+      emailLabel: "Email",
+      locationSection: "Localização",
+      cityLabel: "Cidade",
+      stateRegionLabel: "Estado / Região",
+      countryLabel: "País",
+      postalCodeLabel: "Código postal",
+      latitudeLabel: "Latitude",
+      longitudeLabel: "Longitude",
+      viewOnMaps: "Ver no Google Maps",
+      websiteLabel: "Site",
+      instagramLabel: "Instagram",
+      instagramPlaceholder: "@seuhotel",
+      gettingHereSection: "Como chegar",
+      nearestAirportLabel: "Aeroporto mais próximo",
+      nearestAirportPlaceholder: "ex. Guarulhos (GRU)",
+      airportDistanceLabel: "Distância até o aeroporto (km)",
+      airportTimeLabel: "Tempo estimado (min)",
+      airportTransferLabel: "Traslado do aeroporto",
+      airportTransferNotesLabel: "Detalhes do traslado",
+      distanceToCenterLabel: "Distância até o centro (km)",
+      transfers: {
+        none: "Não oferece",
+        included: "Sim, incluído",
+        paid: "Sim, com custo",
+      },
+      environmentSection: "Ambiente",
+      environmentHint: "Selecione todos os ambientes que descrevem sua propriedade.",
+      environments: {
+        countryside: "Campo",
+        beach: "Praia",
+        jungle: "Selva",
+        urban: "Urbano",
+        mountain: "Montanha",
+        hills: "Serras",
+        island: "Ilha",
+      },
+      scheduleSection: "Check-in / Check-out",
+      checkInLabel: "Horário de check-in",
+      checkOutLabel: "Horário de check-out",
+      flexible: "Flexível",
+      policiesSection: "Políticas e serviços",
+      petFriendlyLabel: "Pet friendly",
+      petDogsLabel: "Você aceita cães?",
+      petCatsLabel: "Você aceita gatos?",
+      petSizeRestrictionLabel: "Há restrições de tamanho?",
+      petSizeRestrictionNotesLabel: "Quais?",
+      petExtraCostLabel: "Há custo adicional?",
+      petExtraCostNotesLabel: "Quanto?",
+      petCommonAreasLabel: "Há áreas comuns onde eles podem ficar?",
+      petSpecificRoomsLabel: "Há quartos específicos para animais?",
+      petsNotAllowed: "Não aceita animais",
+      petSummary: {
+        dogs: "cães",
+        cats: "gatos",
+        sizeRestriction: "com restrição de tamanho",
+        extraCost: "com custo adicional",
+        noExtraCost: "sem custo adicional",
+        commonAreas: "áreas comuns",
+        specificRooms: "quartos para animais",
+      },
+      groupsSection: "Capacidade para grupos",
+      groupMinLabel: "Mínimo de pessoas",
+      groupMaxLabel: "Máximo de pessoas",
+      groupRangeError: "O máximo deve ser maior ou igual ao mínimo.",
+      groupsRange: (min, max) => `Grupos de ${min} a ${max} pessoas`,
+      groupsFrom: (min) => `Grupos a partir de ${min} pessoas`,
+      groupsUpTo: (max) => `Grupos de até ${max} pessoas`,
+      kmSuffix: "km",
+      minSuffix: "min",
+    },
     comingSoon: {
       eyebrow: "EM BREVE",
       title: "Bem-vindo",
@@ -7909,14 +8233,11 @@ export const dictionary: Record<Locale, Dictionary> = {
         addressLabel: "Endere\u00E7o F\u00EDsico",
         descriptionLabel: "Descri\u00E7\u00E3o",
         descriptionPlaceholder: "Uma breve descri\u00E7\u00E3o da sua propriedade e sua filosofia de bem-estar...",
-        starsLabel: "Classifica\u00E7\u00E3o por Estrelas",
         propertySection: "Dados do Hotel",
         contactSection: "Contato e Opera\u00E7\u00F5es",
         hotelPhoneLabel: "Telefone do Hotel",
         contactEmailLabel: "Email de Contato",
         websiteLabel: "Site",
-        checkInLabel: "Hor\u00E1rio de Check-in",
-        checkOutLabel: "Hor\u00E1rio de Check-out",
         verificationTitle: "Verifica\u00E7\u00E3o necess\u00E1ria",
         verificationDescription: "Ap\u00F3s o envio, nossa equipe verificar\u00E1 os detalhes da sua propriedade em 24\u201348 horas antes de list\u00E1-la na rede.",
         step2Eyebrow: "Passo 2 de 5 \u00B7 Invent\u00E1rio de Quartos",
@@ -7994,7 +8315,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         availabilityLabel: "Disponibilidade",
         photosLabel: "Fotos",
         perNight: "/noite",
-        starLabel: (n: number) => `${n} estrela${n !== 1 ? "s" : ""}`,
         addressPlaceholder: "Comece a digitar um endere\u00E7o...",
         amenityNames: {
           wifi: "Wifi", pool: "Piscina", spa: "Spa e Sauna", breakfast: "Caf\u00E9 da manh\u00E3",

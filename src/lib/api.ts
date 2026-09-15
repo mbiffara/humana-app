@@ -18,6 +18,18 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Readable text for a failed request. A 422 carries the field-level reasons in
+ * `details`; `message` alone is usually just "Validation failed".
+ */
+export function apiErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError && err.details && err.details.length > 0) {
+    return err.details.join(" · ");
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
+
 /** JWT token management via localStorage. */
 export const tokenStore = {
   get: () =>

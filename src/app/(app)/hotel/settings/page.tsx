@@ -8,13 +8,29 @@ import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
-import { api } from "@/lib/api";
+import { api, apiErrorMessage } from "@/lib/api";
 import { hotelApi, type HotelProfile, type OrgProfile } from "@/lib/api/hotel";
 import { uploadImage } from "@/lib/upload";
 import PlacesAutocomplete, { type PlaceResult } from "@/components/PlacesAutocomplete";
-import { TimePicker } from "@/components/TimePicker";
-import { StarRating } from "@/components/StarRating";
+import {
+  EnvironmentBlock,
+  GroupCapacityBlock,
+  LocationBlock,
+  PetPolicyBlock,
+  PropertyTypeBlock,
+  ScheduleBlock,
+} from "@/components/hotel/PropertyFormBlocks";
+import {
+  CLEARED_PLACE_COORDINATES,
+  EMPTY_PROPERTY_FORM,
+  groupRangeInvalid,
+  placeToPropertyForm,
+  propertyFormFromProfile,
+  propertyFormPayload,
+  type PropertyFormValues,
+} from "@/lib/property-form";
 import { AMENITY_CATALOG, amenityIdForName } from "@/lib/amenity-catalog";
+import { decimalOrNull } from "@/lib/property-catalog";
 import type { SubscriptionPlan, Subscription } from "@/lib/types";
 
 type SettingsTab = "profile" | "property" | "account" | "subscription" | "payments";
@@ -265,25 +281,22 @@ export default function HotelSettingsPage() {
   const [profile, setProfile] = useState<HotelProfile | null>(null);
   const [orgProfile, setOrgProfile] = useState<OrgProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
 
   // Profile form
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [country, setCountry] = useState("");
-  const [countryCode, setCountryCode] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
-  // Property form
+  // Property form — the contract fields shared with the onboarding wizard
   const [description, setDescription] = useState("");
-  const [stars, setStars] = useState(0);
-  const [checkInTime, setCheckInTime] = useState("15:00");
-  const [checkOutTime, setCheckOutTime] = useState("11:00");
+  const [propertyForm, setPropertyForm] = useState<PropertyFormValues>(EMPTY_PROPERTY_FORM);
+  const [propertyError, setPropertyError] = useState<string | null>(null);
   const [amenityIds, setAmenityIds] = useState<string[]>([]);
   const [customAmenities, setCustomAmenities] = useState<string[]>([]);
   const [customInput, setCustomInput] = useState("");
@@ -324,17 +337,12 @@ export default function HotelSettingsPage() {
         setProfile(h);
         setName(h.name ?? "");
         setAddress(h.address ?? "");
-        setCity(h.city ?? "");
-        setCountry(h.country ?? "");
-        setCountryCode(h.country_code ?? "");
         setContactEmail(h.contact_email ?? "");
         setPhone(h.phone ?? "");
         setLogoUrl(h.logo_url ?? null);
         // Property tab
         setDescription(h.description ?? "");
-        setStars(h.stars ?? 0);
-        setCheckInTime(h.check_in_time ?? "15:00");
-        setCheckOutTime(h.check_out_time ?? "11:00");
+        setPropertyForm(propertyFormFromProfile(h));
         const ids: string[] = [];
         const custom: string[] = [];
         for (const a of h.amenities ?? []) {
@@ -356,7 +364,8 @@ export default function HotelSettingsPage() {
         setBankStatus(org.bank_status ?? "pending");
       }
     } catch {
-      // ignore
+      // Without the profile every field would look empty and Save would wipe it.
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -422,11 +431,17 @@ export default function HotelSettingsPage() {
   async function saveProfile() {
     setSaving(true);
     try {
+      // handlePlaceSelect refreshes the postal code and coordinates, and a
+      // hand-edited address clears the coordinates, so both travel with this
+      // save instead of waiting for the Property tab.
       await hotelApi.updateProfile({
         name,
-        city,
-        country,
-        country_code: countryCode,
+        city: propertyForm.city,
+        country: propertyForm.country,
+        country_code: propertyForm.countryCode,
+        postal_code: propertyForm.postalCode,
+        latitude: decimalOrNull(propertyForm.latitude, 6),
+        longitude: decimalOrNull(propertyForm.longitude, 6),
         address,
         contact_email: contactEmail,
         phone,
@@ -439,15 +454,18 @@ export default function HotelSettingsPage() {
     }
   }
 
+  const patchPropertyForm = useCallback((patch: Partial<PropertyFormValues>) => {
+    setPropertyForm((prev) => ({ ...prev, ...patch }));
+  }, []);
+
   function handlePlaceSelect(place: PlaceResult) {
     setAddress(place.address);
-    setCity(place.city);
-    setCountry(place.country);
-    setCountryCode(place.country_code);
+    patchPropertyForm(placeToPropertyForm(place));
   }
 
   async function saveProperty() {
     setPropertySaving(true);
+    setPropertyError(null);
     try {
       const allAmenities = [
         ...amenityIds.map((id) => {
@@ -459,20 +477,17 @@ export default function HotelSettingsPage() {
         ...customAmenities.map((n) => ({ name: n, category: "general", featured: false })),
       ];
       await Promise.all([
-        hotelApi.updateProfile({
-          description,
-          stars,
-          check_in_time: checkInTime,
-          check_out_time: checkOutTime,
-        }),
+        hotelApi.updateProfile({ description, ...propertyFormPayload(propertyForm) }),
         hotelApi.batchAmenities(allAmenities),
         hotelApi.batchImages(
           photos.filter((url) => url.startsWith("http")).map((url) => ({ image_url: url })),
         ),
       ]);
       showSaved();
-    } catch {
-      // ignore
+    } catch (err) {
+      // A rejected save (e.g. a 422 on the group range) keeps the form intact
+      // and shows the field-level reasons instead of failing silently.
+      setPropertyError(apiErrorMessage(err, ts.profile.save));
     } finally {
       setPropertySaving(false);
     }
@@ -612,6 +627,14 @@ export default function HotelSettingsPage() {
     );
   }
 
+  if (loadFailed) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center px-6 text-center text-sm text-red-600">
+        {t.propertyForm.loadFailed}
+      </div>
+    );
+  }
+
   if (!profile) return null;
 
   return (
@@ -731,6 +754,7 @@ export default function HotelSettingsPage() {
                       <PlacesAutocomplete
                         value={address}
                         onChange={(val) => setAddress(val)}
+                        onUserInput={() => patchPropertyForm(CLEARED_PLACE_COORDINATES)}
                         onPlaceSelect={handlePlaceSelect}
                         placeholder="Search location..."
                       />
@@ -787,39 +811,71 @@ export default function HotelSettingsPage() {
               </h2>
               <p className="mt-1 text-[14px] text-humana-muted">{ts.property.subtitle}</p>
 
-              {/* Description + stars + times */}
-              <div className="mt-6 flex flex-col gap-5">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
-                    {ts.property.descriptionLabel}
-                  </label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                    className="w-full resize-y border border-humana-line px-3.5 py-2.5 text-[14px] leading-relaxed text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
-                  />
-                </div>
-                <div className="flex flex-wrap items-end gap-6">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
-                      {ts.property.starsLabel}
-                    </label>
-                    <StarRating value={stars} onChange={setStars} />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
-                      {ts.property.checkInLabel}
-                    </label>
-                    <TimePicker value={checkInTime} onChange={setCheckInTime} />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
-                      {ts.property.checkOutLabel}
-                    </label>
-                    <TimePicker value={checkOutTime} onChange={setCheckOutTime} />
-                  </div>
-                </div>
+              {/* Property type */}
+              <div className="mt-6">
+                <PropertyTypeBlock
+                  values={propertyForm}
+                  onChange={patchPropertyForm}
+                  variant="settings"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="mt-6 flex flex-col gap-1.5">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle">
+                  {ts.property.descriptionLabel}
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                  className="w-full resize-y border border-humana-line px-3.5 py-2.5 text-[14px] leading-relaxed text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
+                />
+              </div>
+
+              {/* Location + getting here */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <LocationBlock
+                  values={propertyForm}
+                  onChange={patchPropertyForm}
+                  variant="settings"
+                />
+              </div>
+
+              {/* Environment */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <EnvironmentBlock
+                  values={propertyForm}
+                  onChange={patchPropertyForm}
+                  variant="settings"
+                />
+              </div>
+
+              {/* Check-in / check-out */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <ScheduleBlock
+                  values={propertyForm}
+                  onChange={patchPropertyForm}
+                  variant="settings"
+                />
+              </div>
+
+              {/* Policies & services */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <PetPolicyBlock
+                  values={propertyForm}
+                  onChange={patchPropertyForm}
+                  variant="settings"
+                />
+              </div>
+
+              {/* Group capacity */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <GroupCapacityBlock
+                  values={propertyForm}
+                  onChange={patchPropertyForm}
+                  variant="settings"
+                />
               </div>
 
               {/* Amenities */}
@@ -942,11 +998,20 @@ export default function HotelSettingsPage() {
               </div>
 
               {/* Save */}
-              <div className="mt-8 flex justify-end">
+              <div className="mt-8 flex items-center justify-end gap-4">
+                {propertyError && (
+                  <p className="flex-1 text-[13px] text-red-600">{propertyError}</p>
+                )}
                 <button
                   onClick={saveProperty}
-                  disabled={propertySaving || uploadingPhotos}
-                  className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+                  disabled={
+                    propertySaving ||
+                    uploadingPhotos ||
+                    groupRangeInvalid(propertyForm) ||
+                    (propertyForm.propertyType === "other" &&
+                      !propertyForm.propertyTypeOther.trim())
+                  }
+                  className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {propertySaving ? ts.profile.saving : ts.profile.save}
                 </button>

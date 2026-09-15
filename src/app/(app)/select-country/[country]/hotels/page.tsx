@@ -7,6 +7,7 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { countries, countrySlugToId } from "@/data/countries";
 import { agencyApi, type PublicHotel } from "@/lib/api/agency";
+import { propertyTypeLabel } from "@/lib/property-summary";
 
 export default function CountryHotelsPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);
@@ -69,7 +70,12 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {hotels.map((h) => (
+          {hotels.map((h) => {
+            const typeLabel = propertyTypeLabel(t.propertyForm, h.property_type, h.property_type_other);
+            const eyebrow = [h.certified ? t.hotelDetail.certifiedHotel : null, typeLabel, h.city]
+              .filter(Boolean)
+              .join(" · ");
+            return (
             <article
               key={h.id}
               className="flex flex-col overflow-hidden border border-humana-line bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
@@ -95,9 +101,11 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
               </Link>
 
               <div className="flex flex-col gap-4 p-8">
-                <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-                  {t.hotelDetail.certifiedHotel} · {h.city}
-                </span>
+                {eyebrow && (
+                  <span className="text-[12px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                    {eyebrow}
+                  </span>
+                )}
 
                 <h3 className="text-[22px] font-normal leading-[30px] tracking-[-0.01em] text-humana-ink">
                   {h.name}
@@ -115,7 +123,8 @@ export default function CountryHotelsPage({ params }: { params: Promise<{ countr
                 </Link>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

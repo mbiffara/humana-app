@@ -60,7 +60,7 @@ export default function SelectDatesPage({ params }: { params: Promise<{ country:
           if (cancelled) return;
           const h = hotelRes.hotel;
           setHotelName(h.name);
-          setHotelLocation(`${h.city}, ${h.country}`);
+          setHotelLocation([h.city, h.country].filter(Boolean).join(", "));
           const coverImg = h.images?.find((img) => img.is_cover);
           setHotelImage(coverImg?.image_url ?? h.images?.[0]?.image_url ?? "/images/retreat-tulum.jpg");
           const selectedRt = state.roomTypeApiId && h.room_types?.find((rt) => rt.id === state.roomTypeApiId);

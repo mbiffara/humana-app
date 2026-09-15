@@ -6,16 +6,25 @@ import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 export interface PlaceResult {
   address: string;
   city: string;
+  state_region: string;
   country: string;
   country_code: string;
+  postal_code: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface PlacesAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
+  /** Fires only when the user types, never on the programmatic updates that
+   *  precede onPlaceSelect: use it to drop derived data (coordinates) that a
+   *  hand-edited address invalidates. */
+  onUserInput?: (value: string) => void;
   onPlaceSelect: (place: PlaceResult) => void;
   placeholder?: string;
   required?: boolean;
+  className?: string;
 }
 
 let optionsSet = false;
@@ -29,25 +38,34 @@ function ensureOptions() {
 
 function parseAddressComponents(
   components: google.maps.GeocoderAddressComponent[],
-): { city: string; country: string; country_code: string } {
+): { city: string; state_region: string; country: string; country_code: string; postal_code: string } {
   let city = "";
+  let state_region = "";
   let country = "";
   let country_code = "";
+  let postal_code = "";
 
   for (const component of components) {
     const types = component.types;
     if (types.includes("locality")) {
       city = component.long_name;
-    } else if (!city && types.includes("administrative_area_level_1")) {
-      city = component.long_name;
+    }
+    if (types.includes("administrative_area_level_1")) {
+      state_region = component.long_name;
     }
     if (types.includes("country")) {
       country = component.long_name;
       country_code = component.short_name;
     }
+    if (types.includes("postal_code")) {
+      postal_code = component.long_name;
+    }
   }
 
-  return { city, country, country_code };
+  // Places without a locality (rural addresses) fall back to the region
+  if (!city) city = state_region;
+
+  return { city, state_region, country, country_code, postal_code };
 }
 
 interface Prediction {
@@ -59,9 +77,11 @@ interface Prediction {
 export default function PlacesAutocomplete({
   value,
   onChange,
+  onUserInput,
   onPlaceSelect,
   placeholder = "Start typing an address...",
   required = false,
+  className,
 }: PlacesAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -130,6 +150,7 @@ export default function PlacesAutocomplete({
 
   function handleInputChange(val: string) {
     onChange(val);
+    onUserInput?.(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (val.trim().length > 1) {
       setShowDropdown(true);
@@ -150,7 +171,7 @@ export default function PlacesAutocomplete({
     placesService.getDetails(
       {
         placeId: prediction.placeId,
-        fields: ["formatted_address", "address_components"],
+        fields: ["formatted_address", "address_components", "geometry"],
         sessionToken: sessionTokenRef.current!,
       },
       (place, status) => {
@@ -162,8 +183,14 @@ export default function PlacesAutocomplete({
           onChange(address);
 
           if (place.address_components) {
-            const { city, country, country_code } = parseAddressComponents(place.address_components);
-            onPlaceSelect({ address, city, country, country_code });
+            const parsed = parseAddressComponents(place.address_components);
+            const location = place.geometry?.location;
+            onPlaceSelect({
+              address,
+              ...parsed,
+              latitude: location ? location.lat() : null,
+              longitude: location ? location.lng() : null,
+            });
           }
         }
       },
@@ -184,7 +211,10 @@ export default function PlacesAutocomplete({
         placeholder={placeholder}
         autoComplete="off"
         aria-label={loaded ? "Address with autocomplete" : "Address"}
-        className="w-full bg-white rounded-[6px] border border-humana-line px-4 py-3 text-[15px] text-humana-ink outline-none transition-all duration-200 placeholder:text-humana-subtle/50 focus:border-humana-gold focus:ring-1 focus:ring-humana-gold/20"
+        className={
+          className ??
+          "w-full bg-white rounded-[6px] border border-humana-line px-4 py-3 text-[15px] text-humana-ink outline-none transition-all duration-200 placeholder:text-humana-subtle/50 focus:border-humana-gold focus:ring-1 focus:ring-humana-gold/20"
+        }
       />
       {showDropdown && predictions.length > 0 && (
         <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 overflow-hidden rounded-[10px] border border-humana-line bg-white shadow-[0_8px_32px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]">
