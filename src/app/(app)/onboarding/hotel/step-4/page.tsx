@@ -21,14 +21,13 @@ export default function HotelWizardStep4() {
     markVideoTouched,
     isUploading,
     setIsUploading,
+    isUploadingLogo,
+    setIsUploadingLogo,
   } = useHotelWizard();
   const { t } = useLocale();
   const h = t.onboarding.hotel;
   const v = t.visualInfo;
   const [isDragOver, setIsDragOver] = useState(false);
-  // The logo has its own flag: a slow logo upload must not look like (or gate)
-  // the gallery upload, which is what `isUploading` tracks.
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   function handleFiles(files: FileList | File[]) {
     const fileArray = Array.from(files);

@@ -96,7 +96,8 @@ function BottomBar() {
   const router = useRouter();
   const { t } = useLocale();
   const { user, setUser, refreshAuth } = useAuth();
-  const { state, hideBottomBar, isUploading, profileLoaded, videoTouched } = useHotelWizard();
+  const { state, hideBottomBar, isUploading, isUploadingLogo, profileLoaded, videoTouched } =
+    useHotelWizard();
 
   const org = user?.organization;
   const alreadySubmitted = !!org?.onboarding_completed;
@@ -333,6 +334,7 @@ function BottomBar() {
         // happen — the same hosts the API accepts.
         return (
           !isUploading &&
+          !isUploadingLogo &&
           (state.videoUrl.trim().length === 0 || videoEmbed(state.videoUrl) !== null)
         );
       default:

@@ -123,8 +123,13 @@ type HotelWizardContextValue = {
   markVideoTouched: () => void;
   hideBottomBar: boolean;
   setHideBottomBar: (v: boolean) => void;
+  /** Gallery upload in flight. */
   isUploading: boolean;
   setIsUploading: (v: boolean) => void;
+  /** Logo upload in flight — tracked apart from the gallery so each shows its
+   *  own spinner, but both have to settle before the step can be saved. */
+  isUploadingLogo: boolean;
+  setIsUploadingLogo: (v: boolean) => void;
 };
 
 const HotelWizardContext = createContext<HotelWizardContextValue | null>(null);
@@ -152,6 +157,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [hideBottomBar, setHideBottomBar] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [videoTouched, setVideoTouched] = useState(false);
   const apiLoaded = useRef(false);
@@ -500,6 +506,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         setHideBottomBar,
         isUploading,
         setIsUploading,
+        isUploadingLogo,
+        setIsUploadingLogo,
       }}
     >
       {children}
