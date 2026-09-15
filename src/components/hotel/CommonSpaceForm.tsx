@@ -65,6 +65,9 @@ export function CommonSpaceForm({
   useEffect(() => {
     latest.current = value;
   }, [value]);
+  // Every preview → server URL swap made so far. Applying the whole map on
+  // each upload keeps concurrent uploads from overwriting one another.
+  const swaps = useRef<Record<string, string>>({});
 
   function patch(next: Partial<CommonSpaceDraft>) {
     onChange({ ...latest.current, ...next });
@@ -95,7 +98,8 @@ export function CommonSpaceForm({
       entries.map(async ({ blobUrl, file }) => {
         const serverUrl = await uploadImage(file);
         if (serverUrl.startsWith("http")) {
-          setPhotos(latest.current.photos.map((url) => (url === blobUrl ? serverUrl : url)));
+          swaps.current[blobUrl] = serverUrl;
+          setPhotos(latest.current.photos.map((url) => swaps.current[url] ?? url));
         }
       }),
     ).finally(() => {

@@ -286,9 +286,10 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
           }));
         }
 
-        // Hydrate common spaces, including their saved photos. An API that
-        // predates them answers without the key, which reads as "none".
-        patch.commonSpaces = (h.common_spaces ?? []).map(spaceToDraft);
+        // Hydrate common spaces, including their saved photos. The saved list
+        // wins wholesale — an empty one clears the session — but an API that
+        // predates common spaces omits the key, and then the session stands.
+        if (h.common_spaces) patch.commonSpaces = h.common_spaces.map(spaceToDraft);
 
         // Hydrate amenities — match stored display names back to catalog ids
         if (h.amenities && h.amenities.length > 0) {
