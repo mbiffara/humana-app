@@ -305,6 +305,39 @@ export interface AdminHotelPreview extends PropertyProfileFields {
   amenities: AdminAmenity[];
   images: AdminHotelImage[];
   room_images: AdminRoomImage[];
+  /** Absent on an API that predates common spaces — treat it as []. */
+  common_spaces?: AdminCommonSpace[];
+}
+
+export interface AdminCommonSpaceImage {
+  id: number;
+  image_url: string;
+  position: number;
+  is_primary: boolean;
+  alt_text: string | null;
+}
+
+/** A shared space of the property as the admin preview reads it. */
+export interface AdminCommonSpace {
+  id: number;
+  hotel_id: number;
+  name: string;
+  space_type: string;
+  space_type_other: string | null;
+  capacity_seated: number | null;
+  capacity_yoga: number | null;
+  capacity_auditorium: number | null;
+  capacity_banquet: number | null;
+  capacity_workshop: number | null;
+  area_sqm: number | null;
+  floor_type: string | null;
+  floor_type_other: string | null;
+  exclusive_for_groups: boolean;
+  equipment: string[];
+  equipment_other: string | null;
+  position: number;
+  image_url: string | null;
+  images: AdminCommonSpaceImage[];
 }
 
 export interface AdminRoomType {

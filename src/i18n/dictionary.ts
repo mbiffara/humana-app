@@ -24,7 +24,7 @@ export type Retreat = {
 type Dictionary = {
   hotelWs: {
     badge: string;
-    nav: { dashboard: string; calendar: string; rooms: string; retreats: string; bookings: string; settings: string };
+    nav: { dashboard: string; calendar: string; rooms: string; spaces: string; retreats: string; bookings: string; settings: string };
     paywall: { eyebrow: string; title: string; body: string; cta: string };
     dashboard: {
       eyebrowWeek: (week: number) => string;
@@ -1546,6 +1546,81 @@ type Dictionary = {
     videoSection: string;
     videoWatchOnInstagram: string;
   };
+  /** Common spaces — salons, yoga rooms, terraces and every other shared
+   *  space. Used by the onboarding wizard, the hotel workspace, the public
+   *  hotel detail and the admin preview. */
+  commonSpaces: {
+    title: string;
+    subtitle: string;
+    add: string;
+    edit: string;
+    remove: string;
+    confirmRemove: string;
+    empty: string;
+    skipHint: string;
+    name: string;
+    namePlaceholder: string;
+    type: string;
+    typePlaceholder: string;
+    typeOther: string;
+    types: {
+      salon: string;
+      yoga_room: string;
+      meditation_room: string;
+      auditorium: string;
+      terrace: string;
+      garden: string;
+      outdoor: string;
+      meeting_room: string;
+      restaurant: string;
+      other: string;
+    };
+    capacitiesTitle: string;
+    capacity: {
+      seated: string;
+      yoga: string;
+      auditorium: string;
+      banquet: string;
+      workshop: string;
+    };
+    maxCapacity: (n: number) => string;
+    area: string;
+    floor: string;
+    floorPlaceholder: string;
+    floorOther: string;
+    floors: { floating: string; wood: string; ceramic: string; other: string };
+    exclusive: string;
+    exclusiveHint: string;
+    equipmentTitle: string;
+    equipment: {
+      projector: string;
+      screen: string;
+      sound: string;
+      microphones: string;
+      wifi: string;
+      air_conditioning: string;
+      chairs: string;
+      tables: string;
+      yoga_mats: string;
+      lighting: string;
+      other: string;
+    };
+    equipmentOther: string;
+    photos: string;
+    photosHint: string;
+    photosCounter: (n: number, max: number) => string;
+    addPhotos: string;
+    viewDetails: string;
+    save: string;
+    saving: string;
+    saved: string;
+    cancel: string;
+    loadFailed: string;
+    saveFailed: string;
+    nameRequired: string;
+    typeRequired: string;
+    otherRequired: string;
+  };
   comingSoon: {
     eyebrow: string;
     title: string;
@@ -1938,12 +2013,15 @@ const sharedPerGuest = {
 /** Copy for the shared property form blocks and their read-only summaries. */
 export type PropertyFormCopy = Dictionary["propertyForm"];
 
+/** Copy for the common-space catalog helpers and forms. */
+export type CommonSpacesCopy = Dictionary["commonSpaces"];
+
 export const dictionary: Record<Locale, Dictionary> = {
   /* ───────────────────── ENGLISH ───────────────────── */
   en: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { dashboard: "Dashboard", calendar: "Calendar", rooms: "Rooms", retreats: "Retreats", bookings: "Bookings", settings: "Settings" },
+      nav: { dashboard: "Dashboard", calendar: "Calendar", rooms: "Rooms", spaces: "Spaces", retreats: "Retreats", bookings: "Bookings", settings: "Settings" },
       paywall: {
         eyebrow: "SUBSCRIPTION REQUIRED",
         title: "Choose a plan to continue",
@@ -3803,6 +3881,78 @@ export const dictionary: Record<Locale, Dictionary> = {
       kmSuffix: "km",
       minSuffix: "min",
     },
+    commonSpaces: {
+      title: "Common spaces",
+      subtitle: "Salons, yoga rooms, terraces and every other shared space groups can use.",
+      add: "Add space",
+      edit: "Edit",
+      remove: "Remove",
+      confirmRemove: "Remove this space?",
+      empty: "No spaces added yet",
+      skipHint: "You can continue without adding spaces.",
+      name: "Space name",
+      namePlaceholder: "e.g. Main salon",
+      type: "Space type",
+      typePlaceholder: "Select a type",
+      typeOther: "Which one?",
+      types: {
+        salon: "Salon",
+        yoga_room: "Yoga room",
+        meditation_room: "Meditation room",
+        auditorium: "Auditorium",
+        terrace: "Terrace",
+        garden: "Garden",
+        outdoor: "Outdoor space",
+        meeting_room: "Meeting room",
+        restaurant: "Restaurant",
+        other: "Other",
+      },
+      capacitiesTitle: "Capacity",
+      capacity: {
+        seated: "Seated",
+        yoga: "Yoga / movement",
+        auditorium: "Auditorium",
+        banquet: "Banquet",
+        workshop: "Workshop",
+      },
+      maxCapacity: (n: number) => `Up to ${n} people`,
+      area: "Size (m²)",
+      floor: "Floor type",
+      floorPlaceholder: "Select a floor",
+      floorOther: "Which one?",
+      floors: { floating: "Floating", wood: "Wood", ceramic: "Ceramic", other: "Other" },
+      exclusive: "Is it exclusive for groups?",
+      exclusiveHint: "Exclusive for groups",
+      equipmentTitle: "Equipment",
+      equipment: {
+        projector: "Projector",
+        screen: "Screen",
+        sound: "Sound system",
+        microphones: "Microphones",
+        wifi: "WiFi",
+        air_conditioning: "Air conditioning",
+        chairs: "Chairs",
+        tables: "Tables",
+        yoga_mats: "Yoga mats",
+        lighting: "Lighting",
+        other: "Other",
+      },
+      equipmentOther: "Other equipment",
+      photos: "Photos of the space",
+      photosHint: "JPG, PNG or WebP · up to 8 photos",
+      photosCounter: (n: number, max: number) => `${n} of ${max} photos`,
+      addPhotos: "Add photos",
+      viewDetails: "View details",
+      save: "Save space",
+      saving: "Saving…",
+      saved: "Saved",
+      cancel: "Cancel",
+      loadFailed: "We could not load the spaces.",
+      saveFailed: "We could not save the space.",
+      nameRequired: "Space name",
+      typeRequired: "Space type",
+      otherRequired: "Specify which one",
+    },
     comingSoon: {
       eyebrow: "COMING SOON",
       title: "Welcome",
@@ -4184,7 +4334,7 @@ export const dictionary: Record<Locale, Dictionary> = {
   es: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { dashboard: "Dashboard", calendar: "Calendario", rooms: "Habitaciones", retreats: "Retiros", bookings: "Reservas", settings: "Configuración" },
+      nav: { dashboard: "Dashboard", calendar: "Calendario", rooms: "Habitaciones", spaces: "Espacios", retreats: "Retiros", bookings: "Reservas", settings: "Configuración" },
       paywall: {
         eyebrow: "SUSCRIPCIÓN REQUERIDA",
         title: "Elige un plan para continuar",
@@ -6044,6 +6194,78 @@ export const dictionary: Record<Locale, Dictionary> = {
       kmSuffix: "km",
       minSuffix: "min",
     },
+    commonSpaces: {
+      title: "Espacios comunes",
+      subtitle: "Salones, salas de yoga, terrazas y todo espacio compartido que los grupos puedan usar.",
+      add: "Agregar espacio",
+      edit: "Editar",
+      remove: "Quitar",
+      confirmRemove: "¿Quitar este espacio?",
+      empty: "Sin espacios cargados",
+      skipHint: "Podés seguir sin cargar espacios.",
+      name: "Nombre del espacio",
+      namePlaceholder: "Ej. Salón principal",
+      type: "Tipo de espacio",
+      typePlaceholder: "Elegí un tipo",
+      typeOther: "¿Cuál?",
+      types: {
+        salon: "Salón",
+        yoga_room: "Sala de yoga",
+        meditation_room: "Sala de meditación",
+        auditorium: "Auditorio",
+        terrace: "Terraza",
+        garden: "Jardín",
+        outdoor: "Espacio exterior",
+        meeting_room: "Sala de reuniones",
+        restaurant: "Restaurante",
+        other: "Otro",
+      },
+      capacitiesTitle: "Capacidad",
+      capacity: {
+        seated: "Sentados",
+        yoga: "Yoga / movimiento",
+        auditorium: "Auditorio",
+        banquet: "Banquete",
+        workshop: "Workshop",
+      },
+      maxCapacity: (n: number) => `Hasta ${n} personas`,
+      area: "Tamaño (m²)",
+      floor: "Tipo de piso",
+      floorPlaceholder: "Elegí un piso",
+      floorOther: "¿Cuál?",
+      floors: { floating: "Flotante", wood: "Madera", ceramic: "Cerámicos", other: "Otro" },
+      exclusive: "¿Es exclusivo para grupos?",
+      exclusiveHint: "Exclusivo para grupos",
+      equipmentTitle: "Equipamiento",
+      equipment: {
+        projector: "Proyector",
+        screen: "Pantalla",
+        sound: "Sonido",
+        microphones: "Micrófonos",
+        wifi: "WiFi",
+        air_conditioning: "Aire acondicionado",
+        chairs: "Sillas",
+        tables: "Mesas",
+        yoga_mats: "Mats de yoga",
+        lighting: "Iluminación",
+        other: "Otro",
+      },
+      equipmentOther: "Otro equipamiento",
+      photos: "Fotos del espacio",
+      photosHint: "JPG, PNG o WebP · hasta 8 fotos",
+      photosCounter: (n: number, max: number) => `${n} de ${max} fotos`,
+      addPhotos: "Agregar fotos",
+      viewDetails: "Ver detalles",
+      save: "Guardar espacio",
+      saving: "Guardando…",
+      saved: "Guardado",
+      cancel: "Cancelar",
+      loadFailed: "No pudimos cargar los espacios.",
+      saveFailed: "No pudimos guardar el espacio.",
+      nameRequired: "Nombre del espacio",
+      typeRequired: "Tipo de espacio",
+      otherRequired: "Indicá cuál",
+    },
     comingSoon: {
       eyebrow: "PRÓXIMAMENTE",
       title: "Bienvenido",
@@ -6425,7 +6647,7 @@ export const dictionary: Record<Locale, Dictionary> = {
   pt: {
     hotelWs: {
       badge: "Hotel Partner",
-      nav: { dashboard: "Dashboard", calendar: "Calendário", rooms: "Quartos", retreats: "Retiros", bookings: "Reservas", settings: "Configurações" },
+      nav: { dashboard: "Dashboard", calendar: "Calendário", rooms: "Quartos", spaces: "Espaços", retreats: "Retiros", bookings: "Reservas", settings: "Configurações" },
       paywall: {
         eyebrow: "ASSINATURA NECESSÁRIA",
         title: "Escolha um plano para continuar",
@@ -8285,6 +8507,78 @@ export const dictionary: Record<Locale, Dictionary> = {
       groupsUpTo: (max) => `Grupos de até ${max} pessoas`,
       kmSuffix: "km",
       minSuffix: "min",
+    },
+    commonSpaces: {
+      title: "Espaços comuns",
+      subtitle: "Salões, salas de ioga, terraços e todo espaço compartilhado que os grupos possam usar.",
+      add: "Adicionar espaço",
+      edit: "Editar",
+      remove: "Remover",
+      confirmRemove: "Remover este espaço?",
+      empty: "Nenhum espaço cadastrado",
+      skipHint: "Você pode continuar sem cadastrar espaços.",
+      name: "Nome do espaço",
+      namePlaceholder: "Ex. Salão principal",
+      type: "Tipo de espaço",
+      typePlaceholder: "Escolha um tipo",
+      typeOther: "Qual?",
+      types: {
+        salon: "Salão",
+        yoga_room: "Sala de ioga",
+        meditation_room: "Sala de meditação",
+        auditorium: "Auditório",
+        terrace: "Terraço",
+        garden: "Jardim",
+        outdoor: "Espaço externo",
+        meeting_room: "Sala de reuniões",
+        restaurant: "Restaurante",
+        other: "Outro",
+      },
+      capacitiesTitle: "Capacidade",
+      capacity: {
+        seated: "Sentados",
+        yoga: "Ioga / movimento",
+        auditorium: "Auditório",
+        banquet: "Banquete",
+        workshop: "Workshop",
+      },
+      maxCapacity: (n: number) => `Até ${n} pessoas`,
+      area: "Tamanho (m²)",
+      floor: "Tipo de piso",
+      floorPlaceholder: "Escolha um piso",
+      floorOther: "Qual?",
+      floors: { floating: "Flutuante", wood: "Madeira", ceramic: "Cerâmica", other: "Outro" },
+      exclusive: "É exclusivo para grupos?",
+      exclusiveHint: "Exclusivo para grupos",
+      equipmentTitle: "Equipamento",
+      equipment: {
+        projector: "Projetor",
+        screen: "Tela",
+        sound: "Som",
+        microphones: "Microfones",
+        wifi: "WiFi",
+        air_conditioning: "Ar-condicionado",
+        chairs: "Cadeiras",
+        tables: "Mesas",
+        yoga_mats: "Tapetes de ioga",
+        lighting: "Iluminação",
+        other: "Outro",
+      },
+      equipmentOther: "Outro equipamento",
+      photos: "Fotos do espaço",
+      photosHint: "JPG, PNG ou WebP · até 8 fotos",
+      photosCounter: (n: number, max: number) => `${n} de ${max} fotos`,
+      addPhotos: "Adicionar fotos",
+      viewDetails: "Ver detalhes",
+      save: "Salvar espaço",
+      saving: "Salvando…",
+      saved: "Salvo",
+      cancel: "Cancelar",
+      loadFailed: "Não foi possível carregar os espaços.",
+      saveFailed: "Não foi possível salvar o espaço.",
+      nameRequired: "Nome do espaço",
+      typeRequired: "Tipo de espaço",
+      otherRequired: "Informe qual",
     },
     comingSoon: {
       eyebrow: "EM BREVE",

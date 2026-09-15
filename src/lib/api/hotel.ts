@@ -27,6 +27,26 @@ export const hotelApi = {
       images,
     }),
 
+  // Common spaces (salons, yoga rooms, terraces…)
+  listCommonSpaces: () => api.get<{ common_spaces: CommonSpace[] }>("/hotel/common_spaces"),
+  getCommonSpace: (id: number) =>
+    api.get<{ common_space: CommonSpace }>(`/hotel/common_spaces/${id}`),
+  createCommonSpace: (data: CommonSpaceCreate) =>
+    api.post<{ common_space: CommonSpace }>("/hotel/common_spaces", { common_space: data }),
+  updateCommonSpace: (id: number, data: Partial<CommonSpaceCreate>) =>
+    api.patch<{ common_space: CommonSpace }>(`/hotel/common_spaces/${id}`, {
+      common_space: data,
+    }),
+  deleteCommonSpace: (id: number) => api.delete(`/hotel/common_spaces/${id}`),
+  listCommonSpaceImages: (id: number) =>
+    api.get<{ images: CommonSpaceImage[] }>(`/hotel/common_spaces/${id}/images`),
+
+  // Common space gallery (replace-all; first image becomes primary, max 8)
+  batchCommonSpaceImages: (id: number, images: { image_url: string; alt_text?: string }[]) =>
+    api.post<{ images: CommonSpaceImage[] }>(`/hotel/common_spaces/${id}/images/batch`, {
+      images,
+    }),
+
   // Room type volume pricing tiers
   createRateTier: (roomTypeId: number, data: RateTierCreate) =>
     api.post<{ rate_tier: RateTier }>(`/hotel/room_types/${roomTypeId}/rate_tiers`, {
@@ -269,6 +289,8 @@ export interface HotelProfile extends PropertyProfileFields {
   room_types: RoomTypeDetail[];
   amenities: Amenity[];
   images: HotelImage[];
+  /** Absent on an API that predates common spaces — treat it as []. */
+  common_spaces?: CommonSpace[];
 }
 
 export interface HotelProfileUpdate extends PropertyProfileFields {
@@ -307,6 +329,60 @@ export interface OrgProfile {
   bank_currency?: string | null;
   bank_country?: string | null;
   bank_status?: string | null;
+}
+
+export interface CommonSpaceImage {
+  id: number;
+  image_url: string;
+  position: number;
+  is_primary: boolean;
+  alt_text: string | null;
+}
+
+/** A shared space of the property. Integer and decimal fields the hotel left
+ *  empty come back as null. */
+export interface CommonSpace {
+  id: number;
+  hotel_id: number;
+  name: string;
+  /** One of SPACE_TYPES. */
+  space_type: string;
+  space_type_other: string | null;
+  capacity_seated: number | null;
+  capacity_yoga: number | null;
+  capacity_auditorium: number | null;
+  capacity_banquet: number | null;
+  capacity_workshop: number | null;
+  area_sqm: number | null;
+  /** One of FLOOR_TYPES, or null. */
+  floor_type: string | null;
+  floor_type_other: string | null;
+  exclusive_for_groups: boolean;
+  /** A subset of SPACE_EQUIPMENT. */
+  equipment: string[];
+  equipment_other: string | null;
+  position: number;
+  /** The primary image, else the first one by position. */
+  image_url: string | null;
+  images: CommonSpaceImage[];
+}
+
+/** Everything but the name and the type is optional; null clears a field. */
+export interface CommonSpaceCreate {
+  name: string;
+  space_type: string;
+  space_type_other?: string | null;
+  capacity_seated?: number | null;
+  capacity_yoga?: number | null;
+  capacity_auditorium?: number | null;
+  capacity_banquet?: number | null;
+  capacity_workshop?: number | null;
+  area_sqm?: number | null;
+  floor_type?: string | null;
+  floor_type_other?: string | null;
+  exclusive_for_groups?: boolean;
+  equipment?: string[];
+  equipment_other?: string | null;
 }
 
 export type RoomTypeStatus = "active" | "draft" | "inactive";
