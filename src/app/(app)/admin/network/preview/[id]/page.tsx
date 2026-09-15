@@ -430,7 +430,13 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={space.image_url} alt={space.name} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-humana-subtle">No image</div>
+                        <div className="flex h-full items-center justify-center">
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c9c4b4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                        </div>
                       )}
                       {space.exclusive_for_groups && (
                         <span className="absolute left-3 top-3 rounded-md bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-humana-ink backdrop-blur-sm">
@@ -614,7 +620,13 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={selectedSpace.image_url} alt={selectedSpace.name} className="h-full w-full object-cover" style={{ minHeight: 420 }} />
               ) : (
-                <div className="flex h-full min-h-[420px] items-center justify-center text-humana-subtle">No image</div>
+                <div className="flex h-full min-h-[420px] items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c9c4b4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                </div>
               )}
             </div>
 

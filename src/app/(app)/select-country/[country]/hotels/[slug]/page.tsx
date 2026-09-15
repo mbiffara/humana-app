@@ -839,8 +839,12 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                 {spaceImages.length > 0 ? (
                   <Image src={spaceImages[spaceImgIdx]} alt={selectedSpace.name} fill className="object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-[14px] text-humana-subtle">
-                    {cs.photos}
+                  <div className="flex h-full items-center justify-center">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c9c4b4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
                   </div>
                 )}
                 {spaceImages.length > 1 && (
