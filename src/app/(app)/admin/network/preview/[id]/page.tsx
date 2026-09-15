@@ -8,7 +8,7 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { adminApi } from "@/lib/api/admin";
 import type { AdminHotelPreview, AdminRoomType, AdminRoomImage, Organization, User } from "@/lib/types";
 import { formatCheckTime } from "@/components/TimePicker";
-import { googleMapsUrl, instagramUrl } from "@/lib/property-catalog";
+import { googleMapsUrl, groupImagesByCategory, instagramUrl, videoEmbed } from "@/lib/property-catalog";
 import {
   airportTransferSummary,
   distanceAndTime,
@@ -122,6 +122,10 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
     ? groupCapacitySummary(p, hotel.group_min_guests, hotel.group_max_guests)
     : null;
   const galleryImages = hotel?.images || [];
+  // Same list, grouped for the per-category sections: each thumbnail keeps its
+  // index in `galleryImages` so the lightbox opens on the right slide.
+  const galleryGroups = groupImagesByCategory(galleryImages);
+  const video = videoEmbed(hotel?.video_url);
   const allAmenities = hotel?.amenities || [];
   const totalRooms = hotel?.total_rooms || hotel?.room_types.reduce((sum, rt) => sum + (rt.total_rooms || 1), 0) || 0;
 
@@ -261,6 +265,53 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
           )}
           <p className="max-w-[720px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
         </div>
+
+        {/* Gallery by category — only the sections the hotel actually filled */}
+        {galleryGroups.length > 0 && (
+          <div className="flex flex-col gap-6">
+            {galleryGroups.map((group) => (
+              <div key={group.category} className="flex flex-col gap-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
+                  {t.visualInfo.categories[group.category]}
+                </span>
+                <div className="grid grid-cols-6 gap-2">
+                  {group.items.map(({ image, index }) => (
+                    <button
+                      key={image.id}
+                      type="button"
+                      onClick={() => setLightboxIdx(index)}
+                      className="relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg bg-humana-stone"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image.image_url}
+                        alt={image.alt_text || `${hotel.name} ${index + 1}`}
+                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.04]"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Video or reel — the preview links out instead of embedding */}
+        {video && (
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
+              {t.visualInfo.videoSection}
+            </span>
+            <a
+              href={video.linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[14px] text-humana-ink underline underline-offset-2 transition-colors hover:text-humana-gold"
+            >
+              {video.linkUrl}
+            </a>
+          </div>
+        )}
 
         {/* Hotel details grid */}
         <div className="grid grid-cols-4 gap-4">

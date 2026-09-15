@@ -11,7 +11,12 @@ import {
 } from "react";
 import { hotelApi } from "@/lib/api/hotel";
 import { amenityIdForName } from "@/lib/amenity-catalog";
-import { sanitizeEnvironments } from "@/lib/property-catalog";
+import {
+  normalizeImageCategory,
+  sanitizeEnvironments,
+  type ImageCategory,
+  type PhotoEntry,
+} from "@/lib/property-catalog";
 import {
   EMPTY_PROPERTY_FORM,
   propertyFormFromProfile,
@@ -58,8 +63,10 @@ export type HotelWizardState = PropertyFormValues & {
   /* Amenities */
   amenities: string[];
   customAmenities: string[];
-  /* Property photos */
-  photos: string[];
+  /* Property visual material */
+  photos: PhotoEntry[];
+  logoUrl: string;
+  videoUrl: string;
   /* Wizard meta */
   currentStep: number;
 };
@@ -78,6 +85,8 @@ const initial: HotelWizardState = {
   amenities: [],
   customAmenities: [],
   photos: [],
+  logoUrl: "",
+  videoUrl: "",
   currentStep: 1,
 };
 
@@ -105,13 +114,39 @@ type HotelWizardContextValue = {
   removePhoto: (index: number) => void;
   reorderPhotos: (fromIndex: number, toIndex: number) => void;
   swapPhotoUrl: (oldUrl: string, newUrl: string) => void;
+  setPhotoCategory: (index: number, category: ImageCategory) => void;
+  setPhotoCover: (index: number) => void;
+  /** True once the saved profile came back, so the state mirrors the server.
+   *  Until then a field the owner never touched must not be written back. */
+  profileLoaded: boolean;
+  videoTouched: boolean;
+  markVideoTouched: () => void;
   hideBottomBar: boolean;
   setHideBottomBar: (v: boolean) => void;
+  /** Gallery upload in flight. */
   isUploading: boolean;
   setIsUploading: (v: boolean) => void;
+  /** Logo upload in flight — tracked apart from the gallery so each shows its
+   *  own spinner, but both have to settle before the step can be saved. */
+  isUploadingLogo: boolean;
+  setIsUploadingLogo: (v: boolean) => void;
 };
 
 const HotelWizardContext = createContext<HotelWizardContextValue | null>(null);
+
+/** Gallery entries used to be plain URLs — an old session migrates to the
+ *  categorised shape with everything under "Other". */
+function migratePhotos(value: unknown): PhotoEntry[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry): PhotoEntry[] => {
+    if (typeof entry === "string") return [{ url: entry, category: "general" }];
+    if (entry && typeof entry === "object" && typeof (entry as PhotoEntry).url === "string") {
+      const photo = entry as { url: string; category?: unknown };
+      return [{ url: photo.url, category: normalizeImageCategory(photo.category) }];
+    }
+    return [];
+  });
+}
 
 function generateId(): string {
   return `rt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -122,6 +157,9 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [hideBottomBar, setHideBottomBar] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [videoTouched, setVideoTouched] = useState(false);
   const apiLoaded = useRef(false);
   const { user } = useAuth();
 
@@ -169,6 +207,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         const merged = { ...initial, ...parsed };
         // Sessions saved before the property contract may carry a stale shape
         merged.environments = sanitizeEnvironments(merged.environments);
+        // Sessions saved before the gallery categories held plain URLs
+        merged.photos = migratePhotos(merged.photos);
         if (merged.hotelName || merged.ownerFirstName || merged.roomTypes.length > 0) {
           setState(merged);
         }
@@ -241,14 +281,27 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
           patch.customAmenities = customNames;
         }
 
-        // Hydrate images
+        // Hydrate the gallery — the cover leads the grid, as in the batch
+        // payload, and unknown API categories fall back to "Other".
         if (h.images && h.images.length > 0) {
-          patch.photos = h.images.map((img) => img.image_url);
+          const images = [...h.images].sort(
+            (a, b) => Number(b.is_cover) - Number(a.is_cover),
+          );
+          patch.photos = images.map((img) => ({
+            url: img.image_url,
+            category: normalizeImageCategory(img.category),
+          }));
         }
+
+        // Logo and video are server-owned like the property block: assign them
+        // wholesale so a cleared value is not re-sent from a stale session.
+        patch.logoUrl = h.logo_url ?? "";
+        patch.videoUrl = h.video_url ?? "";
 
         if (Object.keys(patch).length > 0) {
           setState((prev) => ({ ...prev, ...patch }));
         }
+        setProfileLoaded(true);
       }).catch(() => {
         // API unavailable — continue with session state
       });
@@ -268,6 +321,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const reset = useCallback(() => setState(initial), []);
+
+  const markVideoTouched = useCallback(() => setVideoTouched(true), []);
 
   const addRoomType = useCallback((room: Omit<RoomTypeEntry, "id" | "photos" | "availability">) => {
     setState((prev) => ({
@@ -373,7 +428,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const addPhoto = useCallback((url: string) => {
     setState((prev) => ({
       ...prev,
-      photos: [...prev.photos, url],
+      photos: [...prev.photos, { url, category: "general" }],
     }));
   }, []);
 
@@ -397,8 +452,28 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const swapPhotoUrl = useCallback((oldUrl: string, newUrl: string) => {
     setState((prev) => ({
       ...prev,
-      photos: prev.photos.map((url) => (url === oldUrl ? newUrl : url)),
+      photos: prev.photos.map((photo) =>
+        photo.url === oldUrl ? { ...photo, url: newUrl } : photo,
+      ),
     }));
+  }, []);
+
+  const setPhotoCategory = useCallback((index: number, category: ImageCategory) => {
+    setState((prev) => ({
+      ...prev,
+      photos: prev.photos.map((photo, i) => (i === index ? { ...photo, category } : photo)),
+    }));
+  }, []);
+
+  /** The cover is the first photo of the batch, so promoting one moves it. */
+  const setPhotoCover = useCallback((index: number) => {
+    setState((prev) => {
+      if (index <= 0 || index >= prev.photos.length) return prev;
+      const photos = [...prev.photos];
+      const [moved] = photos.splice(index, 1);
+      photos.unshift(moved);
+      return { ...prev, photos };
+    });
   }, []);
 
   return (
@@ -422,10 +497,17 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         removePhoto,
         reorderPhotos,
         swapPhotoUrl,
+        setPhotoCategory,
+        setPhotoCover,
+        profileLoaded,
+        videoTouched,
+        markVideoTouched,
         hideBottomBar,
         setHideBottomBar,
         isUploading,
         setIsUploading,
+        isUploadingLogo,
+        setIsUploadingLogo,
       }}
     >
       {children}

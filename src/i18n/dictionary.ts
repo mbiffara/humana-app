@@ -1,4 +1,4 @@
-import type { AirportTransfer, Environment, PropertyType } from "@/lib/property-catalog";
+import type { AirportTransfer, Environment, ImageCategory, PropertyType } from "@/lib/property-catalog";
 
 export type Locale = "en" | "es" | "pt";
 
@@ -442,7 +442,6 @@ type Dictionary = {
         addCustom: string;
         photosTitle: string;
         photosHint: string;
-        cover: string;
         addPhotos: string;
       };
       profile: {
@@ -1526,6 +1525,24 @@ type Dictionary = {
     kmSuffix: string;
     minSuffix: string;
   };
+  /** Visual material — gallery categories, cover, logo and video. Shared by
+   *  the hotel wizard, the settings Property tab and the public/admin views. */
+  visualInfo: {
+    categories: Record<ImageCategory, string>;
+    categoryLabel: string;
+    cover: string;
+    setAsCover: string;
+    removePhoto: string;
+    logoTitle: string;
+    logoHint: string;
+    logoUpload: string;
+    videoTitle: string;
+    videoHint: string;
+    videoPlaceholder: string;
+    videoInvalid: string;
+    videoSection: string;
+    videoWatchOnInstagram: string;
+  };
   comingSoon: {
     eyebrow: string;
     title: string;
@@ -1693,7 +1710,6 @@ type Dictionary = {
       uploadDrag: string;
       uploadBrowse: string;
       uploadFormats: string;
-      coverBadge: string;
       photoCount: (current: number, recommended: number) => string;
       dragToReorder: string;
       uploadMore: string;
@@ -2385,7 +2401,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           addCustom: "Add",
           photosTitle: "Photos",
           photosHint: "The first photo is the cover shown across the network.",
-          cover: "Cover",
           addPhotos: "Add photos",
         },
         profile: {
@@ -3650,6 +3665,27 @@ export const dictionary: Record<Locale, Dictionary> = {
         completed: "Completed",
       },
     },
+    visualInfo: {
+      categories: {
+        common_area: "Common spaces",
+        spa: "Wellness areas",
+        exterior: "Exteriors",
+        general: "Other",
+      },
+      categoryLabel: "Category",
+      cover: "Cover",
+      setAsCover: "Set as cover",
+      removePhoto: "Remove photo",
+      logoTitle: "Hotel logo",
+      logoHint: "Square image, at least 200x200. Shown next to your property across the network.",
+      logoUpload: "Upload logo",
+      videoTitle: "Video or reel",
+      videoHint: "Paste a YouTube, Vimeo or Instagram link and agencies will see it on your profile.",
+      videoPlaceholder: "https://youtube.com/watch?v=...",
+      videoInvalid: "We only accept YouTube, Vimeo or Instagram links",
+      videoSection: "Video",
+      videoWatchOnInstagram: "Watch on Instagram",
+    },
     propertyForm: {
       loadFailed: "We could not load your property profile. Reload the page before editing so nothing gets overwritten.",
       yes: "Yes",
@@ -3901,7 +3937,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         uploadDrag: "Drag images here or",
         uploadBrowse: "browse files",
         uploadFormats: "JPG or PNG \u00B7 up to 8 MB each \u00B7 Minimum 1600 \u00D7 1067 px",
-        coverBadge: "Cover",
         photoCount: (current: number, recommended: number) => `${current} of a recommended ${recommended} photos`,
         dragToReorder: "Drag tiles to reorder",
         uploadMore: "Upload more",
@@ -4584,7 +4619,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           addCustom: "Agregar",
           photosTitle: "Fotos",
           photosHint: "La primera foto es la portada que se muestra en la red.",
-          cover: "Portada",
           addPhotos: "Agregar fotos",
         },
         profile: {
@@ -5849,6 +5883,27 @@ export const dictionary: Record<Locale, Dictionary> = {
         completed: "Completada",
       },
     },
+    visualInfo: {
+      categories: {
+        common_area: "Espacios comunes",
+        spa: "Áreas wellness",
+        exterior: "Exteriores",
+        general: "Otras",
+      },
+      categoryLabel: "Categoría",
+      cover: "Portada",
+      setAsCover: "Usar como portada",
+      removePhoto: "Quitar foto",
+      logoTitle: "Logo del hotel",
+      logoHint: "Imagen cuadrada, mínimo 200x200. Se muestra junto a tu propiedad en toda la red.",
+      logoUpload: "Subir logo",
+      videoTitle: "Video o reel",
+      videoHint: "Pegá un link de YouTube, Vimeo o Instagram y las agencias lo verán en tu perfil.",
+      videoPlaceholder: "https://youtube.com/watch?v=...",
+      videoInvalid: "Solo aceptamos links de YouTube, Vimeo o Instagram",
+      videoSection: "Video",
+      videoWatchOnInstagram: "Ver en Instagram",
+    },
     propertyForm: {
       loadFailed: "No pudimos cargar el perfil de tu propiedad. Recargá la página antes de editar para no pisar datos.",
       yes: "Sí",
@@ -6100,7 +6155,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         uploadDrag: "Arrastra im\u00E1genes aqu\u00ED o",
         uploadBrowse: "busca archivos",
         uploadFormats: "JPG o PNG \u00B7 hasta 8 MB cada una \u00B7 M\u00EDnimo 1600 \u00D7 1067 px",
-        coverBadge: "Portada",
         photoCount: (current: number, recommended: number) => `${current} de ${recommended} fotos recomendadas`,
         dragToReorder: "Arrastra para reordenar",
         uploadMore: "Subir m\u00E1s",
@@ -6783,7 +6837,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           addCustom: "Adicionar",
           photosTitle: "Fotos",
           photosHint: "A primeira foto é a capa exibida na rede.",
-          cover: "Capa",
           addPhotos: "Adicionar fotos",
         },
         profile: {
@@ -8049,6 +8102,27 @@ export const dictionary: Record<Locale, Dictionary> = {
         completed: "Concluída",
       },
     },
+    visualInfo: {
+      categories: {
+        common_area: "Espaços comuns",
+        spa: "Áreas wellness",
+        exterior: "Exteriores",
+        general: "Outras",
+      },
+      categoryLabel: "Categoria",
+      cover: "Capa",
+      setAsCover: "Usar como capa",
+      removePhoto: "Remover foto",
+      logoTitle: "Logo do hotel",
+      logoHint: "Imagem quadrada, mínimo 200x200. Aparece ao lado da sua propriedade em toda a rede.",
+      logoUpload: "Enviar logo",
+      videoTitle: "Vídeo ou reel",
+      videoHint: "Cole um link do YouTube, Vimeo ou Instagram e as agências verão no seu perfil.",
+      videoPlaceholder: "https://youtube.com/watch?v=...",
+      videoInvalid: "Só aceitamos links do YouTube, Vimeo ou Instagram",
+      videoSection: "Vídeo",
+      videoWatchOnInstagram: "Ver no Instagram",
+    },
     propertyForm: {
       loadFailed: "Não foi possível carregar o perfil da sua propriedade. Recarregue a página antes de editar para não sobrescrever dados.",
       yes: "Sim",
@@ -8300,7 +8374,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         uploadDrag: "Arraste imagens aqui ou",
         uploadBrowse: "procure arquivos",
         uploadFormats: "JPG ou PNG \u00B7 at\u00E9 8 MB cada \u00B7 M\u00EDnimo 1600 \u00D7 1067 px",
-        coverBadge: "Capa",
         photoCount: (current: number, recommended: number) => `${current} de ${recommended} fotos recomendadas`,
         dragToReorder: "Arraste para reordenar",
         uploadMore: "Enviar mais",

@@ -13,7 +13,8 @@ import { agencyApi, type PublicHotelFull, type PublicRoomType, type HotelAvailab
 import { retreatToExperience } from "@/lib/retreat-experience";
 import { amenityIdForName } from "@/lib/amenity-catalog";
 import { formatCheckTime } from "@/components/TimePicker";
-import { googleMapsUrl, instagramUrl } from "@/lib/property-catalog";
+import { googleMapsUrl, groupImagesByCategory, instagramUrl, videoEmbed } from "@/lib/property-catalog";
+import { VideoPreview } from "@/components/hotel/VideoField";
 import {
   airportTransferSummary,
   distanceAndTime,
@@ -203,6 +204,9 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
   }
 
   const gallery = hotel.images.map((i) => i.image_url);
+  // Same list, grouped for the per-category sections: each thumbnail keeps the
+  // index it has in `gallery` so the lightbox opens on the right slide.
+  const galleryGroups = groupImagesByCategory(hotel.images);
   const location = [hotel.city, hotel.country].filter(Boolean).join(", ");
 
   // Room images for carousel
@@ -431,6 +435,49 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
             <p className="max-w-[960px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
           )}
         </div>
+
+        {/* Gallery by category — only the sections the hotel actually filled */}
+        {galleryGroups.length > 0 && (
+          <div className="flex flex-col gap-6">
+            {galleryGroups.map((group) => (
+              <div key={group.category} className="flex flex-col gap-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                  {t.visualInfo.categories[group.category]}
+                </span>
+                <div className="grid grid-cols-6 gap-2">
+                  {group.items.map(({ image, index }) => (
+                    <button
+                      key={image.id}
+                      type="button"
+                      onClick={() => setLightboxIdx(index)}
+                      className="relative aspect-[4/3] cursor-pointer overflow-hidden bg-humana-stone"
+                    >
+                      <Image
+                        src={image.image_url}
+                        alt={image.alt_text || `${hotel.name} ${index + 1}`}
+                        fill
+                        sizes="180px"
+                        className="object-cover transition-transform duration-300 hover:scale-[1.04]"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Video or reel */}
+        {videoEmbed(hotel.video_url) && (
+          <div className="flex flex-col gap-3">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+              {t.visualInfo.videoSection}
+            </span>
+            <div className="max-w-[720px]">
+              <VideoPreview url={hotel.video_url} title={hotel.name} />
+            </div>
+          </div>
+        )}
 
         {/* Tab bar */}
         <div className="flex gap-8 border-b border-humana-line">

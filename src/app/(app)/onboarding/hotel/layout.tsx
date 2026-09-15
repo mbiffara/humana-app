@@ -11,6 +11,8 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
 import { groupRangeInvalid, propertyFormPayload } from "@/lib/property-form";
+import { videoEmbed } from "@/lib/property-catalog";
+import type { HotelProfileUpdate } from "@/lib/api/hotel";
 
 const STEP_PATHS = [
   "/onboarding/hotel/step-1",
@@ -94,7 +96,8 @@ function BottomBar() {
   const router = useRouter();
   const { t } = useLocale();
   const { user, setUser, refreshAuth } = useAuth();
-  const { state, hideBottomBar, isUploading } = useHotelWizard();
+  const { state, hideBottomBar, isUploading, isUploadingLogo, profileLoaded, videoTouched } =
+    useHotelWizard();
 
   const org = user?.organization;
   const alreadySubmitted = !!org?.onboarding_completed;
@@ -209,12 +212,30 @@ function BottomBar() {
   }
 
   async function saveStep4() {
-    // Only send real server URLs (skip blob:// preview URLs)
-    const serverPhotos = state.photos.filter((url) => url.startsWith("http"));
+    // Only send real server URLs (skip blob:// preview URLs). The batch
+    // replaces the whole gallery and the first entry carries the cover flag,
+    // which is why the grid keeps the cover in first position.
+    const serverPhotos = state.photos.filter((p) => p.url.startsWith("http"));
     if (serverPhotos.length > 0) {
       await hotelApi.batchImages(
-        serverPhotos.map((url) => ({ image_url: url })),
+        serverPhotos.map((photo, i) => ({
+          image_url: photo.url,
+          category: photo.category,
+          is_cover: i === 0,
+        })),
       );
+    }
+
+    // Logo and video live on the hotel profile, not the gallery. The video is
+    // only written back once the saved profile has been read (or the owner
+    // edited the field): otherwise a failed load would clear a saved link.
+    const profile: Partial<HotelProfileUpdate> = {};
+    if (profileLoaded || videoTouched) profile.video_url = state.videoUrl.trim();
+    if (state.logoUrl.startsWith("http")) profile.logo_url = state.logoUrl;
+    // With nothing to send, skip the PATCH entirely — opening step 4 by URL
+    // before the hotel exists would answer "Name can't be blank".
+    if (Object.keys(profile).length > 0) {
+      await hotelApi.updateProfile(profile);
     }
   }
 
@@ -309,7 +330,13 @@ function BottomBar() {
       case 2:
         return state.amenities.length > 0 || state.customAmenities.length > 0;
       case 3:
-        return !isUploading;
+        // A video is optional, but a link we cannot embed is a 422 waiting to
+        // happen — the same hosts the API accepts.
+        return (
+          !isUploading &&
+          !isUploadingLogo &&
+          (state.videoUrl.trim().length === 0 || videoEmbed(state.videoUrl) !== null)
+        );
       default:
         return true;
     }
@@ -343,6 +370,11 @@ function BottomBar() {
       case 2:
         if (state.amenities.length === 0 && state.customAmenities.length === 0) {
           missing.push(h.addAtLeastOneAmenity);
+        }
+        break;
+      case 3:
+        if (state.videoUrl.trim().length > 0 && videoEmbed(state.videoUrl) === null) {
+          missing.push(t.visualInfo.videoInvalid);
         }
         break;
     }

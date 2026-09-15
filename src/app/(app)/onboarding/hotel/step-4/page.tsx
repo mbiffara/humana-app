@@ -1,17 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useHotelWizard } from "@/contexts/HotelWizardContext";
 import { useLocale } from "@/i18n/LocaleProvider";
+import { LogoUpload } from "@/components/hotel/LogoUpload";
+import { PhotoGrid } from "@/components/hotel/PhotoGrid";
+import { VideoField } from "@/components/hotel/VideoField";
 import { createPreviewUrl, uploadImage } from "@/lib/upload";
 
 export default function HotelWizardStep4() {
-  const { state, addPhoto, removePhoto, reorderPhotos, swapPhotoUrl, isUploading, setIsUploading } = useHotelWizard();
+  const {
+    state,
+    set,
+    addPhoto,
+    removePhoto,
+    reorderPhotos,
+    swapPhotoUrl,
+    setPhotoCategory,
+    setPhotoCover,
+    markVideoTouched,
+    isUploading,
+    setIsUploading,
+    isUploadingLogo,
+    setIsUploadingLogo,
+  } = useHotelWizard();
   const { t } = useLocale();
   const h = t.onboarding.hotel;
+  const v = t.visualInfo;
   const [isDragOver, setIsDragOver] = useState(false);
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   function handleFiles(files: FileList | File[]) {
     const fileArray = Array.from(files);
@@ -51,22 +67,16 @@ export default function HotelWizardStep4() {
     if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
   }
 
-  // Photo reorder drag
-  function handlePhotoReorderStart(e: React.DragEvent, index: number) {
-    setDragIndex(index);
-    e.dataTransfer.effectAllowed = "move";
-  }
-
-  function handlePhotoReorderOver(e: React.DragEvent) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  }
-
-  function handlePhotoReorderDrop(targetIndex: number) {
-    if (dragIndex !== null && dragIndex !== targetIndex) {
-      reorderPhotos(dragIndex, targetIndex);
+  /** The logo travels with the step save, so only a real server URL is kept —
+   *  a failed upload falls back to a blob URL the API could not resolve. */
+  async function handleLogoFile(file: File) {
+    setIsUploadingLogo(true);
+    try {
+      const url = await uploadImage(file);
+      if (url.startsWith("http")) set({ logoUrl: url });
+    } finally {
+      setIsUploadingLogo(false);
     }
-    setDragIndex(null);
   }
 
   const RECOMMENDED = 10;
@@ -140,59 +150,18 @@ export default function HotelWizardStep4() {
           )}
         </label>
 
-        {/* Photo grid */}
+        {/* Photo grid — drag to reorder, categorise, promote to cover */}
         {state.photos.length > 0 && (
           <div className="mt-8">
-            <div className="grid grid-cols-4 gap-3 stagger-children">
-              {state.photos.map((photo, index) => (
-                <div
-                  key={`${photo}-${index}`}
-                  draggable
-                  onDragStart={(e) => handlePhotoReorderStart(e, index)}
-                  onDragOver={handlePhotoReorderOver}
-                  onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handlePhotoReorderDrop(index); }}
-                  className={`group relative aspect-square cursor-grab overflow-hidden rounded-[6px] bg-humana-stone transition-all duration-200 hover:shadow-md active:cursor-grabbing ${
-                    dragIndex === index ? "opacity-50 scale-95" : ""
-                  }`}
-                >
-                  <Image
-                    src={photo}
-                    alt={`Property photo ${index + 1}`}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    unoptimized
-                  />
-
-                  {/* Cover badge */}
-                  {index === 0 && (
-                    <div className="absolute left-2 top-2 rounded bg-humana-gold px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-white">
-                      {h.coverBadge}
-                    </div>
-                  )}
-
-                  {/* Delete button */}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); removePhoto(index); }}
-                    className="cursor-pointer absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-all duration-200 hover:bg-black/80 group-hover:opacity-100"
-                  >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-
-                  {/* Drag handle overlay */}
-                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-center bg-gradient-to-t from-black/30 to-transparent py-2 opacity-0 transition-opacity group-hover:opacity-100">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-                      <circle cx="9" cy="6" r="1" /><circle cx="15" cy="6" r="1" />
-                      <circle cx="9" cy="12" r="1" /><circle cx="15" cy="12" r="1" />
-                      <circle cx="9" cy="18" r="1" /><circle cx="15" cy="18" r="1" />
-                    </svg>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PhotoGrid
+              photos={state.photos}
+              alt={state.hotelName}
+              onReorder={reorderPhotos}
+              onRemove={removePhoto}
+              onCategoryChange={setPhotoCategory}
+              onSetCover={setPhotoCover}
+              variant="wizard"
+            />
 
             {/* Counter + upload more */}
             <div className="mt-5 flex items-center justify-between">
@@ -215,6 +184,42 @@ export default function HotelWizardStep4() {
             </div>
           </div>
         )}
+
+        {/* Hotel logo */}
+        <div className="mt-10 border-t border-humana-line pt-8">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
+            {v.logoTitle}
+          </span>
+          <div className="mt-4 flex items-center gap-4">
+            <LogoUpload
+              logoUrl={state.logoUrl || null}
+              name={state.hotelName}
+              uploading={isUploadingLogo}
+              onFile={handleLogoFile}
+            />
+            <p className="max-w-[420px] text-[12px] leading-relaxed text-humana-muted">
+              {v.logoHint}
+            </p>
+          </div>
+        </div>
+
+        {/* Video or reel */}
+        <div className="mt-10 border-t border-humana-line pt-8">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
+            {v.videoTitle}
+          </span>
+          <div className="mt-4">
+            <VideoField
+              value={state.videoUrl}
+              onChange={(value) => {
+                markVideoTouched();
+                set({ videoUrl: value });
+              }}
+              title={state.hotelName}
+              variant="wizard"
+            />
+          </div>
+        </div>
 
         {/* Tip card */}
         {state.photos.length < 5 && (
