@@ -66,12 +66,21 @@ export default function CommonSpacesPage() {
     setDraft(emptySpaceDraft());
     setErrors({});
     setSaveError(null);
+    setUploading(false);
   }
 
   function openEdit(space: CommonSpace) {
     setDraft(spaceToDraft(space));
     setErrors({});
     setSaveError(null);
+    setUploading(false);
+  }
+
+  /** Closing unmounts the form, so a batch still in flight will never report
+   *  back — clear the flag here or it stays raised for the next space. */
+  function closeEditor() {
+    setDraft(null);
+    setUploading(false);
   }
 
   async function handleSave() {
@@ -104,7 +113,7 @@ export default function CommonSpacesPage() {
         );
       }
       await load();
-      setDraft(null);
+      closeEditor();
       setJustSaved(true);
     } catch (err) {
       setSaveError(apiErrorMessage(err, c.saveFailed));
@@ -299,7 +308,7 @@ export default function CommonSpacesPage() {
               </h2>
               <button
                 type="button"
-                onClick={() => setDraft(null)}
+                onClick={closeEditor}
                 aria-label={c.cancel}
                 className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-full text-humana-subtle transition-colors hover:bg-humana-stone hover:text-humana-ink"
               >
@@ -327,7 +336,7 @@ export default function CommonSpacesPage() {
             <div className="mt-8 flex justify-end gap-3 border-t border-humana-line pt-6">
               <button
                 type="button"
-                onClick={() => setDraft(null)}
+                onClick={closeEditor}
                 disabled={saving}
                 className="cursor-pointer rounded-[6px] border border-humana-line px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.18em] text-humana-muted transition-all hover:border-humana-ink hover:text-humana-ink disabled:opacity-40"
               >

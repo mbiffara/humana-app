@@ -69,6 +69,26 @@ export function CommonSpaceForm({
   // Every preview → server URL swap made so far. Applying the whole map on
   // each upload keeps concurrent uploads from overwriting one another.
   const swaps = useRef<Record<string, string>>({});
+  // Nothing stops a second batch being picked while the first is still going,
+  // and a single boolean would let whichever settles first report "done" while
+  // the other still holds blob: previews — so count the batches instead.
+  const uploadsInFlight = useRef(0);
+  // A batch can outlive the form: Cancel (or the workspace modal closing)
+  // unmounts it while an upload is in flight. Writing the result back then
+  // would hand the parent a draft it already discarded and reopen the editor.
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  function reportUploads() {
+    const active = uploadsInFlight.current > 0;
+    setUploading(active);
+    onUploadingChange?.(active);
+  }
 
   function patch(next: Partial<CommonSpaceDraft>) {
     onChange({ ...latest.current, ...next });
@@ -92,20 +112,26 @@ export function CommonSpaceForm({
     }
     if (entries.length === 0) return;
 
+    // Which space this batch belongs to: the form is reused for the next one
+    const draftId = latest.current.localId;
     setPhotos([...latest.current.photos, ...entries.map((e) => e.blobUrl)]);
-    setUploading(true);
-    onUploadingChange?.(true);
+    uploadsInFlight.current += 1;
+    reportUploads();
     Promise.allSettled(
       entries.map(async ({ blobUrl, file }) => {
         const serverUrl = await uploadImage(file);
+        // Gone, or editing a different space by now — drop the result
+        if (!mounted.current || latest.current.localId !== draftId) return;
         if (serverUrl.startsWith("http")) {
           swaps.current[blobUrl] = serverUrl;
           setPhotos(latest.current.photos.map((url) => swaps.current[url] ?? url));
         }
       }),
     ).finally(() => {
-      setUploading(false);
-      onUploadingChange?.(false);
+      uploadsInFlight.current -= 1;
+      // The parent resets its own flag when it closes the form
+      if (!mounted.current) return;
+      reportUploads();
     });
   }
 

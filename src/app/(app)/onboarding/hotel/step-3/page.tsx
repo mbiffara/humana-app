@@ -135,12 +135,21 @@ export default function HotelWizardStep3() {
     setDraft(emptySpaceDraft());
     setIsNew(true);
     setErrors({});
+    setUploading(false);
   }
 
   function startEdit(space: CommonSpaceDraft) {
     setDraft({ ...space });
     setIsNew(false);
     setErrors({});
+    setUploading(false);
+  }
+
+  /** Leaving unmounts the form, so a batch still in flight will never report
+   *  back — clear the flag here or it stays raised for the next space. */
+  function closeForm() {
+    setDraft(null);
+    setUploading(false);
   }
 
   function handleSave() {
@@ -152,7 +161,7 @@ export default function HotelWizardStep3() {
     }
     if (isNew) addCommonSpace(draft);
     else updateCommonSpace(draft.localId, draft);
-    setDraft(null);
+    closeForm();
   }
 
   /* ─── Form view ─── */
@@ -181,7 +190,7 @@ export default function HotelWizardStep3() {
           <div className="flex items-center justify-between gap-8">
             <button
               type="button"
-              onClick={() => setDraft(null)}
+              onClick={closeForm}
               className="cursor-pointer flex items-center gap-2 whitespace-nowrap text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-muted transition-colors hover:text-humana-ink"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
