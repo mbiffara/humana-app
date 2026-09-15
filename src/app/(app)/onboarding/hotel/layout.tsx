@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
 import { groupRangeInvalid, propertyFormPayload } from "@/lib/property-form";
 import { videoEmbed } from "@/lib/property-catalog";
+import { draftToPayload } from "@/lib/space-catalog";
 import type { HotelProfileUpdate } from "@/lib/api/hotel";
 
 const STEP_PATHS = [
@@ -20,6 +21,7 @@ const STEP_PATHS = [
   "/onboarding/hotel/step-3",
   "/onboarding/hotel/step-4",
   "/onboarding/hotel/step-5",
+  "/onboarding/hotel/step-6",
 ];
 
 function StepProgressBar() {
@@ -96,8 +98,15 @@ function BottomBar() {
   const router = useRouter();
   const { t } = useLocale();
   const { user, setUser, refreshAuth } = useAuth();
-  const { state, hideBottomBar, isUploading, isUploadingLogo, profileLoaded, videoTouched } =
-    useHotelWizard();
+  const {
+    state,
+    updateCommonSpace,
+    hideBottomBar,
+    isUploading,
+    isUploadingLogo,
+    profileLoaded,
+    videoTouched,
+  } = useHotelWizard();
 
   const org = user?.organization;
   const alreadySubmitted = !!org?.onboarding_completed;
@@ -198,7 +207,44 @@ function BottomBar() {
     }
   }
 
+  /** Sync the wizard's spaces with the API: drop what the owner removed,
+   *  create or update the rest, then replace each gallery. Sequential — the
+   *  create has to answer with an id before its images can be sent. */
   async function saveStep3() {
+    let existing: number[] = [];
+    try {
+      const res = await hotelApi.listCommonSpaces();
+      existing = res.common_spaces.map((cs) => cs.id);
+    } catch {
+      // Nothing saved yet (or an API without common spaces) — create from scratch
+    }
+
+    const kept = new Set(state.commonSpaces.map((cs) => cs.id).filter((id) => id != null));
+    for (const id of existing) {
+      if (!kept.has(id)) await hotelApi.deleteCommonSpace(id);
+    }
+
+    for (const draft of state.commonSpaces) {
+      const payload = draftToPayload(draft);
+      // An id the API no longer knows (deleted elsewhere) is recreated
+      let id = draft.id && existing.includes(draft.id) ? draft.id : undefined;
+      if (id) {
+        await hotelApi.updateCommonSpace(id, payload);
+      } else {
+        const created = await hotelApi.createCommonSpace(payload);
+        id = created.common_space.id;
+        updateCommonSpace(draft.localId, { id });
+      }
+      // Replace the gallery, empty list included, so removals stick. Blob
+      // previews that never finished uploading are skipped.
+      await hotelApi.batchCommonSpaceImages(
+        id,
+        draft.photos.filter((url) => url.startsWith("http")).map((url) => ({ image_url: url })),
+      );
+    }
+  }
+
+  async function saveStep4() {
     const allAmenities = [
       ...state.amenities.map((id) => {
         const entry = AMENITY_CATALOG[id];
@@ -213,7 +259,7 @@ function BottomBar() {
     }
   }
 
-  async function saveStep4() {
+  async function saveStep5() {
     // Only send real server URLs (skip blob:// preview URLs). The batch
     // replaces the whole gallery and the first entry carries the cover flag,
     // which is why the grid keeps the cover in first position.
@@ -234,14 +280,14 @@ function BottomBar() {
     const profile: Partial<HotelProfileUpdate> = {};
     if (profileLoaded || videoTouched) profile.video_url = state.videoUrl.trim();
     if (state.logoUrl.startsWith("http")) profile.logo_url = state.logoUrl;
-    // With nothing to send, skip the PATCH entirely — opening step 4 by URL
+    // With nothing to send, skip the PATCH entirely — opening step 5 by URL
     // before the hotel exists would answer "Name can't be blank".
     if (Object.keys(profile).length > 0) {
       await hotelApi.updateProfile(profile);
     }
   }
 
-  async function saveStep5() {
+  async function saveStep6() {
     const res = await hotelApi.submitForReview();
     // Refresh user state so app layout sees onboarding_completed = true
     setUser(res.user);
@@ -280,6 +326,9 @@ function BottomBar() {
           break;
         case 4:
           await saveStep5();
+          break;
+        case 5:
+          await saveStep6();
           break;
       }
     } catch (err) {
@@ -330,8 +379,11 @@ function BottomBar() {
       case 1:
         return state.roomTypes.length > 0;
       case 2:
-        return state.amenities.length > 0 || state.customAmenities.length > 0;
+        // Common spaces are optional — the step can be left empty
+        return true;
       case 3:
+        return state.amenities.length > 0 || state.customAmenities.length > 0;
+      case 4:
         // A video is optional, but a link we cannot embed is a 422 waiting to
         // happen — the same hosts the API accepts.
         return (
@@ -369,12 +421,12 @@ function BottomBar() {
           missing.push(h.addAtLeastOneRoom);
         }
         break;
-      case 2:
+      case 3:
         if (state.amenities.length === 0 && state.customAmenities.length === 0) {
           missing.push(h.addAtLeastOneAmenity);
         }
         break;
-      case 3:
+      case 4:
         if (state.videoUrl.trim().length > 0 && videoEmbed(state.videoUrl) === null) {
           missing.push(t.visualInfo.videoInvalid);
         }

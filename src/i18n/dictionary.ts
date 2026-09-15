@@ -1675,12 +1675,12 @@ type Dictionary = {
       submit: string;
     };
     hotel: {
-      steps: [string, string, string, string, string];
+      steps: [string, string, string, string, string, string];
       publish: string;
-      /* Step 5 — Review & Status */
-      step5Eyebrow: string;
-      step5Title: string;
-      step5Sub: string;
+      /* Step 6 — Review & Status */
+      step6Eyebrow: string;
+      step6Title: string;
+      step6Sub: string;
       reviewEdit: string;
       reviewHotelInfo: string;
       reviewRooms: string;
@@ -1773,20 +1773,26 @@ type Dictionary = {
       deleteRoomTitle: string;
       deleteRoomDescription: (name: string) => string;
       deleteRoomConfirm: string;
-      /* Step 3 — Amenities */
+      /* Step 3 — Common spaces */
       step3Eyebrow: string;
       step3Title: string;
       step3Subtitle: string;
+      spaceConfigured: (count: number) => string;
+      reviewCommonSpaces: string;
+      /* Step 4 — Amenities */
+      step4Eyebrow: string;
+      step4Title: string;
+      step4Subtitle: string;
       guestFavorites: string;
       standoutAmenities: string;
       customAmenity: string;
       customPlaceholder: string;
       addButton: string;
       amenityCount: (selected: number, custom: number) => string;
-      /* Step 4 — Photos */
-      step4Eyebrow: string;
-      step4Title: string;
-      step4Subtitle: string;
+      /* Step 5 — Photos */
+      step5Eyebrow: string;
+      step5Title: string;
+      step5Subtitle: string;
       uploadDrag: string;
       uploadBrowse: string;
       uploadFormats: string;
@@ -4007,10 +4013,10 @@ export const dictionary: Record<Locale, Dictionary> = {
         submit: "Complete Setup",
       },
       hotel: {
-        steps: ["Identity", "Rooms", "Amenities", "Photos", "Review"],
-        step5Eyebrow: "Step 5 of 5 · Review & Status",
-        step5Title: "Review your property",
-        step5Sub: "Confirm everything below is correct. You can edit any section — changes are saved as you complete each step.",
+        steps: ["Identity", "Rooms", "Spaces", "Amenities", "Photos", "Review"],
+        step6Eyebrow: "Step 6 of 6 · Review & Status",
+        step6Title: "Review your property",
+        step6Sub: "Confirm everything below is correct. You can edit any section — changes are saved as you complete each step.",
         reviewEdit: "Edit",
         reviewHotelInfo: "Property information",
         reviewRooms: "Rooms",
@@ -4033,7 +4039,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         submitForReviewCta: "Submit for review",
         publishChangesCta: "Publish changes",
         publish: "Publish",
-        step1Eyebrow: "Step 1 of 5 \u00B7 Property Identity",
+        step1Eyebrow: "Step 1 of 6 \u00B7 Property Identity",
         step1Title: "Tell us about your property.",
         step1Subtitle: "Start with your personal details and the hotel\u2019s public name and location. We\u2019ll use this to verify the property before it joins the network.",
         firstName: "First Name",
@@ -4053,7 +4059,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         websiteLabel: "Website",
         verificationTitle: "Verification required",
         verificationDescription: "After submission, our team will verify your property details within 24\u201348 hours before listing it on the network.",
-        step2Eyebrow: "Step 2 of 5 \u00B7 Room Inventory",
+        step2Eyebrow: "Step 2 of 6 \u00B7 Room Inventory",
         step2Title: "Configure your room types.",
         step2Subtitle: "Add each room category you offer along with the total number of units available.",
         roomConfigured: (count: number) => `${count} room type${count !== 1 ? "s" : ""} configured`,
@@ -4100,18 +4106,23 @@ export const dictionary: Record<Locale, Dictionary> = {
         deleteRoomTitle: "Delete Room Type",
         deleteRoomDescription: (name: string) => `Are you sure you want to delete "${name}"? This action cannot be undone.`,
         deleteRoomConfirm: "Delete",
-        step3Eyebrow: "Step 3 of 5 \u00B7 Amenities",
-        step3Title: "Tell guests what your place offers.",
-        step3Subtitle: "Select everything that applies. You can refine the list after publishing.",
+        step3Eyebrow: "Step 3 of 6 \u00B7 Common Spaces",
+        step3Title: "Which spaces can groups use?",
+        step3Subtitle: "Salons, yoga rooms, terraces — add the ones you offer. You can continue without adding spaces.",
+        spaceConfigured: (count: number) => `${count} space${count === 1 ? "" : "s"} configured`,
+        reviewCommonSpaces: "Common spaces",
+        step4Eyebrow: "Step 4 of 6 \u00B7 Amenities",
+        step4Title: "Tell guests what your place offers.",
+        step4Subtitle: "Select everything that applies. You can refine the list after publishing.",
         guestFavorites: "Guest Favorites",
         standoutAmenities: "Standout Amenities",
         customAmenity: "Custom Amenity",
         customPlaceholder: "e.g. Rooftop lounge, Bike rental...",
         addButton: "Add",
         amenityCount: (selected: number, custom: number) => `${selected} amenit${selected === 1 ? "y" : "ies"} selected${custom > 0 ? ` + ${custom} custom` : ""}`,
-        step4Eyebrow: "Step 4 of 5 \u00B7 Property Photos",
-        step4Title: "Show your property at its best.",
-        step4Subtitle: "Upload at least five photos that represent the space as guests will experience it. Drag to reorder.",
+        step5Eyebrow: "Step 5 of 6 \u00B7 Property Photos",
+        step5Title: "Show your property at its best.",
+        step5Subtitle: "Upload at least five photos that represent the space as guests will experience it. Drag to reorder.",
         uploadDrag: "Drag images here or",
         uploadBrowse: "browse files",
         uploadFormats: "JPG or PNG \u00B7 up to 8 MB each \u00B7 Minimum 1600 \u00D7 1067 px",
@@ -6320,10 +6331,10 @@ export const dictionary: Record<Locale, Dictionary> = {
         submit: "Completar configuración",
       },
       hotel: {
-        steps: ["Identidad", "Habitaciones", "Amenities", "Fotos", "Revisión"],
-        step5Eyebrow: "Paso 5 de 5 · Revisión y Estado",
-        step5Title: "Revisa tu propiedad",
-        step5Sub: "Confirma que todo lo siguiente sea correcto. Puedes editar cualquier sección — los cambios se guardan al completar cada paso.",
+        steps: ["Identidad", "Habitaciones", "Espacios", "Amenities", "Fotos", "Revisión"],
+        step6Eyebrow: "Paso 6 de 6 · Revisión y Estado",
+        step6Title: "Revisa tu propiedad",
+        step6Sub: "Confirma que todo lo siguiente sea correcto. Puedes editar cualquier sección — los cambios se guardan al completar cada paso.",
         reviewEdit: "Editar",
         reviewHotelInfo: "Información de la propiedad",
         reviewRooms: "Habitaciones",
@@ -6346,7 +6357,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         submitForReviewCta: "Enviar a revisión",
         publishChangesCta: "Publicar cambios",
         publish: "Publicar",
-        step1Eyebrow: "Paso 1 de 5 \u00B7 Identidad de la Propiedad",
+        step1Eyebrow: "Paso 1 de 6 \u00B7 Identidad de la Propiedad",
         step1Title: "Cu\u00E9ntanos sobre tu propiedad.",
         step1Subtitle: "Comienza con tus datos personales, el nombre p\u00FAblico del hotel y su ubicaci\u00F3n. Usaremos esto para verificar la propiedad antes de incluirla en la red.",
         firstName: "Nombre",
@@ -6366,7 +6377,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         websiteLabel: "Sitio Web",
         verificationTitle: "Verificaci\u00F3n requerida",
         verificationDescription: "Despu\u00E9s del env\u00EDo, nuestro equipo verificar\u00E1 los detalles de tu propiedad en 24\u201348 horas antes de listarla en la red.",
-        step2Eyebrow: "Paso 2 de 5 \u00B7 Inventario de Habitaciones",
+        step2Eyebrow: "Paso 2 de 6 \u00B7 Inventario de Habitaciones",
         step2Title: "Configura tus tipos de habitaci\u00F3n.",
         step2Subtitle: "Agrega cada categor\u00EDa de habitaci\u00F3n que ofreces junto con el n\u00FAmero total de unidades disponibles.",
         roomConfigured: (count: number) => `${count} tipo${count !== 1 ? "s" : ""} de habitaci\u00F3n configurado${count !== 1 ? "s" : ""}`,
@@ -6413,18 +6424,23 @@ export const dictionary: Record<Locale, Dictionary> = {
         deleteRoomTitle: "Eliminar Habitación",
         deleteRoomDescription: (name: string) => `¿Estás seguro de que quieres eliminar "${name}"? Esta acción no se puede deshacer.`,
         deleteRoomConfirm: "Eliminar",
-        step3Eyebrow: "Paso 3 de 5 · Amenities",
-        step3Title: "Dile a los huéspedes qué ofrece tu lugar.",
-        step3Subtitle: "Selecciona todo lo que aplique. Puedes refinar la lista después de publicar.",
+        step3Eyebrow: "Paso 3 de 6 · Espacios Comunes",
+        step3Title: "¿Qué espacios pueden usar los grupos?",
+        step3Subtitle: "Salones, salas de yoga, terrazas — agregá los que ofrecés. Podés seguir sin cargar espacios.",
+        spaceConfigured: (count: number) => `${count} ${count === 1 ? "espacio configurado" : "espacios configurados"}`,
+        reviewCommonSpaces: "Espacios comunes",
+        step4Eyebrow: "Paso 4 de 6 · Amenities",
+        step4Title: "Dile a los huéspedes qué ofrece tu lugar.",
+        step4Subtitle: "Selecciona todo lo que aplique. Puedes refinar la lista después de publicar.",
         guestFavorites: "Favoritas de los Hu\u00E9spedes",
         standoutAmenities: "Amenities Destacadas",
         customAmenity: "Amenity Personalizada",
         customPlaceholder: "ej. Terraza en la azotea, Alquiler de bicicletas...",
         addButton: "Agregar",
         amenityCount: (selected: number, custom: number) => `${selected} amenidad${selected !== 1 ? "es" : ""} seleccionada${selected !== 1 ? "s" : ""}${custom > 0 ? ` + ${custom} personalizada${custom !== 1 ? "s" : ""}` : ""}`,
-        step4Eyebrow: "Paso 4 de 5 \u00B7 Fotos de la Propiedad",
-        step4Title: "Muestra tu propiedad en su mejor momento.",
-        step4Subtitle: "Sube al menos cinco fotos que representen el espacio tal como lo experimentar\u00E1n los hu\u00E9spedes. Arrastra para reordenar.",
+        step5Eyebrow: "Paso 5 de 6 \u00B7 Fotos de la Propiedad",
+        step5Title: "Muestra tu propiedad en su mejor momento.",
+        step5Subtitle: "Sube al menos cinco fotos que representen el espacio tal como lo experimentar\u00E1n los hu\u00E9spedes. Arrastra para reordenar.",
         uploadDrag: "Arrastra im\u00E1genes aqu\u00ED o",
         uploadBrowse: "busca archivos",
         uploadFormats: "JPG o PNG \u00B7 hasta 8 MB cada una \u00B7 M\u00EDnimo 1600 \u00D7 1067 px",
@@ -8634,10 +8650,10 @@ export const dictionary: Record<Locale, Dictionary> = {
         submit: "Concluir configuração",
       },
       hotel: {
-        steps: ["Identidade", "Quartos", "Amenities", "Fotos", "Revisão"],
-        step5Eyebrow: "Passo 5 de 5 · Revisão e Status",
-        step5Title: "Revise sua propriedade",
-        step5Sub: "Confirme que tudo abaixo está correto. Você pode editar qualquer seção — as alterações são salvas ao completar cada passo.",
+        steps: ["Identidade", "Quartos", "Espaços", "Amenities", "Fotos", "Revisão"],
+        step6Eyebrow: "Passo 6 de 6 · Revisão e Status",
+        step6Title: "Revise sua propriedade",
+        step6Sub: "Confirme que tudo abaixo está correto. Você pode editar qualquer seção — as alterações são salvas ao completar cada passo.",
         reviewEdit: "Editar",
         reviewHotelInfo: "Informações da propriedade",
         reviewRooms: "Quartos",
@@ -8660,7 +8676,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         submitForReviewCta: "Enviar para revisão",
         publishChangesCta: "Publicar alterações",
         publish: "Publicar",
-        step1Eyebrow: "Passo 1 de 5 \u00B7 Identidade da Propriedade",
+        step1Eyebrow: "Passo 1 de 6 \u00B7 Identidade da Propriedade",
         step1Title: "Conte-nos sobre sua propriedade.",
         step1Subtitle: "Comece com seus dados pessoais, o nome p\u00FAblico do hotel e sua localiza\u00E7\u00E3o. Usaremos isso para verificar a propriedade antes de inclu\u00ED-la na rede.",
         firstName: "Nome",
@@ -8680,7 +8696,7 @@ export const dictionary: Record<Locale, Dictionary> = {
         websiteLabel: "Site",
         verificationTitle: "Verifica\u00E7\u00E3o necess\u00E1ria",
         verificationDescription: "Ap\u00F3s o envio, nossa equipe verificar\u00E1 os detalhes da sua propriedade em 24\u201348 horas antes de list\u00E1-la na rede.",
-        step2Eyebrow: "Passo 2 de 5 \u00B7 Invent\u00E1rio de Quartos",
+        step2Eyebrow: "Passo 2 de 6 \u00B7 Invent\u00E1rio de Quartos",
         step2Title: "Configure seus tipos de quarto.",
         step2Subtitle: "Adicione cada categoria de quarto que voc\u00EA oferece junto com o n\u00FAmero total de unidades dispon\u00EDveis.",
         roomConfigured: (count: number) => `${count} tipo${count !== 1 ? "s" : ""} de quarto configurado${count !== 1 ? "s" : ""}`,
@@ -8727,18 +8743,23 @@ export const dictionary: Record<Locale, Dictionary> = {
         deleteRoomTitle: "Excluir Tipo de Quarto",
         deleteRoomDescription: (name: string) => `Tem certeza de que deseja excluir "${name}"? Esta ação não pode ser desfeita.`,
         deleteRoomConfirm: "Excluir",
-        step3Eyebrow: "Passo 3 de 5 · Amenities",
-        step3Title: "Diga aos h\u00F3spedes o que seu lugar oferece.",
-        step3Subtitle: "Selecione tudo que se aplica. Você pode refinar a lista após a publicação.",
+        step3Eyebrow: "Passo 3 de 6 · Espaços Comuns",
+        step3Title: "Quais espaços os grupos podem usar?",
+        step3Subtitle: "Salões, salas de ioga, terraços — adicione os que você oferece. Você pode continuar sem cadastrar espaços.",
+        spaceConfigured: (count: number) => `${count} ${count === 1 ? "espaço configurado" : "espaços configurados"}`,
+        reviewCommonSpaces: "Espaços comuns",
+        step4Eyebrow: "Passo 4 de 6 · Amenities",
+        step4Title: "Diga aos h\u00F3spedes o que seu lugar oferece.",
+        step4Subtitle: "Selecione tudo que se aplica. Você pode refinar a lista após a publicação.",
         guestFavorites: "Favoritas dos H\u00F3spedes",
         standoutAmenities: "Amenities em Destaque",
         customAmenity: "Amenity Personalizada",
         customPlaceholder: "ex. Terra\u00E7o no telhado, Aluguel de bicicletas...",
         addButton: "Adicionar",
         amenityCount: (selected: number, custom: number) => `${selected} comodidade${selected !== 1 ? "s" : ""} selecionada${selected !== 1 ? "s" : ""}${custom > 0 ? ` + ${custom} personalizada${custom !== 1 ? "s" : ""}` : ""}`,
-        step4Eyebrow: "Passo 4 de 5 \u00B7 Fotos da Propriedade",
-        step4Title: "Mostre sua propriedade no seu melhor.",
-        step4Subtitle: "Envie pelo menos cinco fotos que representem o espa\u00E7o como os h\u00F3spedes o experimentar\u00E3o. Arraste para reordenar.",
+        step5Eyebrow: "Passo 5 de 6 \u00B7 Fotos da Propriedade",
+        step5Title: "Mostre sua propriedade no seu melhor.",
+        step5Subtitle: "Envie pelo menos cinco fotos que representem o espa\u00E7o como os h\u00F3spedes o experimentar\u00E3o. Arraste para reordenar.",
         uploadDrag: "Arraste imagens aqui ou",
         uploadBrowse: "procure arquivos",
         uploadFormats: "JPG ou PNG \u00B7 at\u00E9 8 MB cada \u00B7 M\u00EDnimo 1600 \u00D7 1067 px",

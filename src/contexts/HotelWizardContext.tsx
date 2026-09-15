@@ -17,6 +17,7 @@ import {
   type ImageCategory,
   type PhotoEntry,
 } from "@/lib/property-catalog";
+import { spaceToDraft, type CommonSpaceDraft } from "@/lib/space-catalog";
 import {
   EMPTY_PROPERTY_FORM,
   propertyFormFromProfile,
@@ -62,6 +63,8 @@ export type HotelWizardState = PropertyFormValues & {
   contactEmail: string;
   /* Room types */
   roomTypes: RoomTypeEntry[];
+  /* Common spaces */
+  commonSpaces: CommonSpaceDraft[];
   /* Amenities */
   amenities: string[];
   customAmenities: string[];
@@ -84,6 +87,7 @@ const initial: HotelWizardState = {
   phone: "",
   contactEmail: "",
   roomTypes: [],
+  commonSpaces: [],
   amenities: [],
   customAmenities: [],
   photos: [],
@@ -109,6 +113,9 @@ type HotelWizardContextValue = {
   swapRoomPhotoUrl: (roomId: string, oldUrl: string, newUrl: string) => void;
   addAvailabilityBlock: (roomId: string, block: Omit<AvailabilityBlock, "id">) => void;
   removeAvailabilityBlock: (roomId: string, blockId: string) => void;
+  addCommonSpace: (space: CommonSpaceDraft) => void;
+  updateCommonSpace: (localId: string, patch: Partial<CommonSpaceDraft>) => void;
+  removeCommonSpace: (localId: string) => void;
   toggleAmenity: (amenity: string) => void;
   addCustomAmenity: (amenity: string) => void;
   removeCustomAmenity: (amenity: string) => void;
@@ -212,6 +219,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
           }));
         }
         const merged = { ...initial, ...parsed };
+        // Sessions saved before common spaces carry no list at all
+        if (!Array.isArray(merged.commonSpaces)) merged.commonSpaces = [];
         // Sessions saved before the property contract may carry a stale shape
         merged.environments = sanitizeEnvironments(merged.environments);
         // Sessions saved before the gallery categories held plain URLs
@@ -276,6 +285,10 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
               })),
           }));
         }
+
+        // Hydrate common spaces, including their saved photos. An API that
+        // predates them answers without the key, which reads as "none".
+        patch.commonSpaces = (h.common_spaces ?? []).map(spaceToDraft);
 
         // Hydrate amenities — match stored display names back to catalog ids
         if (h.amenities && h.amenities.length > 0) {
@@ -411,6 +424,26 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const addCommonSpace = useCallback((space: CommonSpaceDraft) => {
+    setState((prev) => ({ ...prev, commonSpaces: [...prev.commonSpaces, space] }));
+  }, []);
+
+  const updateCommonSpace = useCallback((localId: string, patch: Partial<CommonSpaceDraft>) => {
+    setState((prev) => ({
+      ...prev,
+      commonSpaces: prev.commonSpaces.map((cs) =>
+        cs.localId === localId ? { ...cs, ...patch } : cs,
+      ),
+    }));
+  }, []);
+
+  const removeCommonSpace = useCallback((localId: string) => {
+    setState((prev) => ({
+      ...prev,
+      commonSpaces: prev.commonSpaces.filter((cs) => cs.localId !== localId),
+    }));
+  }, []);
+
   const toggleAmenity = useCallback((amenity: string) => {
     setState((prev) => ({
       ...prev,
@@ -499,6 +532,9 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         swapRoomPhotoUrl,
         addAvailabilityBlock,
         removeAvailabilityBlock,
+        addCommonSpace,
+        updateCommonSpace,
+        removeCommonSpace,
         toggleAmenity,
         addCustomAmenity,
         removeCustomAmenity,

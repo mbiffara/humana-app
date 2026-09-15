@@ -1,7 +1,7 @@
 /**
  * Predefined amenity catalog shared by the hotel onboarding wizard.
  * The wizard tracks amenities by id; the API stores them by display name.
- * Keep ids in sync with the step-3 amenity picker.
+ * Keep ids in sync with the step-4 amenity picker.
  */
 
 export interface CatalogAmenity {
