@@ -203,6 +203,8 @@ function hostMatches(host: string, domain: string): boolean {
 
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{6,20}$/;
 const VIMEO_ID = /^\d+$/;
+/** Privacy hash of an unlisted video — alphanumeric, never free text. */
+const VIMEO_HASH = /^[A-Za-z0-9]+$/;
 
 /**
  * Recognises the video hosts the API accepts and derives a safe player URL.
@@ -247,11 +249,22 @@ export function videoEmbed(url: string | null | undefined): VideoEmbed | null {
   }
 
   if (hostMatches(host, "vimeo.com")) {
-    // vimeo.com/<id> and the player form player.vimeo.com/video/<id>
-    const id = segments[0] === "video" ? segments[1] : segments[0];
-    return id && VIMEO_ID.test(id)
-      ? { kind: "vimeo", embedUrl: `https://player.vimeo.com/video/${id}`, linkUrl }
-      : null;
+    // vimeo.com/<id> and the player form player.vimeo.com/video/<id>.
+    const isPlayerPath = segments[0] === "video";
+    const id = isPlayerPath ? segments[1] : segments[0];
+    if (!id || !VIMEO_ID.test(id)) return null;
+    // An unlisted video only plays when its privacy hash travels with it —
+    // vimeo.com/<id>/<hash> in a shared link, ?h=<hash> in a player URL.
+    // Anything that is not a plain alphanumeric hash is dropped rather than
+    // interpolated, so the embed never carries text we did not validate.
+    const pathHash = isPlayerPath ? segments[2] : segments[1];
+    const rawHash = pathHash ?? parsed.searchParams.get("h") ?? undefined;
+    const hash = rawHash && VIMEO_HASH.test(rawHash) ? rawHash : undefined;
+    return {
+      kind: "vimeo",
+      embedUrl: `https://player.vimeo.com/video/${id}${hash ? `?h=${hash}` : ""}`,
+      linkUrl,
+    };
   }
 
   // Instagram has no id to parse here — any link on the host the API accepts
