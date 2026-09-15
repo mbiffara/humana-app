@@ -1464,6 +1464,8 @@ type Dictionary = {
     no: string;
     typeSection: string;
     typeLabel: string;
+    /** Etiqueta corta del select dentro de la sección "Tipo de propiedad". */
+    typeFieldLabel: string;
     typePlaceholder: string;
     selectPlaceholder: string;
     typeOtherLabel: string;
@@ -3718,6 +3720,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       no: "No",
       typeSection: "Property type",
       typeLabel: "Property type",
+      typeFieldLabel: "Type",
       typePlaceholder: "Select a type",
       selectPlaceholder: "Select\u2026",
       typeOtherLabel: "Which one?",
@@ -5959,6 +5962,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       no: "No",
       typeSection: "Tipo de propiedad",
       typeLabel: "Tipo de propiedad",
+      typeFieldLabel: "Tipo",
       typePlaceholder: "Elegí un tipo",
       selectPlaceholder: "Elegí una opción",
       typeOtherLabel: "¿Cuál?",
@@ -8201,6 +8205,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       no: "Não",
       typeSection: "Tipo de propriedade",
       typeLabel: "Tipo de propriedade",
+      typeFieldLabel: "Tipo",
       typePlaceholder: "Escolha um tipo",
       selectPlaceholder: "Escolha uma opção",
       typeOtherLabel: "Qual?",

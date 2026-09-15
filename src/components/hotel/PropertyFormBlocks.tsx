@@ -167,7 +167,7 @@ export function PropertyTypeBlock({ values, onChange, variant = "wizard" }: Prop
     <div className="flex flex-col gap-4">
       <h3 className={SECTION_CLASS[variant]}>{p.typeSection}</h3>
       <div className="grid grid-cols-2 gap-4">
-        <Field label={p.typeLabel} variant={variant}>
+        <Field label={p.typeFieldLabel} variant={variant}>
           <select
             value={values.propertyType}
             onChange={(e) => {
