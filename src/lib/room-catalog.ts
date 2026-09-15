@@ -11,17 +11,6 @@
 /** Bed types the forms offer. */
 export const BED_TYPES = ["single", "double", "bunk"] as const;
 
-/** Every bed type the API accepts — used to keep an older value selectable. */
-export const ALL_BED_TYPES = [
-  "single",
-  "double",
-  "queen",
-  "king",
-  "twin",
-  "bunk",
-  "sofa_bed",
-] as const;
-
 export type RoomAmenityGroup = "comfort" | "equipment" | "accessibility" | "extras";
 
 export const ROOM_AMENITIES: { group: RoomAmenityGroup; items: string[] }[] = [
@@ -56,17 +45,12 @@ export const ROOM_AMENITIES: { group: RoomAmenityGroup; items: string[] }[] = [
 
 export const ROOM_AMENITY_IDS = new Set(ROOM_AMENITIES.flatMap((group) => group.items));
 
-/** The offered bed types, plus `current` when the room already carries a type
- *  the forms no longer offer (king, queen…) so re-saving doesn't rewrite it. */
+/** The offered bed types, plus whatever the room already carries when that
+ *  isn't one of them — "king" from an older form, or a free-form value another
+ *  client wrote — so opening and re-saving never rewrites it. */
 export function bedTypeOptions(current: string | null | undefined): string[] {
   const options: string[] = [...BED_TYPES];
-  if (
-    current &&
-    !options.includes(current) &&
-    (ALL_BED_TYPES as readonly string[]).includes(current)
-  ) {
-    options.push(current);
-  }
+  if (current && !options.includes(current)) options.push(current);
   return options;
 }
 
