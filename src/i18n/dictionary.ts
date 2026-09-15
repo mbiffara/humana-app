@@ -1,4 +1,4 @@
-import type { AirportTransfer, Environment, PropertyType } from "@/lib/property-catalog";
+import type { AirportTransfer, Environment, ImageCategory, PropertyType } from "@/lib/property-catalog";
 
 export type Locale = "en" | "es" | "pt";
 
@@ -1525,6 +1525,24 @@ type Dictionary = {
     groupsUpTo: (max: number) => string;
     kmSuffix: string;
     minSuffix: string;
+  };
+  /** Visual material — gallery categories, cover, logo and video. Shared by
+   *  the hotel wizard, the settings Property tab and the public/admin views. */
+  visualInfo: {
+    categories: Record<ImageCategory, string>;
+    categoryLabel: string;
+    cover: string;
+    setAsCover: string;
+    removePhoto: string;
+    logoTitle: string;
+    logoHint: string;
+    logoUpload: string;
+    videoTitle: string;
+    videoHint: string;
+    videoPlaceholder: string;
+    videoInvalid: string;
+    videoSection: string;
+    videoWatchOnInstagram: string;
   };
   comingSoon: {
     eyebrow: string;
@@ -3649,6 +3667,27 @@ export const dictionary: Record<Locale, Dictionary> = {
         cancelled: "Cancelled",
         completed: "Completed",
       },
+    },
+    visualInfo: {
+      categories: {
+        common_area: "Common spaces",
+        spa: "Wellness areas",
+        exterior: "Exteriors",
+        general: "Other",
+      },
+      categoryLabel: "Category",
+      cover: "Cover",
+      setAsCover: "Set as cover",
+      removePhoto: "Remove photo",
+      logoTitle: "Hotel logo",
+      logoHint: "Square image, at least 200x200. Shown next to your property across the network.",
+      logoUpload: "Upload logo",
+      videoTitle: "Video or reel",
+      videoHint: "Paste a YouTube, Vimeo or Instagram link and agencies will see it on your profile.",
+      videoPlaceholder: "https://youtube.com/watch?v=...",
+      videoInvalid: "We only accept YouTube, Vimeo or Instagram links",
+      videoSection: "Video",
+      videoWatchOnInstagram: "Watch on Instagram",
     },
     propertyForm: {
       loadFailed: "We could not load your property profile. Reload the page before editing so nothing gets overwritten.",
@@ -5849,6 +5888,27 @@ export const dictionary: Record<Locale, Dictionary> = {
         completed: "Completada",
       },
     },
+    visualInfo: {
+      categories: {
+        common_area: "Espacios comunes",
+        spa: "Áreas wellness",
+        exterior: "Exteriores",
+        general: "Otras",
+      },
+      categoryLabel: "Categoría",
+      cover: "Portada",
+      setAsCover: "Usar como portada",
+      removePhoto: "Quitar foto",
+      logoTitle: "Logo del hotel",
+      logoHint: "Imagen cuadrada, mínimo 200x200. Se muestra junto a tu propiedad en toda la red.",
+      logoUpload: "Subir logo",
+      videoTitle: "Video o reel",
+      videoHint: "Pegá un link de YouTube, Vimeo o Instagram y las agencias lo verán en tu perfil.",
+      videoPlaceholder: "https://youtube.com/watch?v=...",
+      videoInvalid: "Solo aceptamos links de YouTube, Vimeo o Instagram",
+      videoSection: "Video",
+      videoWatchOnInstagram: "Ver en Instagram",
+    },
     propertyForm: {
       loadFailed: "No pudimos cargar el perfil de tu propiedad. Recargá la página antes de editar para no pisar datos.",
       yes: "Sí",
@@ -8048,6 +8108,27 @@ export const dictionary: Record<Locale, Dictionary> = {
         cancelled: "Cancelada",
         completed: "Concluída",
       },
+    },
+    visualInfo: {
+      categories: {
+        common_area: "Espaços comuns",
+        spa: "Áreas wellness",
+        exterior: "Exteriores",
+        general: "Outras",
+      },
+      categoryLabel: "Categoria",
+      cover: "Capa",
+      setAsCover: "Usar como capa",
+      removePhoto: "Remover foto",
+      logoTitle: "Logo do hotel",
+      logoHint: "Imagem quadrada, mínimo 200x200. Aparece ao lado da sua propriedade em toda a rede.",
+      logoUpload: "Enviar logo",
+      videoTitle: "Vídeo ou reel",
+      videoHint: "Cole um link do YouTube, Vimeo ou Instagram e as agências verão no seu perfil.",
+      videoPlaceholder: "https://youtube.com/watch?v=...",
+      videoInvalid: "Só aceitamos links do YouTube, Vimeo ou Instagram",
+      videoSection: "Vídeo",
+      videoWatchOnInstagram: "Ver no Instagram",
     },
     propertyForm: {
       loadFailed: "Não foi possível carregar o perfil da sua propriedade. Recarregue a página antes de editar para não sobrescrever dados.",

@@ -296,6 +296,8 @@ export interface AdminHotelPreview extends PropertyProfileFields {
   /** "HH:MM" or "flexible". */
   check_out_time: string | null;
   logo_url: string | null;
+  /** YouTube, Vimeo or Instagram link, or null. */
+  video_url: string | null;
   website: string | null;
   contact_email: string | null;
   onboarding_completed: boolean;

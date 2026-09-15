@@ -46,6 +46,8 @@ export interface PublicHotelAmenity {
 }
 
 export interface PublicHotelFull extends PublicHotel, PropertyProfileFields {
+  /** The gallery cover — the image flagged `is_cover`, else the first one. */
+  cover_image_url: string | null;
   description: string | null;
   address: string | null;
   postal_code: string | null;
@@ -56,6 +58,8 @@ export interface PublicHotelFull extends PublicHotel, PropertyProfileFields {
   /** "HH:MM" or "flexible". */
   check_out_time: string | null;
   logo_url: string | null;
+  /** YouTube, Vimeo or Instagram link, or null. */
+  video_url: string | null;
   website: string | null;
   contact_email: string | null;
   room_types: PublicRoomType[];

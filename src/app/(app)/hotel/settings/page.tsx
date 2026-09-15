@@ -7,7 +7,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import Image from "next/image";
 import { api, apiErrorMessage } from "@/lib/api";
 import { hotelApi, type HotelProfile, type OrgProfile } from "@/lib/api/hotel";
 import { uploadImage } from "@/lib/upload";
@@ -30,7 +29,16 @@ import {
   type PropertyFormValues,
 } from "@/lib/property-form";
 import { AMENITY_CATALOG, amenityIdForName } from "@/lib/amenity-catalog";
-import { decimalOrNull } from "@/lib/property-catalog";
+import {
+  decimalOrNull,
+  normalizeImageCategory,
+  videoEmbed,
+  type ImageCategory,
+  type PhotoEntry,
+} from "@/lib/property-catalog";
+import { LogoUpload } from "@/components/hotel/LogoUpload";
+import { PhotoGrid } from "@/components/hotel/PhotoGrid";
+import { VideoField } from "@/components/hotel/VideoField";
 import type { SubscriptionPlan, Subscription } from "@/lib/types";
 
 type SettingsTab = "profile" | "property" | "account" | "subscription" | "payments";
@@ -300,7 +308,8 @@ export default function HotelSettingsPage() {
   const [amenityIds, setAmenityIds] = useState<string[]>([]);
   const [customAmenities, setCustomAmenities] = useState<string[]>([]);
   const [customInput, setCustomInput] = useState("");
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<PhotoEntry[]>([]);
+  const [videoUrl, setVideoUrl] = useState("");
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [propertySaving, setPropertySaving] = useState(false);
 
@@ -352,7 +361,17 @@ export default function HotelSettingsPage() {
         }
         setAmenityIds(ids);
         setCustomAmenities(custom);
-        setPhotos((h.images ?? []).map((img) => img.image_url));
+        // The cover leads the grid, mirroring the batch payload the save sends.
+        const images = [...(h.images ?? [])].sort(
+          (a, b) => Number(b.is_cover) - Number(a.is_cover),
+        );
+        setPhotos(
+          images.map((img) => ({
+            url: img.image_url,
+            category: normalizeImageCategory(img.category),
+          })),
+        );
+        setVideoUrl(h.video_url ?? "");
       }
       // Bank details from org
       if (org) {
@@ -477,10 +496,21 @@ export default function HotelSettingsPage() {
         ...customAmenities.map((n) => ({ name: n, category: "general", featured: false })),
       ];
       await Promise.all([
-        hotelApi.updateProfile({ description, ...propertyFormPayload(propertyForm) }),
+        hotelApi.updateProfile({
+          description,
+          video_url: videoUrl.trim(),
+          ...propertyFormPayload(propertyForm),
+        }),
         hotelApi.batchAmenities(allAmenities),
+        // Replace-all gallery: the first entry is the cover.
         hotelApi.batchImages(
-          photos.filter((url) => url.startsWith("http")).map((url) => ({ image_url: url })),
+          photos
+            .filter((photo) => photo.url.startsWith("http"))
+            .map((photo, i) => ({
+              image_url: photo.url,
+              category: photo.category,
+              is_cover: i === 0,
+            })),
         ),
       ]);
       showSaved();
@@ -511,7 +541,13 @@ export default function HotelSettingsPage() {
         .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
         .map((r) => r.value)
         .filter((url) => url.startsWith("http"));
-      if (urls.length) setPhotos((prev) => [...prev, ...urls]);
+      // New photos land under "Other" until the owner classifies them.
+      if (urls.length) {
+        setPhotos((prev) => [
+          ...prev,
+          ...urls.map((url) => ({ url, category: "general" as ImageCategory })),
+        ]);
+      }
     } finally {
       setUploadingPhotos(false);
     }
@@ -612,13 +648,6 @@ export default function HotelSettingsPage() {
     }
   }
 
-  const initials = profile?.name
-    ?.split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() ?? "H";
-
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
@@ -703,35 +732,13 @@ export default function HotelSettingsPage() {
 
               {/* Avatar + fields row */}
               <div className="mt-6 flex gap-5">
-                {/* Avatar with upload */}
-                <label className="group relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center rounded-full bg-humana-gold overflow-hidden transition-all hover:opacity-90">
-                  {logoUrl ? (
-                    <Image src={logoUrl} alt={name} fill className="object-cover" unoptimized />
-                  ) : (
-                    <span className="text-[20px] font-semibold text-white">{initials}</span>
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                    {uploadingLogo ? (
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    ) : (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="17 8 12 3 7 8" />
-                        <line x1="12" y1="3" x2="12" y2="15" />
-                      </svg>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="sr-only"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleLogoUpload(file);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
+                {/* Logo with upload */}
+                <LogoUpload
+                  logoUrl={logoUrl}
+                  name={name || profile.name}
+                  uploading={uploadingLogo}
+                  onFile={handleLogoUpload}
+                />
 
                 {/* Fields */}
                 <div className="flex flex-1 flex-col gap-5">
@@ -949,51 +956,74 @@ export default function HotelSettingsPage() {
               <div className="mt-8 border-t border-humana-line pt-6">
                 <p className="text-[13px] font-semibold text-humana-ink">{ts.property.photosTitle}</p>
                 <p className="mt-0.5 text-[12px] text-humana-muted">{ts.property.photosHint}</p>
-                <div className="mt-4 grid grid-cols-4 gap-3">
-                  {photos.map((url, i) => (
-                    <div key={`${url}-${i}`} className="group relative aspect-[4/3] overflow-hidden rounded-[6px] bg-humana-stone">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={url} alt={`${name} ${i + 1}`} className="h-full w-full object-cover" />
-                      {i === 0 && (
-                        <span className="absolute left-2 top-2 rounded bg-humana-gold px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
-                          {ts.property.cover}
-                        </span>
-                      )}
-                      <button
-                        onClick={() => setPhotos((prev) => prev.filter((_, idx) => idx !== i))}
-                        aria-label="Remove photo"
-                        className="absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover:opacity-100"
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                  <label className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[6px] border-2 border-dashed border-humana-line text-humana-muted transition-colors hover:border-humana-gold hover:text-humana-gold">
-                    {uploadingPhotos ? (
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
-                    ) : (
-                      <>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <path d="M12 5v14M5 12h14" />
-                        </svg>
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">
-                          {ts.property.addPhotos}
-                        </span>
-                      </>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      multiple
-                      className="sr-only"
-                      onChange={(e) => {
-                        if (e.target.files?.length) handleAddPhotos(e.target.files);
-                        e.target.value = "";
-                      }}
-                    />
-                  </label>
+                <div className="mt-4">
+                  <PhotoGrid
+                    photos={photos}
+                    alt={name}
+                    variant="settings"
+                    onReorder={(from, to) =>
+                      setPhotos((prev) => {
+                        const next = [...prev];
+                        const [moved] = next.splice(from, 1);
+                        next.splice(to, 0, moved);
+                        return next;
+                      })
+                    }
+                    onRemove={(index) => setPhotos((prev) => prev.filter((_, i) => i !== index))}
+                    onCategoryChange={(index, category) =>
+                      setPhotos((prev) =>
+                        prev.map((photo, i) => (i === index ? { ...photo, category } : photo)),
+                      )
+                    }
+                    onSetCover={(index) =>
+                      setPhotos((prev) => {
+                        if (index <= 0 || index >= prev.length) return prev;
+                        const next = [...prev];
+                        const [moved] = next.splice(index, 1);
+                        next.unshift(moved);
+                        return next;
+                      })
+                    }
+                    addSlot={
+                      <label className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[6px] border-2 border-dashed border-humana-line text-humana-muted transition-colors hover:border-humana-gold hover:text-humana-gold">
+                        {uploadingPhotos ? (
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-humana-line border-t-humana-gold" />
+                        ) : (
+                          <>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                              <path d="M12 5v14M5 12h14" />
+                            </svg>
+                            <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                              {ts.property.addPhotos}
+                            </span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          multiple
+                          className="sr-only"
+                          onChange={(e) => {
+                            if (e.target.files?.length) handleAddPhotos(e.target.files);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Video or reel */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <p className="text-[13px] font-semibold text-humana-ink">{t.visualInfo.videoTitle}</p>
+                <div className="mt-4 max-w-[520px]">
+                  <VideoField
+                    value={videoUrl}
+                    onChange={setVideoUrl}
+                    title={name}
+                    variant="settings"
+                  />
                 </div>
               </div>
 
@@ -1007,6 +1037,7 @@ export default function HotelSettingsPage() {
                   disabled={
                     propertySaving ||
                     uploadingPhotos ||
+                    (videoUrl.trim().length > 0 && videoEmbed(videoUrl) === null) ||
                     groupRangeInvalid(propertyForm) ||
                     (propertyForm.propertyType === "other" &&
                       !propertyForm.propertyTypeOther.trim())

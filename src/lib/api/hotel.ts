@@ -3,7 +3,7 @@
  * Used by hotel owners for onboarding and property management.
  */
 import { api } from "@/lib/api";
-import type { PropertyProfileFields } from "@/lib/property-catalog";
+import type { ImageCategory, PropertyProfileFields } from "@/lib/property-catalog";
 
 export const hotelApi = {
   // Profile
@@ -262,6 +262,8 @@ export interface HotelProfile extends PropertyProfileFields {
   /** "HH:MM" or "flexible". */
   check_out_time: string | null;
   logo_url: string | null;
+  /** YouTube, Vimeo or Instagram link, or null. */
+  video_url: string | null;
   website: string | null;
   contact_email: string | null;
   room_types: RoomTypeDetail[];
@@ -289,6 +291,8 @@ export interface HotelProfileUpdate extends PropertyProfileFields {
   postal_code: string;
   wellness_standard: string;
   logo_url: string;
+  /** YouTube, Vimeo or Instagram link; "" clears it. Any other host is a 422. */
+  video_url: string;
 }
 
 export interface OrgProfile {
@@ -444,14 +448,21 @@ export interface AmenityCreate {
 export interface HotelImage {
   id: number;
   image_url: string;
+  /** One of the API categories; anything outside the four the app offers is
+   *  shown under "Other" — run it through `normalizeImageCategory`. */
   category: string;
   position: number;
   is_cover: boolean;
+  alt_text: string | null;
 }
 
+/** One entry of the replace-all gallery batch. The first image flagged
+ *  `is_cover` becomes the cover (the API falls back to the first of the list). */
 export interface ImageCreate {
   image_url: string;
-  category?: string;
+  category?: ImageCategory;
+  is_cover?: boolean;
+  alt_text?: string;
 }
 
 // Retreats — shapes mirror ApiSerializers.retreat and friends
