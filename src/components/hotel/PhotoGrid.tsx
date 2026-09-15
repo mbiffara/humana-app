@@ -43,6 +43,8 @@ export type PhotoGridProps = {
   variant?: PhotoGridVariant;
   /** Extra cell rendered after the photos (the settings "add photos" tile). */
   addSlot?: React.ReactNode;
+  /** Galleries without categories (a common space) hide the per-tile select. */
+  showCategory?: boolean;
 };
 
 export function PhotoGrid({
@@ -54,6 +56,7 @@ export function PhotoGrid({
   onSetCover,
   variant = "wizard",
   addSlot,
+  showCategory = true,
 }: PhotoGridProps) {
   const { t } = useLocale();
   const v = t.visualInfo;
@@ -132,21 +135,25 @@ export function PhotoGrid({
             )}
           </div>
 
-          <label className="sr-only" htmlFor={`photo-category-${index}`}>
-            {v.categoryLabel}
-          </label>
-          <select
-            id={`photo-category-${index}`}
-            value={photo.category}
-            onChange={(e) => onCategoryChange(index, e.target.value as ImageCategory)}
-            className="w-full cursor-pointer rounded-[6px] border border-humana-line bg-white px-2 py-1.5 text-[12px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
-          >
-            {IMAGE_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {v.categories[category]}
-              </option>
-            ))}
-          </select>
+          {showCategory && (
+            <>
+              <label className="sr-only" htmlFor={`photo-category-${index}`}>
+                {v.categoryLabel}
+              </label>
+              <select
+                id={`photo-category-${index}`}
+                value={photo.category}
+                onChange={(e) => onCategoryChange(index, e.target.value as ImageCategory)}
+                className="w-full cursor-pointer rounded-[6px] border border-humana-line bg-white px-2 py-1.5 text-[12px] text-humana-ink outline-none transition-colors focus:border-humana-gold"
+              >
+                {IMAGE_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {v.categories[category]}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
         </div>
       ))}
       {addSlot}

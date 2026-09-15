@@ -28,19 +28,19 @@ import {
 
 export type PropertyFormVariant = "wizard" | "settings";
 
-const INPUT_CLASS: Record<PropertyFormVariant, string> = {
+export const INPUT_CLASS: Record<PropertyFormVariant, string> = {
   wizard:
     "w-full bg-white rounded-[6px] border border-humana-line px-4 py-3 text-[15px] text-humana-ink outline-none transition-all duration-200 placeholder:text-humana-subtle/50 focus:border-humana-gold focus:ring-1 focus:ring-humana-gold/20",
   settings:
     "w-full bg-white border border-humana-line px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold",
 };
 
-const LABEL_CLASS: Record<PropertyFormVariant, string> = {
+export const LABEL_CLASS: Record<PropertyFormVariant, string> = {
   wizard: "text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted",
   settings: "text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle",
 };
 
-const SECTION_CLASS: Record<PropertyFormVariant, string> = {
+export const SECTION_CLASS: Record<PropertyFormVariant, string> = {
   wizard: "text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted",
   settings: "text-[13px] font-semibold text-humana-ink",
 };
@@ -53,7 +53,7 @@ export type PropertyBlockProps = {
 
 /* ─── Primitives ─── */
 
-function Field({
+export function Field({
   label,
   variant,
   className,
@@ -72,7 +72,7 @@ function Field({
   );
 }
 
-function TextField({
+export function TextField({
   label,
   value,
   onValueChange,
@@ -114,7 +114,7 @@ function TextField({
   );
 }
 
-function YesNoField({
+export function YesNoField({
   label,
   value,
   onValueChange,
