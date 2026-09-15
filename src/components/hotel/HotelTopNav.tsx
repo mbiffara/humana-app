@@ -15,6 +15,7 @@ export function HotelTopNav() {
   const links = [
     { label: t.hotelWs.nav.dashboard, href: "/hotel/dashboard" },
     { label: t.hotelWs.nav.rooms, href: "/hotel/rooms" },
+    { label: t.hotelWs.nav.spaces, href: "/hotel/spaces" },
     { label: t.hotelWs.nav.retreats, href: "/hotel/retreats" },
     { label: t.hotelWs.nav.bookings, href: "/hotel/bookings" },
   ];

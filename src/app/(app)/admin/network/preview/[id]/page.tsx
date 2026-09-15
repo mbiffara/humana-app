@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { adminApi } from "@/lib/api/admin";
-import type { AdminHotelPreview, AdminRoomType, AdminRoomImage, Organization, User } from "@/lib/types";
+import type { AdminHotelPreview, AdminRoomType, AdminRoomImage, AdminCommonSpace, Organization, User } from "@/lib/types";
 import { formatCheckTime } from "@/components/TimePicker";
 import { googleMapsUrl, groupImagesByCategory, instagramUrl, videoEmbed } from "@/lib/property-catalog";
 import {
@@ -17,6 +17,13 @@ import {
   petPolicySummary,
   propertyTypeLabel,
 } from "@/lib/property-summary";
+import {
+  CAPACITY_KINDS,
+  equipmentLabel,
+  floorTypeLabel,
+  maxCapacity,
+  spaceTypeLabel,
+} from "@/lib/space-catalog";
 
 /** One label/value row; renders nothing when the hotel never filled the field. */
 function PreviewRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -41,6 +48,7 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
   const [error, setError] = useState<string | null>(null);
 
   const [selectedRoom, setSelectedRoom] = useState<AdminRoomType | null>(null);
+  const [selectedSpace, setSelectedSpace] = useState<AdminCommonSpace | null>(null);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
   useEffect(() => {
@@ -61,17 +69,20 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
 
   // Lock body scroll when modal or lightbox is open
   useEffect(() => {
-    if (selectedRoom || lightboxIdx !== null) {
+    if (selectedRoom || selectedSpace || lightboxIdx !== null) {
       document.body.style.overflow = "hidden";
       return () => { document.body.style.overflow = ""; };
     }
-  }, [selectedRoom, lightboxIdx]);
+  }, [selectedRoom, selectedSpace, lightboxIdx]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
       if (lightboxIdx !== null) setLightboxIdx(null);
-      else setSelectedRoom(null);
+      else {
+        setSelectedRoom(null);
+        setSelectedSpace(null);
+      }
     }
     if (lightboxIdx !== null && hotel) {
       const total = hotel.images.length;
@@ -106,6 +117,9 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
   }
 
   const p = t.propertyForm;
+  const cs = t.commonSpaces;
+  // Absent on an API that predates common spaces — treat it as none
+  const commonSpaces = hotel?.common_spaces ?? [];
   const typeLabel = hotel ? propertyTypeLabel(p, hotel.property_type, hotel.property_type_other) : null;
   const environments = hotel ? environmentLabels(p, hotel.environments) : [];
   const mapsUrl = hotel ? googleMapsUrl(hotel.latitude, hotel.longitude) : null;
@@ -397,6 +411,58 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
           </div>
         )}
 
+        {/* Common spaces */}
+        {commonSpaces.length > 0 && (
+          <div className="flex flex-col gap-4">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+              {cs.title}
+            </span>
+            <div className="grid grid-cols-3 gap-5">
+              {commonSpaces.map((space) => {
+                const typeLabel = spaceTypeLabel(cs, space.space_type, space.space_type_other);
+                const capacity = maxCapacity(space);
+                return (
+                  <button
+                    key={space.id}
+                    type="button"
+                    onClick={() => setSelectedSpace(space)}
+                    className="flex cursor-pointer flex-col overflow-hidden rounded-lg border border-humana-line bg-white text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  >
+                    <div className="relative h-[180px] bg-humana-stone">
+                      {space.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={space.image_url} alt={space.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c9c4b4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                        </div>
+                      )}
+                      {space.exclusive_for_groups && (
+                        <span className="absolute left-3 top-3 rounded-md bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-humana-ink backdrop-blur-sm">
+                          {cs.exclusiveHint}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-1 p-5">
+                      <h3 className="text-[17px] font-medium tracking-[-0.01em] text-humana-ink">{space.name}</h3>
+                      {typeLabel && <p className="text-[13px] text-humana-muted">{typeLabel}</p>}
+                      {capacity != null && (
+                        <p className="mt-auto pt-2 text-[13px] font-medium text-humana-gold">
+                          {cs.maxCapacity(capacity)}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Tab bar */}
         <div className="flex gap-8 border-b border-humana-line">
           <span className="border-b-2 border-humana-ink pb-3 text-[14px] font-bold text-humana-ink">
@@ -543,6 +609,101 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
       </div>
 
      </div>
+      {/* Common space modal */}
+      {selectedSpace && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-8" onClick={() => setSelectedSpace(null)}>
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-[3px] animate-fade-in" />
+          <div className="relative flex max-h-[86vh] w-full max-w-[980px] overflow-hidden rounded-lg bg-white shadow-2xl animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
+            <button type="button" onClick={() => setSelectedSpace(null)} aria-label={cs.cancel} className="absolute right-5 top-5 z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-humana-line bg-white shadow-sm transition-all hover:border-humana-ink hover:shadow-md">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
+
+            <div className="relative w-[440px] shrink-0 bg-humana-stone">
+              {selectedSpace.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selectedSpace.image_url} alt={selectedSpace.name} className="h-full w-full object-cover" style={{ minHeight: 420 }} />
+              ) : (
+                <div className="flex h-full min-h-[420px] items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c9c4b4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-8">
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                  {spaceTypeLabel(cs, selectedSpace.space_type, selectedSpace.space_type_other) ?? hotel.name}
+                </span>
+                <h2 className="text-[24px] font-light tracking-[-0.02em] text-humana-ink">{selectedSpace.name}</h2>
+              </div>
+
+              <div className="h-px bg-humana-line" />
+
+              {maxCapacity(selectedSpace) != null && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">{cs.capacitiesTitle}</span>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+                    {CAPACITY_KINDS.map((kind) => {
+                      const value = selectedSpace[`capacity_${kind}` as const];
+                      if (value == null) return null;
+                      return (
+                        <div key={kind} className="flex items-center justify-between gap-3">
+                          <span className="text-[13px] text-humana-muted">{cs.capacity[kind]}</span>
+                          <span className="text-[13px] font-medium text-humana-ink">{value}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <PreviewRow label={cs.area} value={selectedSpace.area_sqm != null ? `${selectedSpace.area_sqm} m²` : ""} />
+                <PreviewRow label={cs.floor} value={floorTypeLabel(cs, selectedSpace.floor_type, selectedSpace.floor_type_other) ?? ""} />
+                {selectedSpace.exclusive_for_groups && <PreviewRow label={cs.exclusive} value={cs.exclusiveHint} />}
+              </div>
+
+              {selectedSpace.equipment.length > 0 && (
+                <>
+                  <div className="h-px bg-humana-line" />
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">{cs.equipmentTitle}</span>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSpace.equipment.map((id) => (
+                        <span key={id} className="flex items-center gap-2 rounded-full border border-humana-line px-4 py-1.5 text-[13px] text-humana-ink">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                            <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
+                            <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          {id === "other" && selectedSpace.equipment_other ? selectedSpace.equipment_other : equipmentLabel(cs, id)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {selectedSpace.images.length > 1 && (
+                <>
+                  <div className="h-px bg-humana-line" />
+                  <div className="grid grid-cols-4 gap-2">
+                    {selectedSpace.images.map((img) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img key={img.id} src={img.image_url} alt={img.alt_text || selectedSpace.name} className="aspect-[4/3] w-full rounded object-cover" />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* Room detail modal */}
       {selectedRoom && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-8" onClick={() => setSelectedRoom(null)}>

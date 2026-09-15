@@ -52,7 +52,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       user.organization?.status === "pending" &&
       !isOnboarding
     ) {
-      router.replace("/onboarding/hotel/step-5");
+      router.replace("/onboarding/hotel/step-6");
     }
     // Office users landing on /dashboard get redirected to /office/dashboard
     if (!loading && user && isOffice && pathname === "/dashboard") {

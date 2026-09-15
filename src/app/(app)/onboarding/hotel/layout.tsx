@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
 import { groupRangeInvalid, propertyFormPayload } from "@/lib/property-form";
 import { videoEmbed } from "@/lib/property-catalog";
+import { draftToPayload, galleryUnchanged, persistablePhotos } from "@/lib/space-catalog";
 import type { HotelProfileUpdate } from "@/lib/api/hotel";
 
 const STEP_PATHS = [
@@ -20,6 +21,7 @@ const STEP_PATHS = [
   "/onboarding/hotel/step-3",
   "/onboarding/hotel/step-4",
   "/onboarding/hotel/step-5",
+  "/onboarding/hotel/step-6",
 ];
 
 function StepProgressBar() {
@@ -96,8 +98,16 @@ function BottomBar() {
   const router = useRouter();
   const { t } = useLocale();
   const { user, setUser, refreshAuth } = useAuth();
-  const { state, hideBottomBar, isUploading, isUploadingLogo, profileLoaded, videoTouched } =
-    useHotelWizard();
+  const {
+    state,
+    updateCommonSpace,
+    commonSpacesLoaded,
+    hideBottomBar,
+    isUploading,
+    isUploadingLogo,
+    profileLoaded,
+    videoTouched,
+  } = useHotelWizard();
 
   const org = user?.organization;
   const alreadySubmitted = !!org?.onboarding_completed;
@@ -198,7 +208,60 @@ function BottomBar() {
     }
   }
 
+  /** Sync the wizard's spaces with the API: drop what the owner removed,
+   *  create or update the rest, then replace the galleries that changed.
+   *  Sequential — a create has to answer with an id before its images go out.
+   *
+   *  Deleting is only safe against a list we know mirrors the server. If the
+   *  profile fetch never landed, the wizard's list may be a stale session that
+   *  hydration never corrected, so the step creates and updates but deletes
+   *  nothing — a failed load must not wipe saved spaces. */
   async function saveStep3() {
+    let existing: number[] | null = null;
+    if (commonSpacesLoaded) {
+      try {
+        const res = await hotelApi.listCommonSpaces();
+        existing = res.common_spaces.map((cs) => cs.id);
+      } catch {
+        // Could not read what is saved — never delete on a guess
+      }
+    }
+
+    if (existing) {
+      const kept = new Set(state.commonSpaces.map((cs) => cs.id).filter((id) => id != null));
+      for (const id of existing) {
+        if (!kept.has(id)) await hotelApi.deleteCommonSpace(id);
+      }
+    }
+
+    for (const draft of state.commonSpaces) {
+      const payload = draftToPayload(draft);
+      // An id the list says is gone (deleted elsewhere) is recreated
+      let id = draft.id && (existing === null || existing.includes(draft.id)) ? draft.id : undefined;
+      let saved = draft.savedPhotos;
+      if (id) {
+        await hotelApi.updateCommonSpace(id, payload);
+      } else {
+        const created = await hotelApi.createCommonSpace(payload);
+        id = created.common_space.id;
+        saved = [];
+        updateCommonSpace(draft.localId, { id, savedPhotos: [] });
+      }
+      // Replace the gallery, empty list included, so removals stick — but only
+      // when it differs from what the API holds: re-sending an untouched
+      // gallery regenerates every image id and marks the hotel as changed.
+      const photos = persistablePhotos(draft);
+      if (!galleryUnchanged(draft, saved)) {
+        await hotelApi.batchCommonSpaceImages(
+          id,
+          photos.map((url) => ({ image_url: url })),
+        );
+        updateCommonSpace(draft.localId, { savedPhotos: photos });
+      }
+    }
+  }
+
+  async function saveStep4() {
     const allAmenities = [
       ...state.amenities.map((id) => {
         const entry = AMENITY_CATALOG[id];
@@ -213,7 +276,7 @@ function BottomBar() {
     }
   }
 
-  async function saveStep4() {
+  async function saveStep5() {
     // Only send real server URLs (skip blob:// preview URLs). The batch
     // replaces the whole gallery and the first entry carries the cover flag,
     // which is why the grid keeps the cover in first position.
@@ -234,14 +297,14 @@ function BottomBar() {
     const profile: Partial<HotelProfileUpdate> = {};
     if (profileLoaded || videoTouched) profile.video_url = state.videoUrl.trim();
     if (state.logoUrl.startsWith("http")) profile.logo_url = state.logoUrl;
-    // With nothing to send, skip the PATCH entirely — opening step 4 by URL
+    // With nothing to send, skip the PATCH entirely — opening step 5 by URL
     // before the hotel exists would answer "Name can't be blank".
     if (Object.keys(profile).length > 0) {
       await hotelApi.updateProfile(profile);
     }
   }
 
-  async function saveStep5() {
+  async function saveStep6() {
     const res = await hotelApi.submitForReview();
     // Refresh user state so app layout sees onboarding_completed = true
     setUser(res.user);
@@ -280,6 +343,9 @@ function BottomBar() {
           break;
         case 4:
           await saveStep5();
+          break;
+        case 5:
+          await saveStep6();
           break;
       }
     } catch (err) {
@@ -330,8 +396,11 @@ function BottomBar() {
       case 1:
         return state.roomTypes.length > 0;
       case 2:
-        return state.amenities.length > 0 || state.customAmenities.length > 0;
+        // Common spaces are optional — the step can be left empty
+        return true;
       case 3:
+        return state.amenities.length > 0 || state.customAmenities.length > 0;
+      case 4:
         // A video is optional, but a link we cannot embed is a 422 waiting to
         // happen — the same hosts the API accepts.
         return (
@@ -369,12 +438,12 @@ function BottomBar() {
           missing.push(h.addAtLeastOneRoom);
         }
         break;
-      case 2:
+      case 3:
         if (state.amenities.length === 0 && state.customAmenities.length === 0) {
           missing.push(h.addAtLeastOneAmenity);
         }
         break;
-      case 3:
+      case 4:
         if (state.videoUrl.trim().length > 0 && videoEmbed(state.videoUrl) === null) {
           missing.push(t.visualInfo.videoInvalid);
         }

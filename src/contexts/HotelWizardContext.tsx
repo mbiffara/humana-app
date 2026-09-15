@@ -17,6 +17,7 @@ import {
   type ImageCategory,
   type PhotoEntry,
 } from "@/lib/property-catalog";
+import { spaceToDraft, type CommonSpaceDraft } from "@/lib/space-catalog";
 import {
   EMPTY_PROPERTY_FORM,
   propertyFormFromProfile,
@@ -62,6 +63,8 @@ export type HotelWizardState = PropertyFormValues & {
   contactEmail: string;
   /* Room types */
   roomTypes: RoomTypeEntry[];
+  /* Common spaces */
+  commonSpaces: CommonSpaceDraft[];
   /* Amenities */
   amenities: string[];
   customAmenities: string[];
@@ -84,6 +87,7 @@ const initial: HotelWizardState = {
   phone: "",
   contactEmail: "",
   roomTypes: [],
+  commonSpaces: [],
   amenities: [],
   customAmenities: [],
   photos: [],
@@ -109,6 +113,9 @@ type HotelWizardContextValue = {
   swapRoomPhotoUrl: (roomId: string, oldUrl: string, newUrl: string) => void;
   addAvailabilityBlock: (roomId: string, block: Omit<AvailabilityBlock, "id">) => void;
   removeAvailabilityBlock: (roomId: string, blockId: string) => void;
+  addCommonSpace: (space: CommonSpaceDraft) => void;
+  updateCommonSpace: (localId: string, patch: Partial<CommonSpaceDraft>) => void;
+  removeCommonSpace: (localId: string) => void;
   toggleAmenity: (amenity: string) => void;
   addCustomAmenity: (amenity: string) => void;
   removeCustomAmenity: (amenity: string) => void;
@@ -121,6 +128,11 @@ type HotelWizardContextValue = {
   /** True once the saved profile came back, so the state mirrors the server.
    *  Until then a field the owner never touched must not be written back. */
   profileLoaded: boolean;
+  /** True once the profile fetch resolved at all — with a hotel, or with the
+   *  "no hotel yet" answer. Either way the wizard's space list mirrors what is
+   *  saved, which is what makes reconciling deletions safe. A failed fetch
+   *  leaves it false and the save then only creates and updates. */
+  commonSpacesLoaded: boolean;
   videoTouched: boolean;
   markVideoTouched: () => void;
   hideBottomBar: boolean;
@@ -161,6 +173,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [commonSpacesLoaded, setCommonSpacesLoaded] = useState(false);
   const [videoTouched, setVideoTouched] = useState(false);
   const apiLoaded = useRef(false);
   const { user } = useAuth();
@@ -212,6 +225,15 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
           }));
         }
         const merged = { ...initial, ...parsed };
+        // Sessions saved before common spaces carry no list at all, and ones
+        // saved before the gallery baseline carry entries without it
+        merged.commonSpaces = Array.isArray(merged.commonSpaces)
+          ? merged.commonSpaces.map((cs: Record<string, unknown>) => ({
+              ...cs,
+              photos: Array.isArray(cs.photos) ? cs.photos : [],
+              savedPhotos: Array.isArray(cs.savedPhotos) ? cs.savedPhotos : [],
+            }))
+          : [];
         // Sessions saved before the property contract may carry a stale shape
         merged.environments = sanitizeEnvironments(merged.environments);
         // Sessions saved before the gallery categories held plain URLs
@@ -231,6 +253,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         hotelApi.listAvailabilityBlocks().catch(() => ({ availability_blocks: [] })),
       ]).then(([res, blocksRes]) => {
         const h = res.hotel;
+        // The answer arrived: whatever it says is what the server holds
+        setCommonSpacesLoaded(true);
         // No hotel saved yet — keep whatever the session had
         if (!h) return;
 
@@ -276,6 +300,11 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
               })),
           }));
         }
+
+        // Hydrate common spaces, including their saved photos. The saved list
+        // wins wholesale — an empty one clears the session — but an API that
+        // predates common spaces omits the key, and then the session stands.
+        if (h.common_spaces) patch.commonSpaces = h.common_spaces.map(spaceToDraft);
 
         // Hydrate amenities — match stored display names back to catalog ids
         if (h.amenities && h.amenities.length > 0) {
@@ -411,6 +440,26 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const addCommonSpace = useCallback((space: CommonSpaceDraft) => {
+    setState((prev) => ({ ...prev, commonSpaces: [...prev.commonSpaces, space] }));
+  }, []);
+
+  const updateCommonSpace = useCallback((localId: string, patch: Partial<CommonSpaceDraft>) => {
+    setState((prev) => ({
+      ...prev,
+      commonSpaces: prev.commonSpaces.map((cs) =>
+        cs.localId === localId ? { ...cs, ...patch } : cs,
+      ),
+    }));
+  }, []);
+
+  const removeCommonSpace = useCallback((localId: string) => {
+    setState((prev) => ({
+      ...prev,
+      commonSpaces: prev.commonSpaces.filter((cs) => cs.localId !== localId),
+    }));
+  }, []);
+
   const toggleAmenity = useCallback((amenity: string) => {
     setState((prev) => ({
       ...prev,
@@ -499,6 +548,9 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         swapRoomPhotoUrl,
         addAvailabilityBlock,
         removeAvailabilityBlock,
+        addCommonSpace,
+        updateCommonSpace,
+        removeCommonSpace,
         toggleAmenity,
         addCustomAmenity,
         removeCustomAmenity,
@@ -509,6 +561,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         setPhotoCategory,
         setPhotoCover,
         profileLoaded,
+        commonSpacesLoaded,
         videoTouched,
         markVideoTouched,
         hideBottomBar,

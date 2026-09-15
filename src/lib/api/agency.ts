@@ -65,6 +65,39 @@ export interface PublicHotelFull extends PublicHotel, PropertyProfileFields {
   room_types: PublicRoomType[];
   amenities: PublicHotelAmenity[];
   images: PublicHotelImage[];
+  /** Absent on an API that predates common spaces — treat it as []. */
+  common_spaces?: PublicCommonSpace[];
+}
+
+export interface PublicCommonSpaceImage {
+  id: number;
+  image_url: string;
+  position: number;
+  is_primary: boolean;
+  alt_text: string | null;
+}
+
+/** A shared space of the property (salon, yoga room, terrace…). */
+export interface PublicCommonSpace {
+  id: number;
+  hotel_id: number;
+  name: string;
+  space_type: string;
+  space_type_other: string | null;
+  capacity_seated: number | null;
+  capacity_yoga: number | null;
+  capacity_auditorium: number | null;
+  capacity_banquet: number | null;
+  capacity_workshop: number | null;
+  area_sqm: number | null;
+  floor_type: string | null;
+  floor_type_other: string | null;
+  exclusive_for_groups: boolean;
+  equipment: string[];
+  equipment_other: string | null;
+  position: number;
+  image_url: string | null;
+  images: PublicCommonSpaceImage[];
 }
 
 export interface PublicRoomImage {
