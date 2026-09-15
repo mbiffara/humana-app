@@ -10,13 +10,12 @@ import {
 } from "@/contexts/HotelWizardContext";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { createPreviewUrl, uploadImage } from "@/lib/upload";
+import { RoomAmenityPicker } from "@/components/hotel/RoomAmenityPicker";
+import { bedTypeOptions } from "@/lib/room-catalog";
 
 /* ─── Shared ─── */
 const INPUT =
   "w-full bg-white rounded-[6px] border border-humana-line px-4 py-3 text-[15px] text-humana-ink outline-none transition-all duration-200 placeholder:text-humana-subtle/50 focus:border-humana-gold focus:ring-1 focus:ring-humana-gold/20";
-
-const BED_TYPES = ["King", "Queen", "Twin", "Single"];
-
 
 /* ─── Calendar helpers ─── */
 function getDaysInMonth(year: number, month: number): number {
@@ -83,6 +82,7 @@ function RoomTypeForm({
 }) {
   const { t } = useLocale();
   const h = t.onboarding.hotel;
+  const bedTypes = t.hotelWs.roomEditor.details.bedTypes;
 
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -90,13 +90,15 @@ function RoomTypeForm({
   const [totalUnits, setTotalUnits] = useState(initial?.totalUnits ?? 1);
   const [baseRate, setBaseRate] = useState(initial?.baseRate ?? 0);
   const [roomSize, setRoomSize] = useState(initial?.roomSize ?? 0);
-  const [bedType, setBedType] = useState(initial?.bedType ?? "King");
+  const [bedType, setBedType] = useState(initial?.bedType ?? "double");
+  const [bedsCount, setBedsCount] = useState(initial?.bedsCount ?? 1);
+  const [amenities, setAmenities] = useState<string[]>(initial?.amenities ?? []);
 
   const canSave = name.trim().length > 0 && baseRate > 0;
 
   function handleSubmit() {
     if (!canSave) return;
-    onSave({ name, description, maxGuests, totalUnits, baseRate, roomSize, bedType });
+    onSave({ name, description, maxGuests, totalUnits, baseRate, roomSize, bedType, bedsCount, amenities });
   }
 
   return (
@@ -233,8 +235,8 @@ function RoomTypeForm({
             </div>
           </div>
 
-          {/* Row of 2: Room Size, Bed Type */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Row of 3: Room Size, Bed Type, Bed Count */}
+          <div className="grid grid-cols-3 gap-4">
             {/* Room Size */}
             <div className="flex flex-col gap-2">
               <label className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
@@ -263,11 +265,40 @@ function RoomTypeForm({
                 onChange={(e) => setBedType(e.target.value)}
                 className={INPUT}
               >
-                {BED_TYPES.map((bt) => (
-                  <option key={bt} value={bt}>{bt}</option>
+                {bedTypeOptions(bedType).map((bt) => (
+                  <option key={bt} value={bt}>
+                    {bedTypes[bt as keyof typeof bedTypes] ?? bt}
+                  </option>
                 ))}
               </select>
             </div>
+
+            {/* Bed Count */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
+                {h.bedsCount}
+              </label>
+              <div className="flex items-center gap-2 rounded-[6px] border border-humana-line bg-white px-4 py-3">
+                <input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={bedsCount || ""}
+                  onChange={(e) =>
+                    setBedsCount(Math.min(10, Math.max(1, Number(e.target.value) || 1)))
+                  }
+                  className="w-full bg-transparent text-[15px] text-humana-ink outline-none placeholder:text-humana-subtle/50"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Room amenities */}
+          <div className="flex flex-col gap-3">
+            <label className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted">
+              {h.roomAmenitiesTitle}
+            </label>
+            <RoomAmenityPicker selected={amenities} onChange={setAmenities} allowCustom />
           </div>
         </div>
       </div>
@@ -277,7 +308,9 @@ function RoomTypeForm({
         <div className="flex items-center justify-between gap-8">
           <button
             type="button"
-            onClick={() => onCancel({ name, description, maxGuests, totalUnits, baseRate, roomSize, bedType })}
+            onClick={() =>
+              onCancel({ name, description, maxGuests, totalUnits, baseRate, roomSize, bedType, bedsCount, amenities })
+            }
             className="cursor-pointer flex items-center gap-2 whitespace-nowrap text-[13px] font-semibold uppercase tracking-[0.22em] text-humana-muted transition-colors hover:text-humana-ink"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

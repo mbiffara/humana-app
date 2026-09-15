@@ -70,6 +70,7 @@ export default function HotelWizardStep5() {
   const { t } = useLocale();
   const router = useRouter();
   const h = t.onboarding.hotel;
+  const bedTypes = t.hotelWs.roomEditor.details.bedTypes;
   const p = t.propertyForm;
 
   const latitude = decimalOrNull(state.latitude, 6);
@@ -271,7 +272,8 @@ export default function HotelWizardStep5() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[14px] font-medium text-humana-ink">{room.name}</p>
                   <p className="mt-0.5 text-[12px] text-humana-muted">
-                    {room.totalUnits} {h.reviewUnits} · {room.maxGuests} {h.reviewGuests} · {room.bedType}
+                    {room.totalUnits} {h.reviewUnits} · {room.maxGuests} {h.reviewGuests} ·{" "}
+                    {bedTypes[room.bedType as keyof typeof bedTypes] ?? room.bedType}
                   </p>
                 </div>
                 <p className="shrink-0 text-[14px] font-medium text-humana-ink">
