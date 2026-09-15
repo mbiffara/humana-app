@@ -108,7 +108,7 @@ export default function CommonSpacesPage() {
       <div className="mb-8 flex items-end justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
-            {t.hotelWs.badge}
+            {t.hotelWs.nav.spaces}
           </p>
           <h1 className="mt-2 text-[32px] font-bold text-humana-ink">{c.title}</h1>
           <p className="mt-1 text-[14px] text-humana-muted">{c.subtitle}</p>

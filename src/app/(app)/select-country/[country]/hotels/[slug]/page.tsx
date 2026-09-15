@@ -9,10 +9,17 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { useRouter } from "next/navigation";
 import { countries, countrySlugToId } from "@/data/countries";
 import { useBooking } from "@/contexts/BookingContext";
-import { agencyApi, type PublicHotelFull, type PublicRoomType, type HotelAvailabilityRoomType, type ApiExperience } from "@/lib/api/agency";
+import { agencyApi, type PublicHotelFull, type PublicRoomType, type PublicCommonSpace, type HotelAvailabilityRoomType, type ApiExperience } from "@/lib/api/agency";
 import { retreatToExperience } from "@/lib/retreat-experience";
 import { amenityIdForName } from "@/lib/amenity-catalog";
 import { roomAmenityLabel } from "@/lib/room-catalog";
+import {
+  CAPACITY_KINDS,
+  equipmentLabel,
+  floorTypeLabel,
+  maxCapacity,
+  spaceTypeLabel,
+} from "@/lib/space-catalog";
 import { formatCheckTime } from "@/components/TimePicker";
 import { googleMapsUrl, groupImagesByCategory, instagramUrl, videoEmbed } from "@/lib/property-catalog";
 import { VideoPreview } from "@/components/hotel/VideoField";
@@ -48,6 +55,8 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
   const [hotel, setHotel] = useState<PublicHotelFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<PublicRoomType | null>(null);
+  const [selectedSpace, setSelectedSpace] = useState<PublicCommonSpace | null>(null);
+  const [spaceImgIdx, setSpaceImgIdx] = useState(0);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
   // Room modal state
@@ -62,7 +71,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
   const [loadingAvailability, setLoadingAvailability] = useState(false);
 
   // Tab state
-  type TabKey = "rooms" | "retreats" | "info";
+  type TabKey = "rooms" | "spaces" | "retreats" | "info";
   const [activeTab, setActiveTab] = useState<TabKey>("rooms");
   const [hotelExperiences, setHotelExperiences] = useState<ApiExperience[]>([]);
 
@@ -160,17 +169,20 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
 
   // Lock body scroll when modal or lightbox is open
   useEffect(() => {
-    if (selectedRoom || lightboxIdx !== null) {
+    if (selectedRoom || selectedSpace || lightboxIdx !== null) {
       document.body.style.overflow = "hidden";
       return () => { document.body.style.overflow = ""; };
     }
-  }, [selectedRoom, lightboxIdx]);
+  }, [selectedRoom, selectedSpace, lightboxIdx]);
 
   // Keyboard handler for lightbox + escape for room modal
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
       if (lightboxIdx !== null) setLightboxIdx(null);
-      else setSelectedRoom(null);
+      else {
+        setSelectedRoom(null);
+        setSelectedSpace(null);
+      }
     }
     if (lightboxIdx !== null && hotel) {
       const total = hotel.images.length;
@@ -209,6 +221,17 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
   // index it has in `gallery` so the lightbox opens on the right slide.
   const galleryGroups = groupImagesByCategory(hotel.images);
   const location = [hotel.city, hotel.country].filter(Boolean).join(", ");
+
+  // Spaces are absent on an API that predates them
+  const commonSpaces = hotel.common_spaces ?? [];
+  const cs = t.commonSpaces;
+  const spaceImages = selectedSpace?.images?.length
+    ? [...selectedSpace.images]
+        .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.position - b.position)
+        .map((img) => img.image_url)
+    : selectedSpace?.image_url
+      ? [selectedSpace.image_url]
+      : [];
 
   // Room images for carousel
   const roomImages = selectedRoom?.images?.length
@@ -500,6 +523,13 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
             className={`border-b-2 pb-3 text-[14px] font-bold transition-colors ${activeTab === "rooms" ? "border-humana-ink text-humana-ink" : "border-transparent text-humana-muted hover:text-humana-ink"}`}>
             {t.hotelDetail.rooms}
           </button>
+          {commonSpaces.length > 0 && (
+            <button type="button" onClick={() => setActiveTab("spaces")}
+              className={`border-b-2 pb-3 text-[14px] font-medium transition-colors cursor-pointer ${activeTab === "spaces" ? "border-humana-ink text-humana-ink font-bold" : "border-transparent text-humana-muted hover:text-humana-ink"}`}>
+              {cs.title}
+              <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-humana-gold/15 text-[11px] font-semibold text-humana-gold">{commonSpaces.length}</span>
+            </button>
+          )}
           <button type="button" onClick={() => hotelExperiences.length > 0 && setActiveTab("retreats")}
             className={`border-b-2 pb-3 text-[14px] font-medium transition-colors ${activeTab === "retreats" ? "border-humana-ink text-humana-ink font-bold" : hotelExperiences.length > 0 ? "border-transparent text-humana-muted hover:text-humana-ink cursor-pointer" : "border-transparent text-humana-muted/40 cursor-default"}`}>
             {t.breadcrumb.retreats}
@@ -556,6 +586,44 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
             </div>
           ))}
         </div>
+        )}
+
+        {/* ── Tab: Common spaces ── */}
+        {activeTab === "spaces" && (
+          <div className="grid grid-cols-3 gap-6">
+            {commonSpaces.map((space) => {
+              const typeLabel = spaceTypeLabel(cs, space.space_type, space.space_type_other);
+              const capacity = maxCapacity(space);
+              return (
+                <button
+                  key={space.id}
+                  type="button"
+                  onClick={() => { setSelectedSpace(space); setSpaceImgIdx(0); }}
+                  className="flex cursor-pointer flex-col overflow-hidden border border-humana-line bg-white text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div className="relative h-[200px] bg-humana-stone">
+                    {space.image_url && (
+                      <Image src={space.image_url} alt={space.name} fill className="object-cover" sizes="380px" />
+                    )}
+                    {space.exclusive_for_groups && (
+                      <span className="absolute left-4 top-4 bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-humana-ink backdrop-blur-sm">
+                        {cs.exclusiveHint}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-1 flex-col gap-1.5 p-6">
+                    <h3 className="text-[18px] font-medium tracking-[-0.01em] text-humana-ink">{space.name}</h3>
+                    {typeLabel && <p className="text-[13px] text-humana-muted">{typeLabel}</p>}
+                    {capacity != null && (
+                      <p className="mt-auto pt-3 text-[13px] font-medium text-humana-gold">
+                        {cs.maxCapacity(capacity)}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         )}
 
         {/* ── Tab: Retreats ── */}
@@ -746,6 +814,132 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
           </div>
         )}
       </div>
+
+      {/* Common space modal — portaled to body so it covers the TopNav */}
+      {selectedSpace && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={() => setSelectedSpace(null)}>
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-[3px] animate-fade-in" />
+
+          <div
+            className="relative flex w-full max-w-[1040px] max-h-[86vh] overflow-hidden bg-white shadow-2xl animate-fade-in-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedSpace(null)}
+              aria-label={cs.cancel}
+              className="absolute right-5 top-5 z-10 flex h-10 w-10 cursor-pointer items-center justify-center border border-humana-line bg-white shadow-sm transition-all hover:border-humana-ink hover:shadow-md"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
+
+            {/* Gallery */}
+            <div className="relative flex w-[480px] shrink-0 flex-col bg-humana-stone">
+              <div className="relative flex-1">
+                {spaceImages.length > 0 ? (
+                  <Image src={spaceImages[spaceImgIdx]} alt={selectedSpace.name} fill className="object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-[14px] text-humana-subtle">
+                    {cs.photos}
+                  </div>
+                )}
+                {spaceImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setSpaceImgIdx((spaceImgIdx - 1 + spaceImages.length) % spaceImages.length)}
+                      className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center bg-white/80 text-humana-ink shadow-sm transition-all hover:bg-white"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSpaceImgIdx((spaceImgIdx + 1) % spaceImages.length)}
+                      className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center bg-white/80 text-humana-ink shadow-sm transition-all hover:bg-white"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+                    </button>
+                    <span className="absolute bottom-3 right-3 z-10 bg-black/50 px-3 py-1 text-[12px] font-medium text-white">
+                      {spaceImgIdx + 1} / {spaceImages.length}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Details */}
+            <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-8">
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                  {spaceTypeLabel(cs, selectedSpace.space_type, selectedSpace.space_type_other) ?? hotel.name}
+                </span>
+                <h2 className="text-[24px] font-light tracking-[-0.02em] text-humana-ink">
+                  {selectedSpace.name}
+                </h2>
+              </div>
+
+              <div className="h-px bg-humana-line" />
+
+              {/* Capacity per layout — only the ones the hotel filled */}
+              {maxCapacity(selectedSpace) != null && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">
+                    {cs.capacitiesTitle}
+                  </span>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+                    {CAPACITY_KINDS.map((kind) => {
+                      const value = selectedSpace[`capacity_${kind}` as const];
+                      if (value == null) return null;
+                      return (
+                        <div key={kind} className="flex items-center justify-between gap-3">
+                          <span className="text-[13px] text-humana-muted">{cs.capacity[kind]}</span>
+                          <span className="text-[13px] font-medium text-humana-ink">{value}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <InfoRow label={cs.area} value={selectedSpace.area_sqm != null ? `${selectedSpace.area_sqm} m²` : ""} />
+                <InfoRow label={cs.floor} value={floorTypeLabel(cs, selectedSpace.floor_type, selectedSpace.floor_type_other) ?? ""} />
+                {selectedSpace.exclusive_for_groups && (
+                  <InfoRow label={cs.exclusive} value={cs.exclusiveHint} />
+                )}
+              </div>
+
+              {(selectedSpace.equipment.length > 0 || selectedSpace.equipment_other) && (
+                <>
+                  <div className="h-px bg-humana-line" />
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">
+                      {cs.equipmentTitle}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedSpace.equipment.map((id) => (
+                        <span
+                          key={id}
+                          className="flex items-center gap-1.5 rounded-full border border-humana-line px-3 py-1 text-[12px] text-humana-muted"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                            <circle cx="12" cy="12" r="11" stroke="#d4af37" strokeWidth="1.5" />
+                            <polyline points="7.5 12 10.5 15 16.5 9" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          {id === "other" && selectedSpace.equipment_other
+                            ? selectedSpace.equipment_other
+                            : equipmentLabel(cs, id)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Room detail modal — portaled to body so it covers the TopNav */}
       {selectedRoom && createPortal(
