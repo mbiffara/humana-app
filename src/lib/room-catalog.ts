@@ -72,5 +72,8 @@ export function bedTypeOptions(current: string | null | undefined): string[] {
 
 /** Label for an amenity id; custom amenities are stored as their own label. */
 export function roomAmenityLabel(id: string, items: Record<string, string>): string {
-  return items[id] ?? id;
+  if (items[id]) return items[id];
+  // Unknown snake_case ids (imported data, other clients) read as words; free-text
+  // custom amenities keep the exact text the hotel typed.
+  return /^[a-z0-9_]+$/.test(id) ? id.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : id;
 }
