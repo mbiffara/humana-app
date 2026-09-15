@@ -34,16 +34,15 @@ export function RoomAmenityPicker({
     const name = customInput.trim();
     if (!name) return;
     const needle = name.toLowerCase();
-    // Don't let a typed amenity duplicate one already picked, nor a catalog
-    // entry the owner could have toggled by its id or its translated label.
-    const exists =
-      selected.some((a) => a.toLowerCase() === needle) ||
-      [...ROOM_AMENITY_IDS].some(
-        (id) =>
-          id.toLowerCase() === needle ||
-          roomAmenityLabel(id, items).toLowerCase() === needle,
-      );
-    if (!exists) onChange([...selected, name]);
+    // Typing what the catalog already offers — by id or by its translated
+    // label — ticks that chip instead of creating a lookalike custom one.
+    const match = [...ROOM_AMENITY_IDS].find(
+      (id) => id.toLowerCase() === needle || roomAmenityLabel(id, items).toLowerCase() === needle,
+    );
+    const target = match ?? name;
+    if (!selected.some((a) => a.toLowerCase() === target.toLowerCase())) {
+      onChange([...selected, target]);
+    }
     setCustomInput("");
   }
 

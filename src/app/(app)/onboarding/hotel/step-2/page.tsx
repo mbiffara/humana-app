@@ -283,9 +283,10 @@ function RoomTypeForm({
                   type="number"
                   min={1}
                   max={10}
+                  step={1}
                   value={bedsCount || ""}
                   onChange={(e) =>
-                    setBedsCount(Math.min(10, Math.max(1, Number(e.target.value) || 1)))
+                    setBedsCount(Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 1)))
                   }
                   className="w-full bg-transparent text-[15px] text-humana-ink outline-none placeholder:text-humana-subtle/50"
                 />

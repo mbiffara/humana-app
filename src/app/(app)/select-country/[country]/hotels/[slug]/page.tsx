@@ -371,13 +371,16 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
     if (selectedRoom.bed_type) {
       specs.push({
         label: "Cama",
-        value: t.hotelDetail.bedTypes[selectedRoom.bed_type] ?? selectedRoom.bed_type,
+        value:
+          t.hotelWs.roomEditor.details.bedTypes[
+            selectedRoom.bed_type as keyof typeof t.hotelWs.roomEditor.details.bedTypes
+          ] ?? selectedRoom.bed_type,
       });
     }
     if (selectedRoom.beds_count) {
       specs.push({
         label: t.hotelDetail.bedsLabel,
-        value: t.hotelDetail.beds(selectedRoom.beds_count),
+        value: String(selectedRoom.beds_count),
       });
     }
     if (selectedRoom.view_type) specs.push({ label: "Vista", value: cap(selectedRoom.view_type) });

@@ -22,12 +22,36 @@ export const ALL_BED_TYPES = [
   "sofa_bed",
 ] as const;
 
-export type RoomAmenityGroup = "comfort" | "equipment" | "accessibility";
+export type RoomAmenityGroup = "comfort" | "equipment" | "accessibility" | "extras";
 
 export const ROOM_AMENITIES: { group: RoomAmenityGroup; items: string[] }[] = [
   { group: "comfort", items: ["fan", "air_conditioning", "heating"] },
   { group: "equipment", items: ["smart_tv", "minibar", "safe_box", "hair_dryer"] },
   { group: "accessibility", items: ["wheelchair_accessible"] },
+  // Offered before the client's list and still in use on saved rooms — kept
+  // on offer so nothing that was reachable becomes custom-only.
+  {
+    group: "extras",
+    items: [
+      "free_wifi",
+      "ocean_view",
+      "garden_view",
+      "private_terrace",
+      "bathtub",
+      "rainfall_shower",
+      "organic_toiletries",
+      "bidet",
+      "desk",
+      "closet",
+      "king_bed",
+      "bluetooth_speaker",
+      "usb_charging",
+      "hammock",
+      "pool_access",
+      "private_plunge_pool",
+      "outdoor_shower",
+    ],
+  },
 ];
 
 export const ROOM_AMENITY_IDS = new Set(ROOM_AMENITIES.flatMap((group) => group.items));

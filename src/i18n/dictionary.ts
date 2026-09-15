@@ -176,7 +176,7 @@ type Dictionary = {
         title: string;
         subtitle: string;
         selected: (n: number) => string;
-        groups: { comfort: string; equipment: string; accessibility: string };
+        groups: { comfort: string; equipment: string; accessibility: string; extras: string };
         items: Record<string, string>;
         customGroup: string;
         customPlaceholder: string;
@@ -1139,7 +1139,6 @@ type Dictionary = {
     personCount: (n: number) => string;
     bedsLabel: string;
     beds: (n: number) => string;
-    bedTypes: Record<string, string>;
     bookNow: string;
     roomCount: (n: number) => string;
     activeRetreats: (n: number) => string;
@@ -2116,6 +2115,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             comfort: "Comfort",
             equipment: "Equipment",
             accessibility: "Accessibility",
+            extras: "Other amenities",
           },
           items: {
             fan: "Fan",
@@ -3298,15 +3298,6 @@ export const dictionary: Record<Locale, Dictionary> = {
       personCount: (n) => n === 1 ? "1 person" : `${n} people`,
       bedsLabel: "Beds",
       beds: (n) => n === 1 ? "1 bed" : `${n} beds`,
-      bedTypes: {
-        single: "Single",
-        double: "Double",
-        queen: "Queen",
-        king: "King",
-        twin: "Twin",
-        bunk: "Bunk",
-        sofa_bed: "Sofa bed",
-      },
       bookNow: "Book now",
       roomCount: (n) => n === 1 ? "1 room" : `${n} rooms`,
       activeRetreats: (n) => n === 1 ? "1 active retreat" : `${n} active retreats`,
@@ -4350,6 +4341,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             comfort: "Confort",
             equipment: "Equipamiento",
             accessibility: "Accesibilidad",
+            extras: "Otras amenities",
           },
           items: {
             fan: "Ventilador",
@@ -5532,15 +5524,6 @@ export const dictionary: Record<Locale, Dictionary> = {
       personCount: (n) => n === 1 ? "1 persona" : `${n} personas`,
       bedsLabel: "Camas",
       beds: (n) => n === 1 ? "1 cama" : `${n} camas`,
-      bedTypes: {
-        single: "Individual",
-        double: "Doble",
-        queen: "Queen",
-        king: "King",
-        twin: "Twin",
-        bunk: "Superpuesta",
-        sofa_bed: "Sofá cama",
-      },
       bookNow: "Reservar ahora",
       roomCount: (n) => n === 1 ? "1 hospedaje" : `${n} hospedajes`,
       activeRetreats: (n) => n === 1 ? "1 retiro activo" : `${n} retiros activos`,
@@ -6561,7 +6544,7 @@ export const dictionary: Record<Locale, Dictionary> = {
           unitsHint: "Gerenciar unidades individuais",
           bedType: "Tipo de cama",
           bedTypes: {
-            single: "Individual",
+            single: "Solteiro",
             double: "Casal",
             queen: "Queen",
             king: "King",
@@ -6584,6 +6567,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             comfort: "Conforto",
             equipment: "Equipamentos",
             accessibility: "Acessibilidade",
+            extras: "Outras comodidades",
           },
           items: {
             fan: "Ventilador",
@@ -7767,15 +7751,6 @@ export const dictionary: Record<Locale, Dictionary> = {
       personCount: (n) => n === 1 ? "1 pessoa" : `${n} pessoas`,
       bedsLabel: "Camas",
       beds: (n) => n === 1 ? "1 cama" : `${n} camas`,
-      bedTypes: {
-        single: "Individual",
-        double: "Casal",
-        queen: "Queen",
-        king: "King",
-        twin: "Twin",
-        bunk: "Beliche",
-        sofa_bed: "Sofá-cama",
-      },
       bookNow: "Reservar agora",
       roomCount: (n) => n === 1 ? "1 hospedagem" : `${n} hospedagens`,
       activeRetreats: (n) => n === 1 ? "1 retiro ativo" : `${n} retiros ativos`,

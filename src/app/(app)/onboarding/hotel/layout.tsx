@@ -161,7 +161,7 @@ function BottomBar() {
         area_sqm: room.roomSize || undefined,
         total_rooms: room.totalUnits,
         description: room.description || undefined,
-        bed_type: room.bedType,
+        bed_type: room.bedType.toLowerCase(),
         beds_count: room.bedsCount,
         amenities: room.amenities,
       };

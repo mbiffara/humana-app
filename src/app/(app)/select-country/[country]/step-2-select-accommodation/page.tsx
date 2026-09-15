@@ -8,38 +8,11 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type PublicRoomType, type HotelAvailabilityRoomType } from "@/lib/api/agency";
 import { formatDateShort, diffDays } from "@/lib/calendar-utils";
-
-const AMENITY_LABELS: Record<string, Record<string, string>> = {
-  en: {
-    wifi: "Wi-Fi", minibar: "Minibar", safe: "Safe", air_conditioning: "Air Conditioning",
-    bathrobe: "Bathrobe", terrace: "Terrace", tv: "TV", balcony: "Balcony",
-    jacuzzi: "Jacuzzi", pool: "Pool", kitchen: "Kitchen", ocean_view: "Ocean View",
-    garden_view: "Garden View", mountain_view: "Mountain View", room_service: "Room Service",
-    coffee_maker: "Coffee Maker", hair_dryer: "Hair Dryer", iron: "Iron",
-  },
-  es: {
-    wifi: "Wi-Fi", minibar: "Minibar", safe: "Caja Fuerte", air_conditioning: "Aire Acondicionado",
-    bathrobe: "Albornoz", terrace: "Terraza", tv: "TV", balcony: "Balcón",
-    jacuzzi: "Jacuzzi", pool: "Piscina", kitchen: "Cocina", ocean_view: "Vista al Mar",
-    garden_view: "Vista al Jardín", mountain_view: "Vista a la Montaña", room_service: "Servicio a la Habitación",
-    coffee_maker: "Cafetera", hair_dryer: "Secador de Pelo", iron: "Plancha",
-  },
-  pt: {
-    wifi: "Wi-Fi", minibar: "Minibar", safe: "Cofre", air_conditioning: "Ar Condicionado",
-    bathrobe: "Roupão", terrace: "Terraço", tv: "TV", balcony: "Varanda",
-    jacuzzi: "Jacuzzi", pool: "Piscina", kitchen: "Cozinha", ocean_view: "Vista para o Mar",
-    garden_view: "Vista para o Jardim", mountain_view: "Vista para a Montanha", room_service: "Serviço de Quarto",
-    coffee_maker: "Cafeteira", hair_dryer: "Secador de Cabelo", iron: "Ferro de Passar",
-  },
-};
-
-function formatAmenity(key: string, locale: string): string {
-  return AMENITY_LABELS[locale]?.[key] ?? AMENITY_LABELS.en[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
+import { roomAmenityLabel } from "@/lib/room-catalog";
 
 export default function SelectAccommodationPage({ params }: { params: Promise<{ country: string }> }) {
   const { country } = React.use(params);
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const { state, set } = useBooking();
 
   const [roomTypes, setRoomTypes] = useState<PublicRoomType[]>([]);
@@ -251,7 +224,7 @@ export default function SelectAccommodationPage({ params }: { params: Promise<{ 
                           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-humana-ink">{t.hotelDetail.amenities}</span>
                           <div className="flex flex-wrap gap-2">
                             {rt.amenities_list.slice(0, 6).map((a) => (
-                              <span key={a} className="border border-humana-line px-3 py-1.5 text-[12px] text-humana-muted">{formatAmenity(a, locale)}</span>
+                              <span key={a} className="border border-humana-line px-3 py-1.5 text-[12px] text-humana-muted">{roomAmenityLabel(a, t.hotelWs.roomEditor.amenitiesStep.items)}</span>
                             ))}
                           </div>
                         </div>

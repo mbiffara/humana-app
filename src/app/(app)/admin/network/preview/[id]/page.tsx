@@ -32,6 +32,7 @@ function PreviewRow({ label, value }: { label: string; value: React.ReactNode })
 export default function HotelPreviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const { locale, t } = useLocale();
+  const bedTypes = t.hotelWs.roomEditor.details.bedTypes;
 
   const [hotel, setHotel] = useState<AdminHotelPreview | null>(null);
   const [org, setOrg] = useState<Organization | null>(null);
@@ -442,10 +443,14 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                     </svg>
                     <span className="text-[11px] font-semibold text-humana-ink">{rt.capacity}</span>
                   </div>
-                  {rt.bed_type && (
+                  {(rt.bed_type || rt.beds_count) && (
                     <div className="absolute right-4 top-4 rounded-md bg-humana-ink/70 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-white backdrop-blur-sm">
-                      {t.hotelDetail.bedTypes[rt.bed_type] ?? rt.bed_type}
-                      {rt.beds_count ? ` · ${t.hotelDetail.beds(rt.beds_count)}` : ""}
+                      {[
+                        rt.bed_type ? bedTypes[rt.bed_type as keyof typeof bedTypes] ?? rt.bed_type : null,
+                        rt.beds_count ? t.hotelDetail.beds(rt.beds_count) : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </div>
                   )}
                 </div>
@@ -592,7 +597,7 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                     </div>
                   )}
 
-                  {selectedRoom.bed_type && (
+                  {(selectedRoom.bed_type || selectedRoom.beds_count) && (
                     <div className="flex items-center gap-3">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6e6a5f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                         <path d="M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7" /><path d="M21 10H3" /><path d="M7 7V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3" />
@@ -601,8 +606,14 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                         {locale === "es" ? "Cama" : locale === "pt" ? "Cama" : "Bed"}
                       </span>
                       <span className="text-[14px] text-humana-muted">
-                        {t.hotelDetail.bedTypes[selectedRoom.bed_type] ?? selectedRoom.bed_type}
-                        {selectedRoom.beds_count ? ` · ${t.hotelDetail.beds(selectedRoom.beds_count)}` : ""}
+                        {[
+                          selectedRoom.bed_type
+                            ? bedTypes[selectedRoom.bed_type as keyof typeof bedTypes] ?? selectedRoom.bed_type
+                            : null,
+                          selectedRoom.beds_count ? t.hotelDetail.beds(selectedRoom.beds_count) : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </span>
                     </div>
                   )}

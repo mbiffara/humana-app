@@ -119,6 +119,7 @@ export default function RoomDetailsStep() {
               type="number"
               min={1}
               max={10}
+              step={1}
               value={state.bedsCount || ""}
               onChange={(e) =>
                 set({ bedsCount: Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 1)) })
