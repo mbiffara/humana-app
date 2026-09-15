@@ -444,7 +444,8 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                   </div>
                   {rt.bed_type && (
                     <div className="absolute right-4 top-4 rounded-md bg-humana-ink/70 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-white backdrop-blur-sm">
-                      {rt.bed_type}
+                      {t.hotelDetail.bedTypes[rt.bed_type] ?? rt.bed_type}
+                      {rt.beds_count ? ` · ${t.hotelDetail.beds(rt.beds_count)}` : ""}
                     </div>
                   )}
                 </div>
@@ -599,7 +600,10 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                       <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-humana-ink">
                         {locale === "es" ? "Cama" : locale === "pt" ? "Cama" : "Bed"}
                       </span>
-                      <span className="text-[14px] capitalize text-humana-muted">{selectedRoom.bed_type}</span>
+                      <span className="text-[14px] text-humana-muted">
+                        {t.hotelDetail.bedTypes[selectedRoom.bed_type] ?? selectedRoom.bed_type}
+                        {selectedRoom.beds_count ? ` · ${t.hotelDetail.beds(selectedRoom.beds_count)}` : ""}
+                      </span>
                     </div>
                   )}
 

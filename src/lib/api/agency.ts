@@ -90,6 +90,7 @@ export interface PublicRoomType {
   total_rooms: number | null;
   position: number;
   bed_type: string | null;
+  beds_count: number | null;
   view_type: string | null;
   amenities_list: string[];
   images?: PublicRoomImage[];

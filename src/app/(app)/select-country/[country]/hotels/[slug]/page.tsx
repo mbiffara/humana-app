@@ -12,6 +12,7 @@ import { useBooking } from "@/contexts/BookingContext";
 import { agencyApi, type PublicHotelFull, type PublicRoomType, type HotelAvailabilityRoomType, type ApiExperience } from "@/lib/api/agency";
 import { retreatToExperience } from "@/lib/retreat-experience";
 import { amenityIdForName } from "@/lib/amenity-catalog";
+import { roomAmenityLabel } from "@/lib/room-catalog";
 import { formatCheckTime } from "@/components/TimePicker";
 import { googleMapsUrl, groupImagesByCategory, instagramUrl, videoEmbed } from "@/lib/property-catalog";
 import { VideoPreview } from "@/components/hotel/VideoField";
@@ -367,7 +368,18 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
     if (!selectedRoom) return [];
     const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
     const specs: { label: string; value: string }[] = [];
-    if (selectedRoom.bed_type) specs.push({ label: "Cama", value: cap(selectedRoom.bed_type) });
+    if (selectedRoom.bed_type) {
+      specs.push({
+        label: "Cama",
+        value: t.hotelDetail.bedTypes[selectedRoom.bed_type] ?? selectedRoom.bed_type,
+      });
+    }
+    if (selectedRoom.beds_count) {
+      specs.push({
+        label: t.hotelDetail.bedsLabel,
+        value: t.hotelDetail.beds(selectedRoom.beds_count),
+      });
+    }
     if (selectedRoom.view_type) specs.push({ label: "Vista", value: cap(selectedRoom.view_type) });
     if (selectedRoom.area_sqm) specs.push({ label: "Area", value: `${selectedRoom.area_sqm} m²` });
     specs.push({ label: t.hotelDetail.capacity, value: t.hotelDetail.personCount(selectedRoom.capacity) });
@@ -854,8 +866,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
                           </span>
                           <div className="flex flex-wrap gap-1.5">
                             {selectedRoom.amenities_list.map((a) => {
-                              const roomItems = t.hotelWs.roomEditor.amenitiesStep.items as Record<string, string>;
-                              const translated = roomItems[a] ?? a;
+                              const translated = roomAmenityLabel(a, t.hotelWs.roomEditor.amenitiesStep.items);
                               return (
                                 <span
                                   key={a}
