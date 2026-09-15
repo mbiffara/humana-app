@@ -35,6 +35,14 @@ export default function CommonSpacesPage() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
+
+  // The confirmation is a flash, not a state to dismiss
+  useEffect(() => {
+    if (!justSaved) return;
+    const timer = setTimeout(() => setJustSaved(false), 3000);
+    return () => clearTimeout(timer);
+  }, [justSaved]);
 
   const load = useCallback(async () => {
     try {
@@ -86,6 +94,7 @@ export default function CommonSpacesPage() {
       );
       await load();
       setDraft(null);
+      setJustSaved(true);
     } catch (err) {
       setSaveError(apiErrorMessage(err, c.saveFailed));
     } finally {
@@ -113,6 +122,14 @@ export default function CommonSpacesPage() {
           <h1 className="mt-2 text-[32px] font-bold text-humana-ink">{c.title}</h1>
           <p className="mt-1 text-[14px] text-humana-muted">{c.subtitle}</p>
         </div>
+        {justSaved && (
+          <span className="ml-auto mr-6 flex items-center gap-2 text-[13px] font-medium text-emerald-600 animate-fade-in">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {c.saved}
+          </span>
+        )}
         <button
           type="button"
           onClick={openAdd}

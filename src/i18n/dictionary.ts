@@ -1610,7 +1610,6 @@ type Dictionary = {
     photosHint: string;
     photosCounter: (n: number, max: number) => string;
     addPhotos: string;
-    viewDetails: string;
     save: string;
     saving: string;
     saved: string;
@@ -3948,7 +3947,6 @@ export const dictionary: Record<Locale, Dictionary> = {
       photosHint: "JPG, PNG or WebP · up to 8 photos",
       photosCounter: (n: number, max: number) => `${n} of ${max} photos`,
       addPhotos: "Add photos",
-      viewDetails: "View details",
       save: "Save space",
       saving: "Saving…",
       saved: "Saved",
@@ -6266,7 +6264,6 @@ export const dictionary: Record<Locale, Dictionary> = {
       photosHint: "JPG, PNG o WebP · hasta 8 fotos",
       photosCounter: (n: number, max: number) => `${n} de ${max} fotos`,
       addPhotos: "Agregar fotos",
-      viewDetails: "Ver detalles",
       save: "Guardar espacio",
       saving: "Guardando…",
       saved: "Guardado",
@@ -8585,7 +8582,6 @@ export const dictionary: Record<Locale, Dictionary> = {
       photosHint: "JPG, PNG ou WebP · até 8 fotos",
       photosCounter: (n: number, max: number) => `${n} de ${max} fotos`,
       addPhotos: "Adicionar fotos",
-      viewDetails: "Ver detalhes",
       save: "Salvar espaço",
       saving: "Salvando…",
       saved: "Salvo",
