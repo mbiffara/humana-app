@@ -116,6 +116,11 @@ type HotelWizardContextValue = {
   swapPhotoUrl: (oldUrl: string, newUrl: string) => void;
   setPhotoCategory: (index: number, category: ImageCategory) => void;
   setPhotoCover: (index: number) => void;
+  /** True once the saved profile came back, so the state mirrors the server.
+   *  Until then a field the owner never touched must not be written back. */
+  profileLoaded: boolean;
+  videoTouched: boolean;
+  markVideoTouched: () => void;
   hideBottomBar: boolean;
   setHideBottomBar: (v: boolean) => void;
   isUploading: boolean;
@@ -147,6 +152,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [hideBottomBar, setHideBottomBar] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [videoTouched, setVideoTouched] = useState(false);
   const apiLoaded = useRef(false);
   const { user } = useAuth();
 
@@ -288,6 +295,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         if (Object.keys(patch).length > 0) {
           setState((prev) => ({ ...prev, ...patch }));
         }
+        setProfileLoaded(true);
       }).catch(() => {
         // API unavailable — continue with session state
       });
@@ -307,6 +315,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const reset = useCallback(() => setState(initial), []);
+
+  const markVideoTouched = useCallback(() => setVideoTouched(true), []);
 
   const addRoomType = useCallback((room: Omit<RoomTypeEntry, "id" | "photos" | "availability">) => {
     setState((prev) => ({
@@ -483,6 +493,9 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         swapPhotoUrl,
         setPhotoCategory,
         setPhotoCover,
+        profileLoaded,
+        videoTouched,
+        markVideoTouched,
         hideBottomBar,
         setHideBottomBar,
         isUploading,

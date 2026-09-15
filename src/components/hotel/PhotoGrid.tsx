@@ -69,7 +69,7 @@ export function PhotoGrid({
   return (
     <div className={GRID_CLASS[variant]}>
       {photos.map((photo, index) => (
-        <div key={photo.url} className="flex flex-col gap-1.5">
+        <div key={`${photo.url}-${index}`} className="flex flex-col gap-1.5">
           <div
             draggable
             onDragStart={(e) => {

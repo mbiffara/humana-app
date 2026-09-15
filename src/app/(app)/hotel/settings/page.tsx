@@ -495,12 +495,15 @@ export default function HotelSettingsPage() {
         }),
         ...customAmenities.map((n) => ({ name: n, category: "general", featured: false })),
       ];
+      // The profile goes first and on its own: the gallery batch replaces every
+      // image, so a 422 here (a rejected video host, an invalid group range)
+      // must not leave the photos already swapped.
+      await hotelApi.updateProfile({
+        description,
+        video_url: videoUrl.trim(),
+        ...propertyFormPayload(propertyForm),
+      });
       await Promise.all([
-        hotelApi.updateProfile({
-          description,
-          video_url: videoUrl.trim(),
-          ...propertyFormPayload(propertyForm),
-        }),
         hotelApi.batchAmenities(allAmenities),
         // Replace-all gallery: the first entry is the cover.
         hotelApi.batchImages(

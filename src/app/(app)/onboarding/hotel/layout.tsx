@@ -96,7 +96,7 @@ function BottomBar() {
   const router = useRouter();
   const { t } = useLocale();
   const { user, setUser, refreshAuth } = useAuth();
-  const { state, hideBottomBar, isUploading } = useHotelWizard();
+  const { state, hideBottomBar, isUploading, profileLoaded, videoTouched } = useHotelWizard();
 
   const org = user?.organization;
   const alreadySubmitted = !!org?.onboarding_completed;
@@ -225,10 +225,17 @@ function BottomBar() {
       );
     }
 
-    // Logo and video live on the hotel profile, not the gallery.
-    const profile: Partial<HotelProfileUpdate> = { video_url: state.videoUrl.trim() };
+    // Logo and video live on the hotel profile, not the gallery. The video is
+    // only written back once the saved profile has been read (or the owner
+    // edited the field): otherwise a failed load would clear a saved link.
+    const profile: Partial<HotelProfileUpdate> = {};
+    if (profileLoaded || videoTouched) profile.video_url = state.videoUrl.trim();
     if (state.logoUrl.startsWith("http")) profile.logo_url = state.logoUrl;
-    await hotelApi.updateProfile(profile);
+    // With nothing to send, skip the PATCH entirely — opening step 4 by URL
+    // before the hotel exists would answer "Name can't be blank".
+    if (Object.keys(profile).length > 0) {
+      await hotelApi.updateProfile(profile);
+    }
   }
 
   async function saveStep5() {

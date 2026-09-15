@@ -297,18 +297,18 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
         )}
 
         {/* Video or reel — the preview links out instead of embedding */}
-        {video && hotel.video_url && (
+        {video && (
           <div className="flex flex-col gap-2">
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-muted">
               {t.visualInfo.videoSection}
             </span>
             <a
-              href={hotel.video_url}
+              href={video.linkUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[14px] text-humana-ink underline underline-offset-2 transition-colors hover:text-humana-gold"
             >
-              {hotel.video_url}
+              {video.linkUrl}
             </a>
           </div>
         )}

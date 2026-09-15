@@ -303,7 +303,7 @@ export default function HotelWizardStep5() {
           {state.photos.length > 0 ? (
             <div className="grid grid-cols-5 gap-3">
               {state.photos.map((photo, i) => (
-                <div key={photo.url} className="relative aspect-[4/3] overflow-hidden rounded-[6px] bg-humana-stone">
+                <div key={`${photo.url}-${i}`} className="relative aspect-[4/3] overflow-hidden rounded-[6px] bg-humana-stone">
                   <Image src={photo.url} alt={`${state.hotelName} ${i + 1}`} fill unoptimized className="object-cover" />
                 </div>
               ))}

@@ -442,7 +442,6 @@ type Dictionary = {
         addCustom: string;
         photosTitle: string;
         photosHint: string;
-        cover: string;
         addPhotos: string;
       };
       profile: {
@@ -1711,7 +1710,6 @@ type Dictionary = {
       uploadDrag: string;
       uploadBrowse: string;
       uploadFormats: string;
-      coverBadge: string;
       photoCount: (current: number, recommended: number) => string;
       dragToReorder: string;
       uploadMore: string;
@@ -2403,7 +2401,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           addCustom: "Add",
           photosTitle: "Photos",
           photosHint: "The first photo is the cover shown across the network.",
-          cover: "Cover",
           addPhotos: "Add photos",
         },
         profile: {
@@ -3940,7 +3937,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         uploadDrag: "Drag images here or",
         uploadBrowse: "browse files",
         uploadFormats: "JPG or PNG \u00B7 up to 8 MB each \u00B7 Minimum 1600 \u00D7 1067 px",
-        coverBadge: "Cover",
         photoCount: (current: number, recommended: number) => `${current} of a recommended ${recommended} photos`,
         dragToReorder: "Drag tiles to reorder",
         uploadMore: "Upload more",
@@ -4623,7 +4619,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           addCustom: "Agregar",
           photosTitle: "Fotos",
           photosHint: "La primera foto es la portada que se muestra en la red.",
-          cover: "Portada",
           addPhotos: "Agregar fotos",
         },
         profile: {
@@ -6160,7 +6155,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         uploadDrag: "Arrastra im\u00E1genes aqu\u00ED o",
         uploadBrowse: "busca archivos",
         uploadFormats: "JPG o PNG \u00B7 hasta 8 MB cada una \u00B7 M\u00EDnimo 1600 \u00D7 1067 px",
-        coverBadge: "Portada",
         photoCount: (current: number, recommended: number) => `${current} de ${recommended} fotos recomendadas`,
         dragToReorder: "Arrastra para reordenar",
         uploadMore: "Subir m\u00E1s",
@@ -6843,7 +6837,6 @@ export const dictionary: Record<Locale, Dictionary> = {
           addCustom: "Adicionar",
           photosTitle: "Fotos",
           photosHint: "A primeira foto é a capa exibida na rede.",
-          cover: "Capa",
           addPhotos: "Adicionar fotos",
         },
         profile: {
@@ -8381,7 +8374,6 @@ export const dictionary: Record<Locale, Dictionary> = {
         uploadDrag: "Arraste imagens aqui ou",
         uploadBrowse: "procure arquivos",
         uploadFormats: "JPG ou PNG \u00B7 at\u00E9 8 MB cada \u00B7 M\u00EDnimo 1600 \u00D7 1067 px",
-        coverBadge: "Capa",
         photoCount: (current: number, recommended: number) => `${current} de ${recommended} fotos recomendadas`,
         dragToReorder: "Arraste para reordenar",
         uploadMore: "Enviar mais",

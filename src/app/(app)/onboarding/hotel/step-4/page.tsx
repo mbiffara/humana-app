@@ -18,6 +18,7 @@ export default function HotelWizardStep4() {
     swapPhotoUrl,
     setPhotoCategory,
     setPhotoCover,
+    markVideoTouched,
     isUploading,
     setIsUploading,
   } = useHotelWizard();
@@ -25,7 +26,9 @@ export default function HotelWizardStep4() {
   const h = t.onboarding.hotel;
   const v = t.visualInfo;
   const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
+  // The logo has its own flag: a slow logo upload must not look like (or gate)
+  // the gallery upload, which is what `isUploading` tracks.
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   function handleFiles(files: FileList | File[]) {
     const fileArray = Array.from(files);
@@ -68,14 +71,12 @@ export default function HotelWizardStep4() {
   /** The logo travels with the step save, so only a real server URL is kept —
    *  a failed upload falls back to a blob URL the API could not resolve. */
   async function handleLogoFile(file: File) {
-    setUploadingLogo(true);
-    setIsUploading(true);
+    setIsUploadingLogo(true);
     try {
       const url = await uploadImage(file);
       if (url.startsWith("http")) set({ logoUrl: url });
     } finally {
-      setUploadingLogo(false);
-      setIsUploading(false);
+      setIsUploadingLogo(false);
     }
   }
 
@@ -194,7 +195,7 @@ export default function HotelWizardStep4() {
             <LogoUpload
               logoUrl={state.logoUrl || null}
               name={state.hotelName}
-              uploading={uploadingLogo}
+              uploading={isUploadingLogo}
               onFile={handleLogoFile}
             />
             <p className="max-w-[420px] text-[12px] leading-relaxed text-humana-muted">
@@ -211,7 +212,10 @@ export default function HotelWizardStep4() {
           <div className="mt-4">
             <VideoField
               value={state.videoUrl}
-              onChange={(value) => set({ videoUrl: value })}
+              onChange={(value) => {
+                markVideoTouched();
+                set({ videoUrl: value });
+              }}
               title={state.hotelName}
               variant="wizard"
             />

@@ -4,8 +4,9 @@
  * Video / reel URL field and its preview, shared by the hotel onboarding
  * wizard (step 4), the settings "Property" tab and the public hotel detail.
  *
- * Only the player URL that `videoEmbed` builds from the parsed id ever reaches
- * an iframe — the raw string the owner typed is never embedded. A host the API
+ * Only the URLs `videoEmbed` derives — the player built from the parsed id, and
+ * the `URL`-normalised link — ever reach an iframe or an href; the raw string
+ * the owner typed is never embedded. A host the API
  * rejects (anything but YouTube, Vimeo or Instagram) shows the inline error
  * instead of a preview, so the form never sends a 422 on purpose.
  */
@@ -46,7 +47,7 @@ export function VideoPreview({ url, title }: { url: string | null | undefined; t
 
   return (
     <a
-      href={url ?? "#"}
+      href={embed.linkUrl}
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center gap-3 rounded-[6px] border border-humana-line bg-white px-4 py-3 text-[14px] text-humana-ink transition-colors hover:border-humana-gold"

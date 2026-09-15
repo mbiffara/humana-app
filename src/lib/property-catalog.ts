@@ -191,6 +191,9 @@ export type VideoEmbed = {
   /** Player URL built from the parsed id. Absent for Instagram, which has no
    *  embeddable player here — those render as a card linking out. */
   embedUrl?: string;
+  /** The owner's link, normalised by `URL`. Always http(s) on a host we
+   *  recognise, so it is the only string safe to put in an `href`. */
+  linkUrl: string;
 };
 
 /** True when `host` is `domain` or a subdomain of it (www., m., player.…). */
@@ -211,22 +214,25 @@ const VIMEO_ID = /^\d+$/;
  */
 export function videoEmbed(url: string | null | undefined): VideoEmbed | null {
   const raw = url?.trim();
-  if (!raw) return null;
+  // A bare "youtube.com/..." is not a link we will hand to an iframe or an
+  // href: the owner has to paste the full address.
+  if (!raw || !/^https?:\/\//i.test(raw)) return null;
 
   let parsed: URL;
   try {
-    parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    parsed = new URL(raw);
   } catch {
     return null;
   }
 
   const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
   const segments = parsed.pathname.split("/").filter(Boolean);
+  const linkUrl = parsed.toString();
 
   if (hostMatches(host, "youtu.be")) {
     const id = segments[0];
     return id && YOUTUBE_ID.test(id)
-      ? { kind: "youtube", embedUrl: `https://www.youtube.com/embed/${id}` }
+      ? { kind: "youtube", embedUrl: `https://www.youtube.com/embed/${id}`, linkUrl }
       : null;
   }
 
@@ -236,7 +242,7 @@ export function videoEmbed(url: string | null | undefined): VideoEmbed | null {
       segments[0] === "shorts" || segments[0] === "embed" ? segments[1] : undefined;
     const id = watchId ?? pathId;
     return id && YOUTUBE_ID.test(id)
-      ? { kind: "youtube", embedUrl: `https://www.youtube.com/embed/${id}` }
+      ? { kind: "youtube", embedUrl: `https://www.youtube.com/embed/${id}`, linkUrl }
       : null;
   }
 
@@ -244,14 +250,14 @@ export function videoEmbed(url: string | null | undefined): VideoEmbed | null {
     // vimeo.com/<id> and the player form player.vimeo.com/video/<id>
     const id = segments[0] === "video" ? segments[1] : segments[0];
     return id && VIMEO_ID.test(id)
-      ? { kind: "vimeo", embedUrl: `https://player.vimeo.com/video/${id}` }
+      ? { kind: "vimeo", embedUrl: `https://player.vimeo.com/video/${id}`, linkUrl }
       : null;
   }
 
   // Instagram has no id to parse here — any link on the host the API accepts
   // renders as a card that opens the post in a new tab.
   if (hostMatches(host, "instagram.com")) {
-    return { kind: "instagram" };
+    return { kind: "instagram", linkUrl };
   }
 
   return null;

@@ -37,7 +37,9 @@ export function LogoUpload({ logoUrl, name, uploading, onFile, size = 64 }: Logo
     <label
       aria-label={t.visualInfo.logoUpload}
       style={{ width: size, height: size }}
-      className="group relative flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-humana-gold transition-all hover:opacity-90"
+      className={`group relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-humana-gold transition-all ${
+        uploading ? "cursor-wait" : "cursor-pointer hover:opacity-90"
+      }`}
     >
       {logoUrl ? (
         <Image src={logoUrl} alt={name} fill className="object-cover" unoptimized />
@@ -59,6 +61,7 @@ export function LogoUpload({ logoUrl, name, uploading, onFile, size = 64 }: Logo
         type="file"
         accept="image/jpeg,image/png,image/webp"
         className="sr-only"
+        disabled={uploading}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) onFile(file);
