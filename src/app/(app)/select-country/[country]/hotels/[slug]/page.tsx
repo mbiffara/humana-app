@@ -224,6 +224,10 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
 
   // Spaces are absent on an API that predates them
   const commonSpaces = hotel.common_spaces ?? [];
+  // The Spaces tab only exists while the hotel has spaces — opening another
+  // hotel must not leave an empty tab selected
+  const tab: TabKey =
+    activeTab === "spaces" && commonSpaces.length === 0 ? "rooms" : activeTab;
   const cs = t.commonSpaces;
   const spaceImages = selectedSpace?.images?.length
     ? [...selectedSpace.images]
@@ -520,31 +524,31 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
         {/* Tab bar */}
         <div className="flex gap-8 border-b border-humana-line">
           <button type="button" onClick={() => setActiveTab("rooms")}
-            className={`border-b-2 pb-3 text-[14px] font-bold transition-colors ${activeTab === "rooms" ? "border-humana-ink text-humana-ink" : "border-transparent text-humana-muted hover:text-humana-ink"}`}>
+            className={`border-b-2 pb-3 text-[14px] font-bold transition-colors ${tab === "rooms" ? "border-humana-ink text-humana-ink" : "border-transparent text-humana-muted hover:text-humana-ink"}`}>
             {t.hotelDetail.rooms}
           </button>
           {commonSpaces.length > 0 && (
             <button type="button" onClick={() => setActiveTab("spaces")}
-              className={`border-b-2 pb-3 text-[14px] font-medium transition-colors cursor-pointer ${activeTab === "spaces" ? "border-humana-ink text-humana-ink font-bold" : "border-transparent text-humana-muted hover:text-humana-ink"}`}>
+              className={`border-b-2 pb-3 text-[14px] font-medium transition-colors cursor-pointer ${tab === "spaces" ? "border-humana-ink text-humana-ink font-bold" : "border-transparent text-humana-muted hover:text-humana-ink"}`}>
               {cs.title}
               <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-humana-gold/15 text-[11px] font-semibold text-humana-gold">{commonSpaces.length}</span>
             </button>
           )}
           <button type="button" onClick={() => hotelExperiences.length > 0 && setActiveTab("retreats")}
-            className={`border-b-2 pb-3 text-[14px] font-medium transition-colors ${activeTab === "retreats" ? "border-humana-ink text-humana-ink font-bold" : hotelExperiences.length > 0 ? "border-transparent text-humana-muted hover:text-humana-ink cursor-pointer" : "border-transparent text-humana-muted/40 cursor-default"}`}>
+            className={`border-b-2 pb-3 text-[14px] font-medium transition-colors ${tab === "retreats" ? "border-humana-ink text-humana-ink font-bold" : hotelExperiences.length > 0 ? "border-transparent text-humana-muted hover:text-humana-ink cursor-pointer" : "border-transparent text-humana-muted/40 cursor-default"}`}>
             {t.breadcrumb.retreats}
             {hotelExperiences.length > 0 && (
               <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-humana-gold/15 text-[11px] font-semibold text-humana-gold">{hotelExperiences.length}</span>
             )}
           </button>
           <button type="button" onClick={() => setActiveTab("info")}
-            className={`border-b-2 pb-3 text-[14px] font-medium transition-colors ${activeTab === "info" ? "border-humana-ink text-humana-ink font-bold" : "border-transparent text-humana-muted hover:text-humana-ink cursor-pointer"}`}>
+            className={`border-b-2 pb-3 text-[14px] font-medium transition-colors ${tab === "info" ? "border-humana-ink text-humana-ink font-bold" : "border-transparent text-humana-muted hover:text-humana-ink cursor-pointer"}`}>
             {t.hotelDetail.info}
           </button>
         </div>
 
         {/* ── Tab: Rooms ── */}
-        {activeTab === "rooms" && (
+        {tab === "rooms" && (
         <div className="flex flex-col gap-5">
           {hotel.room_types.map((rt) => (
             <div
@@ -589,7 +593,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
         )}
 
         {/* ── Tab: Common spaces ── */}
-        {activeTab === "spaces" && (
+        {tab === "spaces" && (
           <div className="grid grid-cols-3 gap-6">
             {commonSpaces.map((space) => {
               const typeLabel = spaceTypeLabel(cs, space.space_type, space.space_type_other);
@@ -627,7 +631,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
         )}
 
         {/* ── Tab: Retreats ── */}
-        {activeTab === "retreats" && (
+        {tab === "retreats" && (
           <div>
             {hotelExperiences.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
@@ -708,7 +712,7 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
         )}
 
         {/* ── Tab: Info ── */}
-        {activeTab === "info" && (
+        {tab === "info" && (
           <div className="flex flex-col gap-8">
             {/* Hotel details grid */}
             <div className="grid grid-cols-2 gap-x-12 gap-y-6">

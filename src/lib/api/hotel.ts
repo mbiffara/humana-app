@@ -29,8 +29,6 @@ export const hotelApi = {
 
   // Common spaces (salons, yoga rooms, terraces…)
   listCommonSpaces: () => api.get<{ common_spaces: CommonSpace[] }>("/hotel/common_spaces"),
-  getCommonSpace: (id: number) =>
-    api.get<{ common_space: CommonSpace }>(`/hotel/common_spaces/${id}`),
   createCommonSpace: (data: CommonSpaceCreate) =>
     api.post<{ common_space: CommonSpace }>("/hotel/common_spaces", { common_space: data }),
   updateCommonSpace: (id: number, data: Partial<CommonSpaceCreate>) =>
@@ -38,9 +36,6 @@ export const hotelApi = {
       common_space: data,
     }),
   deleteCommonSpace: (id: number) => api.delete(`/hotel/common_spaces/${id}`),
-  listCommonSpaceImages: (id: number) =>
-    api.get<{ images: CommonSpaceImage[] }>(`/hotel/common_spaces/${id}/images`),
-
   // Common space gallery (replace-all; first image becomes primary, max 8)
   batchCommonSpaceImages: (id: number, images: { image_url: string; alt_text?: string }[]) =>
     api.post<{ images: CommonSpaceImage[] }>(`/hotel/common_spaces/${id}/images/batch`, {

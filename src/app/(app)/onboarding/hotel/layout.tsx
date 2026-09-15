@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AMENITY_CATALOG } from "@/lib/amenity-catalog";
 import { groupRangeInvalid, propertyFormPayload } from "@/lib/property-form";
 import { videoEmbed } from "@/lib/property-catalog";
-import { draftToPayload } from "@/lib/space-catalog";
+import { draftToPayload, galleryUnchanged, persistablePhotos } from "@/lib/space-catalog";
 import type { HotelProfileUpdate } from "@/lib/api/hotel";
 
 const STEP_PATHS = [
@@ -101,6 +101,7 @@ function BottomBar() {
   const {
     state,
     updateCommonSpace,
+    commonSpacesLoaded,
     hideBottomBar,
     isUploading,
     isUploadingLogo,
@@ -208,39 +209,55 @@ function BottomBar() {
   }
 
   /** Sync the wizard's spaces with the API: drop what the owner removed,
-   *  create or update the rest, then replace each gallery. Sequential — the
-   *  create has to answer with an id before its images can be sent. */
+   *  create or update the rest, then replace the galleries that changed.
+   *  Sequential — a create has to answer with an id before its images go out.
+   *
+   *  Deleting is only safe against a list we know mirrors the server. If the
+   *  profile fetch never landed, the wizard's list may be a stale session that
+   *  hydration never corrected, so the step creates and updates but deletes
+   *  nothing — a failed load must not wipe saved spaces. */
   async function saveStep3() {
-    let existing: number[] = [];
-    try {
-      const res = await hotelApi.listCommonSpaces();
-      existing = res.common_spaces.map((cs) => cs.id);
-    } catch {
-      // Nothing saved yet (or an API without common spaces) — create from scratch
+    let existing: number[] | null = null;
+    if (commonSpacesLoaded) {
+      try {
+        const res = await hotelApi.listCommonSpaces();
+        existing = res.common_spaces.map((cs) => cs.id);
+      } catch {
+        // Could not read what is saved — never delete on a guess
+      }
     }
 
-    const kept = new Set(state.commonSpaces.map((cs) => cs.id).filter((id) => id != null));
-    for (const id of existing) {
-      if (!kept.has(id)) await hotelApi.deleteCommonSpace(id);
+    if (existing) {
+      const kept = new Set(state.commonSpaces.map((cs) => cs.id).filter((id) => id != null));
+      for (const id of existing) {
+        if (!kept.has(id)) await hotelApi.deleteCommonSpace(id);
+      }
     }
 
     for (const draft of state.commonSpaces) {
       const payload = draftToPayload(draft);
-      // An id the API no longer knows (deleted elsewhere) is recreated
-      let id = draft.id && existing.includes(draft.id) ? draft.id : undefined;
+      // An id the list says is gone (deleted elsewhere) is recreated
+      let id = draft.id && (existing === null || existing.includes(draft.id)) ? draft.id : undefined;
+      let saved = draft.savedPhotos;
       if (id) {
         await hotelApi.updateCommonSpace(id, payload);
       } else {
         const created = await hotelApi.createCommonSpace(payload);
         id = created.common_space.id;
-        updateCommonSpace(draft.localId, { id });
+        saved = [];
+        updateCommonSpace(draft.localId, { id, savedPhotos: [] });
       }
-      // Replace the gallery, empty list included, so removals stick. Blob
-      // previews that never finished uploading are skipped.
-      await hotelApi.batchCommonSpaceImages(
-        id,
-        draft.photos.filter((url) => url.startsWith("http")).map((url) => ({ image_url: url })),
-      );
+      // Replace the gallery, empty list included, so removals stick — but only
+      // when it differs from what the API holds: re-sending an untouched
+      // gallery regenerates every image id and marks the hotel as changed.
+      const photos = persistablePhotos(draft);
+      if (!galleryUnchanged(draft, saved)) {
+        await hotelApi.batchCommonSpaceImages(
+          id,
+          photos.map((url) => ({ image_url: url })),
+        );
+        updateCommonSpace(draft.localId, { savedPhotos: photos });
+      }
     }
   }
 

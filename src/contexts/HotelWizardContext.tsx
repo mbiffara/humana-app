@@ -128,6 +128,11 @@ type HotelWizardContextValue = {
   /** True once the saved profile came back, so the state mirrors the server.
    *  Until then a field the owner never touched must not be written back. */
   profileLoaded: boolean;
+  /** True once the profile fetch resolved at all — with a hotel, or with the
+   *  "no hotel yet" answer. Either way the wizard's space list mirrors what is
+   *  saved, which is what makes reconciling deletions safe. A failed fetch
+   *  leaves it false and the save then only creates and updates. */
+  commonSpacesLoaded: boolean;
   videoTouched: boolean;
   markVideoTouched: () => void;
   hideBottomBar: boolean;
@@ -168,6 +173,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [commonSpacesLoaded, setCommonSpacesLoaded] = useState(false);
   const [videoTouched, setVideoTouched] = useState(false);
   const apiLoaded = useRef(false);
   const { user } = useAuth();
@@ -219,8 +225,15 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
           }));
         }
         const merged = { ...initial, ...parsed };
-        // Sessions saved before common spaces carry no list at all
-        if (!Array.isArray(merged.commonSpaces)) merged.commonSpaces = [];
+        // Sessions saved before common spaces carry no list at all, and ones
+        // saved before the gallery baseline carry entries without it
+        merged.commonSpaces = Array.isArray(merged.commonSpaces)
+          ? merged.commonSpaces.map((cs: Record<string, unknown>) => ({
+              ...cs,
+              photos: Array.isArray(cs.photos) ? cs.photos : [],
+              savedPhotos: Array.isArray(cs.savedPhotos) ? cs.savedPhotos : [],
+            }))
+          : [];
         // Sessions saved before the property contract may carry a stale shape
         merged.environments = sanitizeEnvironments(merged.environments);
         // Sessions saved before the gallery categories held plain URLs
@@ -240,6 +253,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         hotelApi.listAvailabilityBlocks().catch(() => ({ availability_blocks: [] })),
       ]).then(([res, blocksRes]) => {
         const h = res.hotel;
+        // The answer arrived: whatever it says is what the server holds
+        setCommonSpacesLoaded(true);
         // No hotel saved yet — keep whatever the session had
         if (!h) return;
 
@@ -546,6 +561,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         setPhotoCategory,
         setPhotoCover,
         profileLoaded,
+        commonSpacesLoaded,
         videoTouched,
         markVideoTouched,
         hideBottomBar,

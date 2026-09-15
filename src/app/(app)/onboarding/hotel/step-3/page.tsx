@@ -10,6 +10,7 @@ import { CommonSpaceForm } from "@/components/hotel/CommonSpaceForm";
 import {
   draftMaxCapacity,
   emptySpaceDraft,
+  MAX_SPACE_PHOTOS,
   spaceTypeLabel,
   validateDraft,
   type CommonSpaceDraft,
@@ -58,7 +59,7 @@ function SpaceCard({
           </div>
           {space.photos.length > 0 && (
             <span className="text-[12px] text-humana-subtle">
-              {c.photosCounter(space.photos.length, 8)}
+              {c.photosCounter(space.photos.length, MAX_SPACE_PHOTOS)}
             </span>
           )}
         </div>

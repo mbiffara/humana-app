@@ -13,6 +13,8 @@ import {
   draftToPayload,
   emptySpaceDraft,
   equipmentLabel,
+  galleryUnchanged,
+  persistablePhotos,
   maxCapacity,
   spaceToDraft,
   spaceTypeLabel,
@@ -83,15 +85,24 @@ export default function CommonSpacesPage() {
     setSaveError(null);
     try {
       const payload = draftToPayload(draft);
+      const wasNew = draft.id == null;
       const saved = draft.id
         ? await hotelApi.updateCommonSpace(draft.id, payload)
         : await hotelApi.createCommonSpace(payload);
-      // Replace the gallery, empty list included, so removals stick. Blob
-      // previews that never finished uploading are skipped.
-      await hotelApi.batchCommonSpaceImages(
-        saved.common_space.id,
-        draft.photos.filter((url) => url.startsWith("http")).map((url) => ({ image_url: url })),
-      );
+      const id = saved.common_space.id;
+      // Adopt the new id straight away: if the gallery batch below fails, a
+      // retry updates this space instead of creating a second one.
+      if (wasNew) setDraft((prev) => (prev ? { ...prev, id, savedPhotos: [] } : prev));
+      // Replace the gallery, empty list included, so removals stick — but only
+      // when it differs from what the API holds, so an untouched gallery does
+      // not have every image id regenerated. Previews that never finished
+      // uploading are skipped.
+      if (!galleryUnchanged(draft, wasNew ? [] : draft.savedPhotos)) {
+        await hotelApi.batchCommonSpaceImages(
+          id,
+          persistablePhotos(draft).map((url) => ({ image_url: url })),
+        );
+      }
       await load();
       setDraft(null);
       setJustSaved(true);
@@ -103,9 +114,12 @@ export default function CommonSpacesPage() {
   }
 
   async function handleDelete(id: number) {
+    setSaveError(null);
     try {
       await hotelApi.deleteCommonSpace(id);
       setSpaces((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      setSaveError(apiErrorMessage(err, c.saveFailed));
     } finally {
       setPendingDelete(null);
     }
@@ -138,6 +152,13 @@ export default function CommonSpacesPage() {
           + {c.add}
         </button>
       </div>
+
+      {/* A failed delete has no panel to report into */}
+      {saveError && !draft && (
+        <div className="mb-6 rounded-[6px] bg-red-50 px-4 py-2.5 text-[13px] text-red-700">
+          {saveError}
+        </div>
+      )}
 
       {/* List */}
       {loading ? (

@@ -50,6 +50,9 @@ export type CapacityKind = (typeof CAPACITY_KINDS)[number];
 /** Max photos per space — keep in sync with the photosHint copy. */
 export const MAX_SPACE_PHOTOS = 8;
 
+/** Name length the API accepts. */
+export const SPACE_NAME_MAX = 120;
+
 export function isSpaceType(value: unknown): value is SpaceType {
   return typeof value === "string" && (SPACE_TYPES as readonly string[]).includes(value);
 }
@@ -130,6 +133,9 @@ export type CommonSpaceDraft = {
   equipment: string[];
   equipmentOther: string;
   photos: string[];
+  /** The gallery as the API last answered it, so a save can tell an untouched
+   *  gallery from an edited one and skip a batch that would only churn ids. */
+  savedPhotos: string[];
 };
 
 export function generateSpaceLocalId(): string {
@@ -150,6 +156,7 @@ export function emptySpaceDraft(): CommonSpaceDraft {
     equipment: [],
     equipmentOther: "",
     photos: [],
+    savedPhotos: [],
   };
 }
 
@@ -179,6 +186,7 @@ export function spaceToDraft(space: CommonSpace): CommonSpaceDraft {
     equipment: space.equipment ?? [],
     equipmentOther: space.equipment_other ?? "",
     photos: images.map((image) => image.image_url),
+    savedPhotos: images.map((image) => image.image_url),
   };
 }
 
@@ -206,6 +214,23 @@ export function draftToPayload(draft: CommonSpaceDraft): CommonSpaceCreate {
   };
 }
 
+/** The photos worth sending: previews that never finished uploading are not
+ *  URLs the API can store. */
+export function persistablePhotos(draft: CommonSpaceDraft): string[] {
+  return draft.photos.filter((url) => url.startsWith("http"));
+}
+
+/** True when the gallery is exactly what the API already holds — batching it
+ *  again would regenerate every image id for nothing. `saved` defaults to the
+ *  draft's own baseline; a space created moments ago passes its empty one. */
+export function galleryUnchanged(
+  draft: CommonSpaceDraft,
+  saved: string[] = draft.savedPhotos,
+): boolean {
+  const next = persistablePhotos(draft);
+  return next.length === saved.length && next.every((url, i) => url === saved[i]);
+}
+
 export type CommonSpaceErrors = Partial<Record<keyof CommonSpaceDraft, string>>;
 
 /** Name and type are the only required fields; "Other" needs its free text. */
@@ -220,8 +245,4 @@ export function validateDraft(draft: CommonSpaceDraft, c: CommonSpacesCopy): Com
   if (draft.equipment.includes("other") && !draft.equipmentOther.trim())
     errors.equipmentOther = c.otherRequired;
   return errors;
-}
-
-export function isDraftValid(draft: CommonSpaceDraft, c: CommonSpacesCopy): boolean {
-  return Object.keys(validateDraft(draft, c)).length === 0;
 }

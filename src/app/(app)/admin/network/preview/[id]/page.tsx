@@ -69,17 +69,20 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
 
   // Lock body scroll when modal or lightbox is open
   useEffect(() => {
-    if (selectedRoom || lightboxIdx !== null) {
+    if (selectedRoom || selectedSpace || lightboxIdx !== null) {
       document.body.style.overflow = "hidden";
       return () => { document.body.style.overflow = ""; };
     }
-  }, [selectedRoom, lightboxIdx]);
+  }, [selectedRoom, selectedSpace, lightboxIdx]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
       if (lightboxIdx !== null) setLightboxIdx(null);
-      else setSelectedRoom(null);
+      else {
+        setSelectedRoom(null);
+        setSelectedSpace(null);
+      }
     }
     if (lightboxIdx !== null && hotel) {
       const total = hotel.images.length;

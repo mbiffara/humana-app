@@ -25,6 +25,7 @@ import {
 import { decimalOrNull, integerOrNull, numberToInput } from "@/lib/property-catalog";
 import {
   CAPACITY_KINDS,
+  SPACE_NAME_MAX,
   FLOOR_TYPES,
   MAX_SPACE_PHOTOS,
   SPACE_TYPES,
@@ -123,6 +124,7 @@ export function CommonSpaceForm({
               value={value.name}
               onChange={(e) => patch({ name: e.target.value })}
               placeholder={c.namePlaceholder}
+              maxLength={SPACE_NAME_MAX}
               className={`${INPUT_CLASS[variant]} ${errors?.name ? "border-red-400" : ""}`}
             />
             <ErrorText message={errors?.name} />
@@ -172,19 +174,19 @@ export function CommonSpaceForm({
               label={c.capacity[kind]}
               value={numberToInput(value.capacities[kind])}
               onValueChange={(v) => {
+                // An empty field and a zero both mean "not measured this way"
                 const parsed = integerOrNull(v);
                 patch({
                   capacities: {
                     ...latest.current.capacities,
-                    [kind]: parsed == null ? null : Math.max(0, parsed),
+                    [kind]: parsed != null && parsed > 0 ? parsed : null,
                   },
                 });
               }}
               variant={variant}
               type="number"
-              min="0"
+              min="1"
               step="1"
-              placeholder="0"
             />
           ))}
         </div>
@@ -198,13 +200,12 @@ export function CommonSpaceForm({
             value={numberToInput(value.areaSqm)}
             onValueChange={(v) => {
               const parsed = decimalOrNull(v, 1);
-              patch({ areaSqm: parsed == null ? null : Math.max(0, parsed) });
+              patch({ areaSqm: parsed != null && parsed > 0 ? parsed : null });
             }}
             variant={variant}
             type="number"
-            min="0"
+            min="1"
             step="0.1"
-            placeholder="0"
           />
           <Field label={c.floor} variant={variant}>
             <select

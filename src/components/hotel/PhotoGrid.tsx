@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Property gallery grid shared by the hotel onboarding wizard (step 4) and the
+ * Property gallery grid shared by the hotel onboarding wizard (step 5) and the
  * hotel settings "Property" tab: drag to reorder, pick a category per photo,
  * promote any photo to cover and remove it.
  *

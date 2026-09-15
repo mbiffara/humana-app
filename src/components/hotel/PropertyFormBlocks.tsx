@@ -35,7 +35,7 @@ export const INPUT_CLASS: Record<PropertyFormVariant, string> = {
     "w-full bg-white border border-humana-line px-3.5 py-2.5 text-[14px] text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold",
 };
 
-export const LABEL_CLASS: Record<PropertyFormVariant, string> = {
+const LABEL_CLASS: Record<PropertyFormVariant, string> = {
   wizard: "text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted",
   settings: "text-[10px] font-semibold uppercase tracking-[0.12em] text-humana-subtle",
 };
