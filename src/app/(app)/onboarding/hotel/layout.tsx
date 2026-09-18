@@ -151,12 +151,9 @@ function BottomBar() {
     if (state.ownerPhone) payload.user_phone = state.ownerPhone.trim();
     await api.patch("/hotel/profile", payload);
 
-    // The legal identity goes in its own PATCH, after the hotel exists. It is
-    // only written against a block we know mirrors the organization: a failed
-    // profile load must not let a blank form clear what is saved.
-    if (verificationLoaded) {
-      await hotelApi.updateVerification(state.verification);
-    }
+    // The legal identity goes in its own PATCH, after the hotel exists.
+    // doSaveAndNavigate has already refused to run without the saved copy.
+    await hotelApi.updateVerification(state.verification);
   }
 
   async function saveStep2() {
@@ -334,10 +331,11 @@ function BottomBar() {
   }
 
   async function doSaveAndNavigate() {
-    // The authorisation declaration is a hard gate on step 1 — nothing is
-    // saved until the owner accepts it.
-    if (activeIndex === 0 && !state.verification.authorization_declared) {
-      setSaveError(t.onboarding.hotel.declarationRequired);
+    // Saving step 1 writes the whole verification block, empty fields
+    // included. Without the saved copy to compare against, a blank form would
+    // clear the stored legal identity — so the step stops instead of guessing.
+    if (activeIndex === 0 && !verificationLoaded) {
+      setSaveError(t.onboarding.hotel.profileNotLoaded);
       return;
     }
 
@@ -407,6 +405,7 @@ function BottomBar() {
           state.phone.trim().length > 0 &&
           state.checkInTime.length > 0 &&
           state.checkOutTime.length > 0 &&
+          state.verification.authorization_declared &&
           !groupRangeInvalid(state)
         );
       case 1:
@@ -448,6 +447,7 @@ function BottomBar() {
         if (!state.checkInTime) missing.push(p.checkInLabel);
         if (!state.checkOutTime) missing.push(p.checkOutLabel);
         if (groupRangeInvalid(state)) missing.push(p.groupRangeError);
+        if (!state.verification.authorization_declared) missing.push(h.declarationRequired);
         break;
       case 1:
         if (state.roomTypes.length === 0) {
