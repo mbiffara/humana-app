@@ -102,6 +102,8 @@ function BottomBar() {
     state,
     updateCommonSpace,
     commonSpacesLoaded,
+    verificationStatus,
+    documentUploading,
     hideBottomBar,
     isUploading,
     isUploadingLogo,
@@ -121,6 +123,11 @@ function BottomBar() {
   const activeIndex = currentStepIndex >= 0 ? currentStepIndex : 0;
   const isLastStep = activeIndex === STEP_PATHS.length - 1;
   const isFirstStep = activeIndex === 0;
+  // Step 1 writes the verification block, so it waits for the saved copy
+  // rather than letting an early click look like a failure — and for a
+  // document still uploading, or the step would store the URL it replaces.
+  const step1Waiting =
+    activeIndex === 0 && (verificationStatus === "loading" || documentUploading);
 
   // Hide bottom bar on under-review page or when step sub-views have own nav
   if (pathname.includes("under-review")) return null;
@@ -141,6 +148,7 @@ function BottomBar() {
         name: state.hotelName.trim(),
         address: state.address.trim(),
         description: state.description.trim(),
+        highlight: state.highlight.trim(),
         phone: state.phone.trim(),
         contact_email: state.contactEmail.trim() || user?.email || "",
       },
@@ -148,6 +156,10 @@ function BottomBar() {
     if (fullName) payload.user_name = fullName;
     if (state.ownerPhone) payload.user_phone = state.ownerPhone.trim();
     await api.patch("/hotel/profile", payload);
+
+    // The legal identity goes in its own PATCH, after the hotel exists.
+    // doSaveAndNavigate has already refused to run without the saved copy.
+    await hotelApi.updateVerification(state.verification);
   }
 
   async function saveStep2() {
@@ -325,6 +337,14 @@ function BottomBar() {
   }
 
   async function doSaveAndNavigate() {
+    // Saving step 1 writes the whole verification block, empty fields
+    // included. Without the saved copy to compare against, a blank form would
+    // clear the stored legal identity — so the step stops instead of guessing.
+    if (activeIndex === 0 && verificationStatus === "failed") {
+      setSaveError(t.onboarding.hotel.profileNotLoaded);
+      return;
+    }
+
     setSubmitting(true);
     setSaveError(null);
     try {
@@ -391,6 +411,7 @@ function BottomBar() {
           state.phone.trim().length > 0 &&
           state.checkInTime.length > 0 &&
           state.checkOutTime.length > 0 &&
+          state.verification.authorization_declared &&
           !groupRangeInvalid(state)
         );
       case 1:
@@ -432,6 +453,7 @@ function BottomBar() {
         if (!state.checkInTime) missing.push(p.checkInLabel);
         if (!state.checkOutTime) missing.push(p.checkOutLabel);
         if (groupRangeInvalid(state)) missing.push(p.groupRangeError);
+        if (!state.verification.authorization_declared) missing.push(h.declarationRequired);
         break;
       case 1:
         if (state.roomTypes.length === 0) {
@@ -523,11 +545,13 @@ function BottomBar() {
         <button
           type="button"
           onClick={handleNext}
-          disabled={!canProceed() || submitting}
+          disabled={!canProceed() || submitting || step1Waiting}
           className="cursor-pointer flex items-center gap-2 px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] bg-humana-ink text-white hover:bg-black transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {submitting ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          ) : step1Waiting ? (
+            t.common.loading
           ) : isLastStep ? (alreadySubmitted ? h.publishChangesCta : h.submitForReviewCta) : t.onboarding.next}
           <svg
             width="16"
@@ -543,7 +567,7 @@ function BottomBar() {
             <polyline points="12 5 19 12 12 19" />
           </svg>
         </button>
-        {!canProceed() && !submitting && (
+        {!canProceed() && !submitting && !step1Waiting && (
           <div className="pointer-events-none absolute bottom-full right-0 mb-3 hidden w-max max-w-[280px] rounded-lg bg-humana-ink px-4 py-3 shadow-lg group-hover/next:block animate-fade-in-up">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-humana-gold mb-1.5">
               {h.completeFields}

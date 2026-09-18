@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, apiErrorMessage } from "@/lib/api";
-import { hotelApi, type HotelProfile, type OrgProfile } from "@/lib/api/hotel";
+import { hotelApi, type HotelProfile, type OrgProfile, type OrgVerificationUpdate } from "@/lib/api/hotel";
 import { uploadImage } from "@/lib/upload";
 import PlacesAutocomplete, { type PlaceResult } from "@/components/PlacesAutocomplete";
 import {
@@ -36,12 +36,18 @@ import {
   type ImageCategory,
   type PhotoEntry,
 } from "@/lib/property-catalog";
+import { CharCountTextarea } from "@/components/hotel/CharCountTextarea";
 import { LogoUpload } from "@/components/hotel/LogoUpload";
+import { VerificationForm } from "@/components/hotel/VerificationForm";
+import { emptyVerification, verificationFromOrg } from "@/contexts/HotelWizardContext";
 import { PhotoGrid } from "@/components/hotel/PhotoGrid";
 import { VideoField } from "@/components/hotel/VideoField";
 import type { SubscriptionPlan, Subscription } from "@/lib/types";
 
 type SettingsTab = "profile" | "property" | "account" | "subscription" | "payments";
+
+/** Cap agreed with Humana for the "what makes it special" copy. */
+const HIGHLIGHT_MAX = 500;
 
 const SIDEBAR_TABS: { key: SettingsTab; icon: React.ReactNode }[] = [
   {
@@ -282,6 +288,7 @@ export default function HotelSettingsPage() {
   const { t } = useLocale();
   const { user, logout, refreshAuth } = useAuth();
   const ts = t.hotelWs.settings;
+  const ht = t.onboarding.hotel;
   const searchParams = useSearchParams();
 
   const initialTab = (searchParams.get("tab") as SettingsTab) || "profile";
@@ -303,6 +310,7 @@ export default function HotelSettingsPage() {
 
   // Property form — the contract fields shared with the onboarding wizard
   const [description, setDescription] = useState("");
+  const [highlight, setHighlight] = useState("");
   const [propertyForm, setPropertyForm] = useState<PropertyFormValues>(EMPTY_PROPERTY_FORM);
   const [propertyError, setPropertyError] = useState<string | null>(null);
   const [amenityIds, setAmenityIds] = useState<string[]>([]);
@@ -335,6 +343,13 @@ export default function HotelSettingsPage() {
   const [bankStatus, setBankStatus] = useState("pending");
   const [bankSaving, setBankSaving] = useState(false);
 
+  // Verification (the organization's legal identity)
+  const [verification, setVerification] = useState<OrgVerificationUpdate>(emptyVerification);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  // Ownership document upload in flight — saving now would store the URL the
+  // document is about to replace.
+  const [documentUploading, setDocumentUploading] = useState(false);
+
   const loadProfile = useCallback(async () => {
     setLoading(true);
     try {
@@ -351,6 +366,7 @@ export default function HotelSettingsPage() {
         setLogoUrl(h.logo_url ?? null);
         // Property tab
         setDescription(h.description ?? "");
+        setHighlight(h.highlight ?? "");
         setPropertyForm(propertyFormFromProfile(h));
         const ids: string[] = [];
         const custom: string[] = [];
@@ -381,6 +397,7 @@ export default function HotelSettingsPage() {
         setBankCurrency(org.bank_currency ?? "USD");
         setBankCountry(org.bank_country ?? "");
         setBankStatus(org.bank_status ?? "pending");
+        setVerification(verificationFromOrg(org));
       }
     } catch {
       // Without the profile every field would look empty and Save would wipe it.
@@ -485,6 +502,7 @@ export default function HotelSettingsPage() {
   async function saveProperty() {
     setPropertySaving(true);
     setPropertyError(null);
+    setVerificationError(null);
     try {
       const allAmenities = [
         ...amenityIds.map((id) => {
@@ -500,9 +518,24 @@ export default function HotelSettingsPage() {
       // must not leave the photos already swapped.
       await hotelApi.updateProfile({
         description,
+        highlight: highlight.trim(),
         video_url: videoUrl.trim(),
         ...propertyFormPayload(propertyForm),
       });
+      // The legal identity is its own PATCH but part of the same save. Its
+      // rejection is reported on its own line — the property fields above it
+      // are already stored, and saying so under the property block would point
+      // at the wrong inputs.
+      try {
+        const verified = await hotelApi.updateVerification(verification);
+        setOrgProfile(verified.organization);
+        // Mirror what the API stored, so the declaration timestamp and any
+        // value the server normalised win over what was typed.
+        setVerification(verificationFromOrg(verified.organization));
+      } catch (err) {
+        setVerificationError(apiErrorMessage(err, ts.profile.save));
+        return;
+      }
       await Promise.all([
         hotelApi.batchAmenities(allAmenities),
         // Replace-all gallery: the first entry is the cover.
@@ -843,6 +876,20 @@ export default function HotelSettingsPage() {
                 />
               </div>
 
+              {/* What makes the property special */}
+              <div className="mt-6">
+                <CharCountTextarea
+                  id="settings-highlight"
+                  label={ht.highlightLabel}
+                  value={highlight}
+                  onChange={setHighlight}
+                  max={HIGHLIGHT_MAX}
+                  hint={ht.highlightHint}
+                  placeholder={ht.highlightPlaceholder}
+                  variant="settings"
+                />
+              </div>
+
               {/* Location + getting here */}
               <div className="mt-8 border-t border-humana-line pt-6">
                 <LocationBlock
@@ -1030,16 +1077,30 @@ export default function HotelSettingsPage() {
                 </div>
               </div>
 
-              {/* Save */}
-              <div className="mt-8 flex items-center justify-end gap-4">
+              {/* Verification — the legal identity of the organization */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <VerificationForm
+                  value={verification}
+                  onChange={setVerification}
+                  onUploadingChange={setDocumentUploading}
+                  variant="settings"
+                />
+              </div>
+
+              {/* Save — one button for the whole tab, verification included */}
+              <div className="mt-8 flex flex-col items-end gap-2">
                 {propertyError && (
-                  <p className="flex-1 text-[13px] text-red-600">{propertyError}</p>
+                  <p className="w-full text-[13px] text-red-600">{propertyError}</p>
+                )}
+                {verificationError && (
+                  <p className="w-full text-[13px] text-red-600">{verificationError}</p>
                 )}
                 <button
                   onClick={saveProperty}
                   disabled={
                     propertySaving ||
                     uploadingPhotos ||
+                    documentUploading ||
                     (videoUrl.trim().length > 0 && videoEmbed(videoUrl) === null) ||
                     groupRangeInvalid(propertyForm) ||
                     (propertyForm.propertyType === "other" &&
@@ -1047,7 +1108,11 @@ export default function HotelSettingsPage() {
                   }
                   className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {propertySaving ? ts.profile.saving : ts.profile.save}
+                  {propertySaving
+                    ? ts.profile.saving
+                    : documentUploading
+                      ? t.common.loading
+                      : ts.profile.save}
                 </button>
               </div>
             </div>

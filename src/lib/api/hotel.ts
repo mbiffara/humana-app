@@ -4,12 +4,22 @@
  */
 import { api } from "@/lib/api";
 import type { ImageCategory, PropertyProfileFields } from "@/lib/property-catalog";
+import type { OrgVerificationFields, SocialLinks } from "@/lib/types";
+
+export type { SocialLinkKey, SocialLinks } from "@/lib/types";
 
 export const hotelApi = {
   // Profile
   getProfile: () => api.get<{ hotel: HotelProfile | null; organization: OrgProfile }>("/hotel/profile"),
   updateProfile: (data: Partial<HotelProfileUpdate>) =>
     api.patch<{ hotel: HotelProfile; organization: OrgProfile }>("/hotel/profile", { hotel: data }),
+  /** Writes the organization's verification block. The hotel payload is left
+   *  out on purpose — the API accepts `organization` on its own once the hotel
+   *  exists, so this never re-sends (and never risks clearing) hotel fields. */
+  updateVerification: (attrs: OrgVerificationUpdate) =>
+    api.patch<{ hotel: HotelProfile | null; organization: OrgProfile }>("/hotel/profile", {
+      organization: attrs,
+    }),
   submitForReview: () => api.post<{ user: import("@/lib/types").User }>("/hotel/profile/submit_for_review"),
 
   // Room types
@@ -268,6 +278,8 @@ export interface HotelProfile extends PropertyProfileFields {
   certified: boolean;
   wellness_standard: string | null;
   description: string | null;
+  /** "What makes your property special" — absent on an older API. */
+  highlight?: string | null;
   address: string | null;
   postal_code: string | null;
   phone: string | null;
@@ -296,6 +308,8 @@ export interface HotelProfileUpdate extends PropertyProfileFields {
   latitude: number | null;
   longitude: number | null;
   description: string;
+  /** "What makes your property special"; "" clears it. */
+  highlight?: string;
   address: string;
   phone: string;
   /** "HH:MM" or "flexible". */
@@ -312,7 +326,7 @@ export interface HotelProfileUpdate extends PropertyProfileFields {
   video_url: string;
 }
 
-export interface OrgProfile {
+export interface OrgProfile extends OrgVerificationFields {
   id: number;
   name: string;
   kind: string;
@@ -324,6 +338,24 @@ export interface OrgProfile {
   bank_currency?: string | null;
   bank_country?: string | null;
   bank_status?: string | null;
+}
+
+/** The verification block as the form writes it: every text field is a plain
+ *  string and "" clears the stored value. The declaration is sent as a boolean;
+ *  the API turns it into `authorization_declared_at`. */
+export interface OrgVerificationUpdate {
+  legal_name: string;
+  business_name: string;
+  tax_id: string;
+  primary_contact: string;
+  primary_contact_role: string;
+  commercial_registration: string;
+  phone: string;
+  contact_email: string;
+  website: string;
+  ownership_document_url: string;
+  social_links: SocialLinks;
+  authorization_declared: boolean;
 }
 
 export interface CommonSpaceImage {

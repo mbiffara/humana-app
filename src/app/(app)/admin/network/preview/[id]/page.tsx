@@ -8,6 +8,7 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { adminApi } from "@/lib/api/admin";
 import type { AdminHotelPreview, AdminRoomType, AdminRoomImage, AdminCommonSpace, Organization, User } from "@/lib/types";
 import { formatCheckTime } from "@/components/TimePicker";
+import { OpenDocumentButton } from "@/components/hotel/OpenDocumentButton";
 import { googleMapsUrl, groupImagesByCategory, instagramUrl, videoEmbed } from "@/lib/property-catalog";
 import {
   airportTransferSummary,
@@ -118,6 +119,29 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
 
   const p = t.propertyForm;
   const cs = t.commonSpaces;
+  const oh = t.onboarding.hotel;
+  // The organization may come back without the verification block at all (an
+  // older API, or an org that never filled it in) — the card then says so.
+  const socialEntries = Object.entries(org?.social_links ?? {}).filter(
+    (entry): entry is [string, string] => typeof entry[1] === "string" && entry[1].length > 0,
+  );
+  const declaredOn = org?.authorization_declared_at
+    ? new Date(org.authorization_declared_at).toLocaleDateString(locale)
+    : null;
+  const hasVerification = !!(
+    org?.legal_name ||
+    org?.business_name ||
+    org?.tax_id ||
+    org?.primary_contact ||
+    org?.primary_contact_role ||
+    org?.commercial_registration ||
+    org?.phone ||
+    org?.contact_email ||
+    org?.website ||
+    org?.ownership_document_url ||
+    org?.authorization_declared_at ||
+    socialEntries.length > 0
+  );
   // Absent on an API that predates common spaces — treat it as none
   const commonSpaces = hotel?.common_spaces ?? [];
   const typeLabel = hotel ? propertyTypeLabel(p, hotel.property_type, hotel.property_type_other) : null;
@@ -279,6 +303,14 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
             </div>
           )}
           <p className="max-w-[720px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
+          {hotel.highlight && (
+            <div className="flex max-w-[720px] flex-col gap-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                {t.hotelDetail.highlightTitle}
+              </span>
+              <p className="text-[15px] leading-[24px] text-humana-muted">{hotel.highlight}</p>
+            </div>
+          )}
         </div>
 
         {/* Gallery by category — only the sections the hotel actually filled */}
@@ -393,6 +425,67 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
                 </a>
               }
             />
+          )}
+        </div>
+
+        {/* Verification — the legal identity behind the property */}
+        <div className="flex flex-col gap-4 rounded-lg border border-humana-line bg-white px-6 py-5">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+            {oh.verificationSectionTitle}
+          </span>
+          {hasVerification ? (
+            <div className="grid grid-cols-2 gap-x-12 gap-y-4">
+              <PreviewRow label={oh.legalNameLabel} value={org?.legal_name} />
+              <PreviewRow label={oh.businessNameLabel} value={org?.business_name} />
+              <PreviewRow label={oh.taxIdLabel} value={org?.tax_id} />
+              <PreviewRow label={oh.commercialRegistrationLabel} value={org?.commercial_registration} />
+              <PreviewRow label={oh.primaryContactLabel} value={org?.primary_contact} />
+              <PreviewRow label={oh.primaryContactRoleLabel} value={org?.primary_contact_role} />
+              <PreviewRow label={oh.contactPhoneLabel} value={org?.phone} />
+              <PreviewRow label={oh.contactEmailLabel} value={org?.contact_email} />
+              {org?.website && (
+                <PreviewRow
+                  label={oh.websiteLabel}
+                  value={
+                    <a href={org.website} target="_blank" rel="noopener noreferrer" className="text-humana-gold hover:underline">
+                      {org.website}
+                    </a>
+                  }
+                />
+              )}
+              {socialEntries.length > 0 && (
+                <PreviewRow
+                  label={oh.socialLinksLabel}
+                  value={
+                    <span className="flex flex-wrap gap-x-4 gap-y-1">
+                      {socialEntries.map(([key, url]) => (
+                        <a
+                          key={key}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="capitalize text-humana-gold hover:underline"
+                        >
+                          {key === "other" ? oh.socialOtherLabel : key}
+                        </a>
+                      ))}
+                    </span>
+                  }
+                />
+              )}
+              {org?.ownership_document_url && (
+                <PreviewRow
+                  label={oh.ownershipDocumentLabel}
+                  value={<OpenDocumentButton url={org.ownership_document_url} />}
+                />
+              )}
+              <PreviewRow
+                label={oh.declarationAccepted}
+                value={declaredOn ? `${oh.declaredAt} ${declaredOn}` : oh.notDeclared}
+              />
+            </div>
+          ) : (
+            <p className="text-[14px] text-humana-muted">{oh.noVerificationData}</p>
           )}
         </div>
 

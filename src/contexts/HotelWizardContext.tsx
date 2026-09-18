@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { hotelApi } from "@/lib/api/hotel";
+import { hotelApi, type OrgProfile, type OrgVerificationUpdate } from "@/lib/api/hotel";
 import { amenityIdForName } from "@/lib/amenity-catalog";
 import {
   normalizeImageCategory,
@@ -48,6 +48,58 @@ export type RoomTypeEntry = {
   availability: AvailabilityBlock[];
 };
 
+/** A blank verification block — every text field empty, no networks, no
+ *  declaration. Kept as a factory so no two states share the same object. */
+export function emptyVerification(): OrgVerificationUpdate {
+  return {
+    legal_name: "",
+    business_name: "",
+    tax_id: "",
+    primary_contact: "",
+    primary_contact_role: "",
+    commercial_registration: "",
+    phone: "",
+    contact_email: "",
+    website: "",
+    ownership_document_url: "",
+    social_links: {},
+    authorization_declared: false,
+  };
+}
+
+/** Sessions saved before the verification block carry nothing, and an older
+ *  one may carry a partial shape — fill the gaps rather than trust it. */
+function migrateVerification(value: unknown): OrgVerificationUpdate {
+  const base = emptyVerification();
+  if (!value || typeof value !== "object") return base;
+  const stored = value as Partial<OrgVerificationUpdate>;
+  return {
+    ...base,
+    ...stored,
+    social_links: { ...(stored.social_links ?? {}) },
+    authorization_declared: !!stored.authorization_declared,
+  };
+}
+
+/** The saved verification block. Fields an older API omits come back as
+ *  undefined, which reads as "not filled in" rather than breaking the form. */
+export function verificationFromOrg(org: OrgProfile): OrgVerificationUpdate {
+  return {
+    legal_name: org.legal_name ?? "",
+    business_name: org.business_name ?? "",
+    tax_id: org.tax_id ?? "",
+    primary_contact: org.primary_contact ?? "",
+    primary_contact_role: org.primary_contact_role ?? "",
+    commercial_registration: org.commercial_registration ?? "",
+    phone: org.phone ?? "",
+    contact_email: org.contact_email ?? "",
+    website: org.website ?? "",
+    ownership_document_url: org.ownership_document_url ?? "",
+    social_links: { ...(org.social_links ?? {}) },
+    authorization_declared: !!org.authorization_declared_at,
+  };
+}
+
 /** The wizard state is the shared property form plus the owner/identity fields
  *  and the per-step collections the wizard owns. */
 export type HotelWizardState = PropertyFormValues & {
@@ -59,8 +111,12 @@ export type HotelWizardState = PropertyFormValues & {
   hotelName: string;
   address: string;
   description: string;
+  /** "What makes your property special" — max 500 characters. */
+  highlight: string;
   phone: string;
   contactEmail: string;
+  /** The organization's legal identity, saved alongside step 1. */
+  verification: OrgVerificationUpdate;
   /* Room types */
   roomTypes: RoomTypeEntry[];
   /* Common spaces */
@@ -84,8 +140,10 @@ const initial: HotelWizardState = {
   hotelName: "",
   address: "",
   description: "",
+  highlight: "",
   phone: "",
   contactEmail: "",
+  verification: emptyVerification(),
   roomTypes: [],
   commonSpaces: [],
   amenities: [],
@@ -104,6 +162,12 @@ export const MAX_ROOM_PHOTOS = 8;
 type HotelWizardContextValue = {
   state: HotelWizardState;
   set: (patch: Partial<HotelWizardState>) => void;
+  /** Functional update of the verification block. The document upload resolves
+   *  long after the file was picked, so a patch built from a snapshot would
+   *  overwrite whatever was typed while it was in flight. */
+  patchVerification: (
+    update: (prev: OrgVerificationUpdate) => OrgVerificationUpdate,
+  ) => void;
   reset: () => void;
   addRoomType: (room: Omit<RoomTypeEntry, "id" | "photos" | "availability">) => void;
   updateRoomType: (id: string, room: Partial<RoomTypeEntry>) => void;
@@ -133,6 +197,16 @@ type HotelWizardContextValue = {
    *  saved, which is what makes reconciling deletions safe. A failed fetch
    *  leaves it false and the save then only creates and updates. */
   commonSpacesLoaded: boolean;
+  /** Where the profile fetch stands, and with it the verification block.
+   *  "loaded" means the state mirrors what the organization holds and step 1
+   *  may write it back; "failed" means step 1 must not, since the blank form
+   *  would clear the stored legal identity; "loading" is neither yet, and the
+   *  step waits rather than reporting a failure that has not happened. */
+  verificationStatus: "loading" | "loaded" | "failed";
+  /** Ownership document upload in flight — step 1 cannot be saved until it
+   *  settles, or the step would persist the URL the document replaces. */
+  documentUploading: boolean;
+  setDocumentUploading: (v: boolean) => void;
   videoTouched: boolean;
   markVideoTouched: () => void;
   hideBottomBar: boolean;
@@ -174,6 +248,9 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [commonSpacesLoaded, setCommonSpacesLoaded] = useState(false);
+  const [verificationStatus, setVerificationStatus] =
+    useState<HotelWizardContextValue["verificationStatus"]>("loading");
+  const [documentUploading, setDocumentUploading] = useState(false);
   const [videoTouched, setVideoTouched] = useState(false);
   const apiLoaded = useRef(false);
   const { user } = useAuth();
@@ -238,6 +315,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         merged.environments = sanitizeEnvironments(merged.environments);
         // Sessions saved before the gallery categories held plain URLs
         merged.photos = migratePhotos(merged.photos);
+        // Sessions saved before the verification block carry none at all
+        merged.verification = migrateVerification(merged.verification);
         if (merged.hotelName || merged.ownerFirstName || merged.roomTypes.length > 0) {
           setState(merged);
         }
@@ -255,6 +334,21 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         const h = res.hotel;
         // The answer arrived: whatever it says is what the server holds
         setCommonSpacesLoaded(true);
+
+        // The organization exists before the hotel does, so the legal identity
+        // hydrates even on a brand-new onboarding. Assigned wholesale, like
+        // the property block: a truthy-only merge would keep a stale session
+        // value and write it straight back on save.
+        if (res.organization) {
+          const verification = verificationFromOrg(res.organization);
+          setState((prev) => ({ ...prev, verification }));
+          setVerificationStatus("loaded");
+        } else {
+          // An answer without an organization is not a saved block we can
+          // safely overwrite either.
+          setVerificationStatus("failed");
+        }
+
         // No hotel saved yet — keep whatever the session had
         if (!h) return;
 
@@ -270,6 +364,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         if (h.name) patch.hotelName = h.name;
         if (h.address) patch.address = h.address;
         if (h.description) patch.description = h.description;
+        if (h.highlight) patch.highlight = h.highlight;
         if (h.phone) patch.phone = h.phone;
         if (h.contact_email) patch.contactEmail = h.contact_email;
 
@@ -342,6 +437,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         setProfileLoaded(true);
       }).catch(() => {
         // API unavailable — continue with session state
+        setVerificationStatus("failed");
       });
     }
 
@@ -357,6 +453,13 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const set = useCallback((patch: Partial<HotelWizardState>) => {
     setState((prev) => ({ ...prev, ...patch }));
   }, []);
+
+  const patchVerification = useCallback(
+    (update: (prev: OrgVerificationUpdate) => OrgVerificationUpdate) => {
+      setState((prev) => ({ ...prev, verification: update(prev.verification) }));
+    },
+    [],
+  );
 
   const reset = useCallback(() => setState(initial), []);
 
@@ -539,6 +642,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
       value={{
         state,
         set,
+        patchVerification,
         reset,
         addRoomType,
         updateRoomType,
@@ -562,6 +666,9 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         setPhotoCover,
         profileLoaded,
         commonSpacesLoaded,
+        verificationStatus,
+        documentUploading,
+        setDocumentUploading,
         videoTouched,
         markVideoTouched,
         hideBottomBar,

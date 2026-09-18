@@ -1126,6 +1126,8 @@ type Dictionary = {
     amenities: string;
     rooms: string;
     location: string;
+    /** Public "what makes it special" block (LOG-157). */
+    highlightTitle: string;
     aboutHotel: string;
     createRetreatHere: string;
     priceFrom: string;
@@ -1724,6 +1726,39 @@ type Dictionary = {
       websiteLabel: string;
       verificationTitle: string;
       verificationDescription: string;
+      /* Step 1 — "what makes it special" + verification block (LOG-157) */
+      highlightLabel: string;
+      highlightHint: string;
+      highlightPlaceholder: string;
+      verificationSectionTitle: string;
+      verificationIntro: string;
+      legalNameLabel: string;
+      businessNameLabel: string;
+      taxIdLabel: string;
+      primaryContactLabel: string;
+      primaryContactRoleLabel: string;
+      contactPhoneLabel: string;
+      commercialRegistrationLabel: string;
+      socialLinksLabel: string;
+      socialOtherLabel: string;
+      ownershipDocumentLabel: string;
+      ownershipDocumentHint: string;
+      uploadDocument: string;
+      removeDocument: string;
+      documentUploaded: string;
+      documentTypeError: string;
+      documentSizeError: string;
+      documentUploadError: string;
+      documentLinkError: string;
+      openingDocument: string;
+      profileNotLoaded: string;
+      declarationLabel: string;
+      declarationRequired: string;
+      declarationAccepted: string;
+      viewDocument: string;
+      declaredAt: string;
+      notDeclared: string;
+      noVerificationData: string;
       /* Step 2 — Room Inventory */
       step2Eyebrow: string;
       step2Title: string;
@@ -3385,6 +3420,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       amenities: "Amenities",
       rooms: "Rooms & Suites",
       location: "Location",
+      highlightTitle: "What makes it special",
       aboutHotel: "About this property",
       createRetreatHere: "Create a retreat here",
       priceFrom: "From",
@@ -4060,6 +4096,38 @@ export const dictionary: Record<Locale, Dictionary> = {
         websiteLabel: "Website",
         verificationTitle: "Verification required",
         verificationDescription: "After submission, our team will verify your property details within 24\u201348 hours before listing it on the network.",
+        highlightLabel: "What makes your property special?",
+        highlightHint: "Recommended: between 300 and 500 characters",
+        highlightPlaceholder: "The setting, the rituals, the people \u2014 what guests remember once they leave\u2026",
+        verificationSectionTitle: "Verification",
+        verificationIntro: "We need the legal identity of the company behind the property to verify it before it joins the network.",
+        legalNameLabel: "Legal company name",
+        businessNameLabel: "Registered business name",
+        taxIdLabel: "Tax identification",
+        primaryContactLabel: "Person in charge",
+        primaryContactRoleLabel: "Role",
+        contactPhoneLabel: "Direct phone",
+        commercialRegistrationLabel: "Commercial document / registration",
+        socialLinksLabel: "Social media",
+        socialOtherLabel: "Other",
+        ownershipDocumentLabel: "Proof of ownership or representation",
+        ownershipDocumentHint: "PDF, JPG, PNG or WebP \u00B7 up to 10 MB",
+        uploadDocument: "Upload document",
+        removeDocument: "Remove",
+        documentUploaded: "Document uploaded",
+        documentTypeError: "Unsupported file. Upload a PDF, JPG, PNG or WebP.",
+        documentSizeError: "File too large. Maximum size is 10 MB.",
+        documentUploadError: "The document could not be uploaded. Please try again.",
+        documentLinkError: "The document could not be opened. Please try again.",
+        openingDocument: "Opening\u2026",
+        profileNotLoaded: "We could not load your verification details. Reload the page and try again.",
+        declarationLabel: "I declare that I am authorised to register this property on HUMANA",
+        declarationRequired: "You must accept the authorisation declaration to continue.",
+        declarationAccepted: "Declaration accepted",
+        viewDocument: "View document",
+        declaredAt: "Declared on",
+        notDeclared: "Not accepted",
+        noVerificationData: "No data",
         step2Eyebrow: "Step 2 of 6 \u00B7 Room Inventory",
         step2Title: "Configure your room types.",
         step2Subtitle: "Add each room category you offer along with the total number of units available.",
@@ -5703,6 +5771,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       amenities: "Incluye",
       rooms: "Hospedajes",
       location: "Ubicación",
+      highlightTitle: "Qu\u00E9 la hace especial",
       aboutHotel: "Sobre esta propiedad",
       createRetreatHere: "Crear un retiro aquí",
       priceFrom: "Desde",
@@ -6378,6 +6447,38 @@ export const dictionary: Record<Locale, Dictionary> = {
         websiteLabel: "Sitio Web",
         verificationTitle: "Verificaci\u00F3n requerida",
         verificationDescription: "Despu\u00E9s del env\u00EDo, nuestro equipo verificar\u00E1 los detalles de tu propiedad en 24\u201348 horas antes de listarla en la red.",
+        highlightLabel: "\u00BFQu\u00E9 hace especial a tu propiedad?",
+        highlightHint: "Recomendado: entre 300 y 500 caracteres",
+        highlightPlaceholder: "El entorno, los rituales, las personas \u2014 lo que los hu\u00E9spedes recuerdan al irse\u2026",
+        verificationSectionTitle: "Verificaci\u00F3n",
+        verificationIntro: "Necesitamos la identidad legal de la empresa detr\u00E1s de la propiedad para verificarla antes de sumarla a la red.",
+        legalNameLabel: "Nombre legal de la empresa",
+        businessNameLabel: "Raz\u00F3n social",
+        taxIdLabel: "Identificaci\u00F3n fiscal",
+        primaryContactLabel: "Persona responsable",
+        primaryContactRoleLabel: "Cargo",
+        contactPhoneLabel: "Tel\u00E9fono directo",
+        commercialRegistrationLabel: "Documento / registro comercial",
+        socialLinksLabel: "Redes sociales",
+        socialOtherLabel: "Otra",
+        ownershipDocumentLabel: "Documento que acredita la propiedad o representaci\u00F3n",
+        ownershipDocumentHint: "PDF, JPG, PNG o WebP \u00B7 hasta 10 MB",
+        uploadDocument: "Subir documento",
+        removeDocument: "Quitar",
+        documentUploaded: "Documento subido",
+        documentTypeError: "Archivo no admitido. Sub\u00ED un PDF, JPG, PNG o WebP.",
+        documentSizeError: "El archivo es demasiado grande. El m\u00E1ximo es 10 MB.",
+        documentUploadError: "No se pudo subir el documento. Intentalo de nuevo.",
+        documentLinkError: "No se pudo abrir el documento. Intentalo de nuevo.",
+        openingDocument: "Abriendo\u2026",
+        profileNotLoaded: "No pudimos cargar tus datos de verificaci\u00F3n. Recarg\u00E1 la p\u00E1gina e intent\u00E1 de nuevo.",
+        declarationLabel: "Declaro que tengo autorizaci\u00F3n para registrar esta propiedad en HUMANA",
+        declarationRequired: "Ten\u00E9s que aceptar la declaraci\u00F3n de autorizaci\u00F3n para continuar.",
+        declarationAccepted: "Declaraci\u00F3n aceptada",
+        viewDocument: "Ver documento",
+        declaredAt: "Declarado el",
+        notDeclared: "No aceptada",
+        noVerificationData: "Sin datos",
         step2Eyebrow: "Paso 2 de 6 \u00B7 Inventario de Habitaciones",
         step2Title: "Configura tus tipos de habitaci\u00F3n.",
         step2Subtitle: "Agrega cada categor\u00EDa de habitaci\u00F3n que ofreces junto con el n\u00FAmero total de unidades disponibles.",
@@ -8022,6 +8123,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       amenities: "Comodidades",
       rooms: "Hospedagens",
       location: "Localização",
+      highlightTitle: "O que a torna especial",
       aboutHotel: "Sobre esta propriedade",
       createRetreatHere: "Criar um retiro aqui",
       priceFrom: "A partir de",
@@ -8697,6 +8799,38 @@ export const dictionary: Record<Locale, Dictionary> = {
         websiteLabel: "Site",
         verificationTitle: "Verifica\u00E7\u00E3o necess\u00E1ria",
         verificationDescription: "Ap\u00F3s o envio, nossa equipe verificar\u00E1 os detalhes da sua propriedade em 24\u201348 horas antes de list\u00E1-la na rede.",
+        highlightLabel: "O que torna sua propriedade especial?",
+        highlightHint: "Recomendado: entre 300 e 500 caracteres",
+        highlightPlaceholder: "O entorno, os rituais, as pessoas \u2014 o que os h\u00F3spedes lembram ao partir\u2026",
+        verificationSectionTitle: "Verifica\u00E7\u00E3o",
+        verificationIntro: "Precisamos da identidade legal da empresa por tr\u00E1s da propriedade para verific\u00E1-la antes de inclu\u00ED-la na rede.",
+        legalNameLabel: "Nome legal da empresa",
+        businessNameLabel: "Raz\u00E3o social",
+        taxIdLabel: "Identifica\u00E7\u00E3o fiscal",
+        primaryContactLabel: "Pessoa respons\u00E1vel",
+        primaryContactRoleLabel: "Cargo",
+        contactPhoneLabel: "Telefone direto",
+        commercialRegistrationLabel: "Documento / registro comercial",
+        socialLinksLabel: "Redes sociais",
+        socialOtherLabel: "Outra",
+        ownershipDocumentLabel: "Documento que comprova a propriedade ou representa\u00E7\u00E3o",
+        ownershipDocumentHint: "PDF, JPG, PNG ou WebP \u00B7 at\u00E9 10 MB",
+        uploadDocument: "Enviar documento",
+        removeDocument: "Remover",
+        documentUploaded: "Documento enviado",
+        documentTypeError: "Arquivo n\u00E3o suportado. Envie um PDF, JPG, PNG ou WebP.",
+        documentSizeError: "Arquivo muito grande. O m\u00E1ximo \u00E9 10 MB.",
+        documentUploadError: "N\u00E3o foi poss\u00EDvel enviar o documento. Tente novamente.",
+        documentLinkError: "N\u00E3o foi poss\u00EDvel abrir o documento. Tente novamente.",
+        openingDocument: "Abrindo\u2026",
+        profileNotLoaded: "N\u00E3o conseguimos carregar seus dados de verifica\u00E7\u00E3o. Recarregue a p\u00E1gina e tente novamente.",
+        declarationLabel: "Declaro que tenho autoriza\u00E7\u00E3o para registrar esta propriedade na HUMANA",
+        declarationRequired: "Voc\u00EA precisa aceitar a declara\u00E7\u00E3o de autoriza\u00E7\u00E3o para continuar.",
+        declarationAccepted: "Declara\u00E7\u00E3o aceita",
+        viewDocument: "Ver documento",
+        declaredAt: "Declarado em",
+        notDeclared: "N\u00E3o aceita",
+        noVerificationData: "Sem dados",
         step2Eyebrow: "Passo 2 de 6 \u00B7 Invent\u00E1rio de Quartos",
         step2Title: "Configure seus tipos de quarto.",
         step2Subtitle: "Adicione cada categoria de quarto que voc\u00EA oferece junto com o n\u00FAmero total de unidades dispon\u00EDveis.",
