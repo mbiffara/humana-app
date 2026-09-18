@@ -102,6 +102,7 @@ function BottomBar() {
     state,
     updateCommonSpace,
     commonSpacesLoaded,
+    verificationLoaded,
     hideBottomBar,
     isUploading,
     isUploadingLogo,
@@ -141,6 +142,7 @@ function BottomBar() {
         name: state.hotelName.trim(),
         address: state.address.trim(),
         description: state.description.trim(),
+        highlight: state.highlight.trim(),
         phone: state.phone.trim(),
         contact_email: state.contactEmail.trim() || user?.email || "",
       },
@@ -148,6 +150,13 @@ function BottomBar() {
     if (fullName) payload.user_name = fullName;
     if (state.ownerPhone) payload.user_phone = state.ownerPhone.trim();
     await api.patch("/hotel/profile", payload);
+
+    // The legal identity goes in its own PATCH, after the hotel exists. It is
+    // only written against a block we know mirrors the organization: a failed
+    // profile load must not let a blank form clear what is saved.
+    if (verificationLoaded) {
+      await hotelApi.updateVerification(state.verification);
+    }
   }
 
   async function saveStep2() {
@@ -325,6 +334,13 @@ function BottomBar() {
   }
 
   async function doSaveAndNavigate() {
+    // The authorisation declaration is a hard gate on step 1 — nothing is
+    // saved until the owner accepts it.
+    if (activeIndex === 0 && !state.verification.authorization_declared) {
+      setSaveError(t.onboarding.hotel.declarationRequired);
+      return;
+    }
+
     setSubmitting(true);
     setSaveError(null);
     try {

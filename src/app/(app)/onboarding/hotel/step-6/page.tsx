@@ -108,6 +108,8 @@ export default function HotelWizardStep6() {
     integerOrNull(state.groupMaxGuests),
   );
 
+  const v = state.verification;
+
   const editStep = (step: number) => () => router.push(`/onboarding/hotel/step-${step}`);
 
   const org = user?.organization;
@@ -252,6 +254,35 @@ export default function HotelWizardStep6() {
               {state.description}
             </p>
           )}
+          {state.highlight && (
+            <div className="mt-4 border-t border-humana-line pt-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+                {h.highlightLabel}
+              </p>
+              <p className="mt-1 text-[14px] leading-relaxed text-humana-muted">
+                {state.highlight}
+              </p>
+            </div>
+          )}
+          <div className="mt-4 border-t border-humana-line pt-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-humana-subtle">
+              {h.verificationSectionTitle}
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-x-8 gap-y-4">
+              <Field label={h.legalNameLabel} value={v.legal_name} />
+              <Field label={h.taxIdLabel} value={v.tax_id} />
+              <Field label={h.primaryContactLabel} value={v.primary_contact} />
+              <Field label={h.primaryContactRoleLabel} value={v.primary_contact_role} />
+              <Field
+                label={h.documentUploaded}
+                value={v.ownership_document_url ? p.yes : p.no}
+              />
+              <Field
+                label={h.declarationAccepted}
+                value={v.authorization_declared ? p.yes : p.no}
+              />
+            </div>
+          </div>
         </SectionCard>
 
         {/* Rooms */}

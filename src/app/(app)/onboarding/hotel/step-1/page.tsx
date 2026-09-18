@@ -12,7 +12,12 @@ import {
   PropertyTypeBlock,
   ScheduleBlock,
 } from "@/components/hotel/PropertyFormBlocks";
+import { CharCountTextarea } from "@/components/hotel/CharCountTextarea";
+import { VerificationForm } from "@/components/hotel/VerificationForm";
 import { CLEARED_PLACE_COORDINATES, placeToPropertyForm } from "@/lib/property-form";
+
+/** Cap agreed with Humana for the "what makes it special" copy. */
+const HIGHLIGHT_MAX = 500;
 
 /* ─── Reusable white input class ─── */
 const INPUT =
@@ -145,6 +150,19 @@ export default function HotelWizardStep1() {
               />
             </div>
 
+            {/* What makes the property special — full width */}
+            <div className="col-span-2">
+              <CharCountTextarea
+                id="hotel-highlight"
+                label={h.highlightLabel}
+                value={state.highlight}
+                onChange={(value) => set({ highlight: value })}
+                max={HIGHLIGHT_MAX}
+                hint={h.highlightHint}
+                placeholder={h.highlightPlaceholder}
+              />
+            </div>
+
             {/* Hotel Phone */}
             <div className="flex flex-col gap-2">
               <label className={LABEL}>{h.hotelPhoneLabel}</label>
@@ -194,6 +212,14 @@ export default function HotelWizardStep1() {
         {/* ─── 7. Group capacity ─── */}
         <div className="mt-10">
           <GroupCapacityBlock values={state} onChange={set} />
+        </div>
+
+        {/* ─── 8. Verification ─── */}
+        <div className="mt-10 border-t border-humana-line pt-8">
+          <VerificationForm
+            value={state.verification}
+            onChange={(verification) => set({ verification })}
+          />
         </div>
       </div>
     </div>
