@@ -27,13 +27,20 @@ const SOCIAL_FIELDS: { key: SocialLinkKey; label: string | null }[] = [
 
 export type VerificationFormProps = {
   value: OrgVerificationUpdate;
-  onChange: (next: OrgVerificationUpdate) => void;
+  /** Functional on purpose: the document upload resolves long after the file
+   *  was picked, and a snapshot taken back then would overwrite whatever was
+   *  typed in the meantime. Every field goes through the same path so the bug
+   *  cannot come back through another input. */
+  onChange: (update: (prev: OrgVerificationUpdate) => OrgVerificationUpdate) => void;
+  /** True while the ownership document is being uploaded. */
+  onUploadingChange?: (uploading: boolean) => void;
   variant?: PropertyFormVariant;
 };
 
 export function VerificationForm({
   value,
   onChange,
+  onUploadingChange,
   variant = "wizard",
 }: VerificationFormProps) {
   const { t } = useLocale();
@@ -42,10 +49,10 @@ export function VerificationForm({
   const setField = <K extends keyof OrgVerificationUpdate>(
     key: K,
     next: OrgVerificationUpdate[K],
-  ) => onChange({ ...value, [key]: next });
+  ) => onChange((prev) => ({ ...prev, [key]: next }));
 
   const setSocial = (key: SocialLinkKey, next: string) =>
-    onChange({ ...value, social_links: { ...value.social_links, [key]: next } });
+    onChange((prev) => ({ ...prev, social_links: { ...prev.social_links, [key]: next } }));
 
   return (
     <div className="flex flex-col gap-4">
@@ -141,6 +148,7 @@ export function VerificationForm({
         <DocumentUpload
           value={value.ownership_document_url}
           onChange={(url) => setField("ownership_document_url", url)}
+          onUploadingChange={onUploadingChange}
         />
       </div>
 

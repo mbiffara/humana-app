@@ -103,6 +103,7 @@ function BottomBar() {
     updateCommonSpace,
     commonSpacesLoaded,
     verificationStatus,
+    documentUploading,
     hideBottomBar,
     isUploading,
     isUploadingLogo,
@@ -123,8 +124,10 @@ function BottomBar() {
   const isLastStep = activeIndex === STEP_PATHS.length - 1;
   const isFirstStep = activeIndex === 0;
   // Step 1 writes the verification block, so it waits for the saved copy
-  // rather than letting an early click look like a failure.
-  const waitingForProfile = activeIndex === 0 && verificationStatus === "loading";
+  // rather than letting an early click look like a failure — and for a
+  // document still uploading, or the step would store the URL it replaces.
+  const step1Waiting =
+    activeIndex === 0 && (verificationStatus === "loading" || documentUploading);
 
   // Hide bottom bar on under-review page or when step sub-views have own nav
   if (pathname.includes("under-review")) return null;
@@ -542,12 +545,12 @@ function BottomBar() {
         <button
           type="button"
           onClick={handleNext}
-          disabled={!canProceed() || submitting || waitingForProfile}
+          disabled={!canProceed() || submitting || step1Waiting}
           className="cursor-pointer flex items-center gap-2 px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] bg-humana-ink text-white hover:bg-black transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {submitting ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-          ) : waitingForProfile ? (
+          ) : step1Waiting ? (
             t.common.loading
           ) : isLastStep ? (alreadySubmitted ? h.publishChangesCta : h.submitForReviewCta) : t.onboarding.next}
           <svg
@@ -564,7 +567,7 @@ function BottomBar() {
             <polyline points="12 5 19 12 12 19" />
           </svg>
         </button>
-        {!canProceed() && !submitting && !waitingForProfile && (
+        {!canProceed() && !submitting && !step1Waiting && (
           <div className="pointer-events-none absolute bottom-full right-0 mb-3 hidden w-max max-w-[280px] rounded-lg bg-humana-ink px-4 py-3 shadow-lg group-hover/next:block animate-fade-in-up">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-humana-gold mb-1.5">
               {h.completeFields}

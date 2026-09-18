@@ -19,6 +19,9 @@ export type DocumentUploadProps = {
   /** Stored document URL, or "" when none was uploaded. */
   value: string;
   onChange: (url: string) => void;
+  /** Mirrors the in-flight state outward so the screen that owns the Save
+   *  button can hold it until the document has actually been stored. */
+  onUploadingChange?: (uploading: boolean) => void;
 };
 
 const ACCEPT = ".pdf,.jpg,.jpeg,.png,.webp";
@@ -33,7 +36,7 @@ export function documentFileName(url: string): string {
   }
 }
 
-export function DocumentUpload({ value, onChange }: DocumentUploadProps) {
+export function DocumentUpload({ value, onChange, onUploadingChange }: DocumentUploadProps) {
   const { t } = useLocale();
   const h = t.onboarding.hotel;
   const [uploading, setUploading] = useState(false);
@@ -42,6 +45,7 @@ export function DocumentUpload({ value, onChange }: DocumentUploadProps) {
 
   async function handleFile(file: File) {
     setUploading(true);
+    onUploadingChange?.(true);
     setUploadError(null);
     setUploadDetail(null);
     try {
@@ -58,7 +62,10 @@ export function DocumentUpload({ value, onChange }: DocumentUploadProps) {
       );
       setUploadDetail(err instanceof DocumentUploadError ? (err.detail ?? null) : null);
     } finally {
+      // Runs on the rejected file and the failed upload too, so a failure
+      // never leaves the Save button held down.
       setUploading(false);
+      onUploadingChange?.(false);
     }
   }
 

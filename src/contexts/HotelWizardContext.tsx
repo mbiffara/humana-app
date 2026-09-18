@@ -162,6 +162,12 @@ export const MAX_ROOM_PHOTOS = 8;
 type HotelWizardContextValue = {
   state: HotelWizardState;
   set: (patch: Partial<HotelWizardState>) => void;
+  /** Functional update of the verification block. The document upload resolves
+   *  long after the file was picked, so a patch built from a snapshot would
+   *  overwrite whatever was typed while it was in flight. */
+  patchVerification: (
+    update: (prev: OrgVerificationUpdate) => OrgVerificationUpdate,
+  ) => void;
   reset: () => void;
   addRoomType: (room: Omit<RoomTypeEntry, "id" | "photos" | "availability">) => void;
   updateRoomType: (id: string, room: Partial<RoomTypeEntry>) => void;
@@ -197,6 +203,10 @@ type HotelWizardContextValue = {
    *  would clear the stored legal identity; "loading" is neither yet, and the
    *  step waits rather than reporting a failure that has not happened. */
   verificationStatus: "loading" | "loaded" | "failed";
+  /** Ownership document upload in flight — step 1 cannot be saved until it
+   *  settles, or the step would persist the URL the document replaces. */
+  documentUploading: boolean;
+  setDocumentUploading: (v: boolean) => void;
   videoTouched: boolean;
   markVideoTouched: () => void;
   hideBottomBar: boolean;
@@ -240,6 +250,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [commonSpacesLoaded, setCommonSpacesLoaded] = useState(false);
   const [verificationStatus, setVerificationStatus] =
     useState<HotelWizardContextValue["verificationStatus"]>("loading");
+  const [documentUploading, setDocumentUploading] = useState(false);
   const [videoTouched, setVideoTouched] = useState(false);
   const apiLoaded = useRef(false);
   const { user } = useAuth();
@@ -443,6 +454,13 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, ...patch }));
   }, []);
 
+  const patchVerification = useCallback(
+    (update: (prev: OrgVerificationUpdate) => OrgVerificationUpdate) => {
+      setState((prev) => ({ ...prev, verification: update(prev.verification) }));
+    },
+    [],
+  );
+
   const reset = useCallback(() => setState(initial), []);
 
   const markVideoTouched = useCallback(() => setVideoTouched(true), []);
@@ -624,6 +642,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
       value={{
         state,
         set,
+        patchVerification,
         reset,
         addRoomType,
         updateRoomType,
@@ -648,6 +667,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         profileLoaded,
         commonSpacesLoaded,
         verificationStatus,
+        documentUploading,
+        setDocumentUploading,
         videoTouched,
         markVideoTouched,
         hideBottomBar,

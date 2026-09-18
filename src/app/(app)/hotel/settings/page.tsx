@@ -346,6 +346,9 @@ export default function HotelSettingsPage() {
   // Verification (the organization's legal identity)
   const [verification, setVerification] = useState<OrgVerificationUpdate>(emptyVerification);
   const [verificationError, setVerificationError] = useState<string | null>(null);
+  // Ownership document upload in flight — saving now would store the URL the
+  // document is about to replace.
+  const [documentUploading, setDocumentUploading] = useState(false);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -1079,6 +1082,7 @@ export default function HotelSettingsPage() {
                 <VerificationForm
                   value={verification}
                   onChange={setVerification}
+                  onUploadingChange={setDocumentUploading}
                   variant="settings"
                 />
               </div>
@@ -1096,6 +1100,7 @@ export default function HotelSettingsPage() {
                   disabled={
                     propertySaving ||
                     uploadingPhotos ||
+                    documentUploading ||
                     (videoUrl.trim().length > 0 && videoEmbed(videoUrl) === null) ||
                     groupRangeInvalid(propertyForm) ||
                     (propertyForm.propertyType === "other" &&
@@ -1103,7 +1108,11 @@ export default function HotelSettingsPage() {
                   }
                   className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {propertySaving ? ts.profile.saving : ts.profile.save}
+                  {propertySaving
+                    ? ts.profile.saving
+                    : documentUploading
+                      ? t.common.loading
+                      : ts.profile.save}
                 </button>
               </div>
             </div>

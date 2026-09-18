@@ -26,7 +26,7 @@ const INPUT =
 const LABEL = "text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-muted";
 
 export default function HotelWizardStep1() {
-  const { state, set } = useHotelWizard();
+  const { state, set, patchVerification, setDocumentUploading } = useHotelWizard();
   const { t } = useLocale();
   const h = t.onboarding.hotel;
   const p = t.propertyForm;
@@ -218,7 +218,8 @@ export default function HotelWizardStep1() {
         <div className="mt-10 border-t border-humana-line pt-8">
           <VerificationForm
             value={state.verification}
-            onChange={(verification) => set({ verification })}
+            onChange={patchVerification}
+            onUploadingChange={setDocumentUploading}
           />
         </div>
       </div>
