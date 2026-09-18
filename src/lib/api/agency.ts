@@ -49,6 +49,8 @@ export interface PublicHotelFull extends PublicHotel, PropertyProfileFields {
   /** The gallery cover — the image flagged `is_cover`, else the first one. */
   cover_image_url: string | null;
   description: string | null;
+  /** "What makes your property special" — absent on an older API. */
+  highlight?: string | null;
   address: string | null;
   postal_code: string | null;
   phone: string | null;

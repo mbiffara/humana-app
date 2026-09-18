@@ -61,3 +61,55 @@ export async function uploadImage(file: File): Promise<string> {
     return localUrl;
   }
 }
+
+const DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+
+/** Why a document could not be stored. The caller maps the kind to its own
+ *  translated copy — "wrong file" and "upload failed" are different problems. */
+export type DocumentUploadErrorKind = "type" | "size" | "upload";
+
+export class DocumentUploadError extends Error {
+  constructor(public kind: DocumentUploadErrorKind, message: string) {
+    super(message);
+    this.name = "DocumentUploadError";
+  }
+}
+
+/**
+ * Uploads a supporting document (ownership deed, commercial registration…).
+ * Unlike `uploadImage` there is no local fallback: a document only counts once
+ * the server holds it, so a failure throws instead of returning a blob URL.
+ */
+export async function uploadDocument(file: File): Promise<string> {
+  if (!DOCUMENT_TYPES.includes(file.type)) {
+    throw new DocumentUploadError("type", "Unsupported document type");
+  }
+  if (file.size > MAX_SIZE) {
+    throw new DocumentUploadError("size", "Document too large");
+  }
+
+  const token = tokenStore.get();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/uploads?kind=document`, {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+  } catch {
+    throw new DocumentUploadError("upload", "Upload failed");
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new DocumentUploadError("upload", body.error || `Upload failed (${res.status})`);
+  }
+
+  const data = await res.json();
+  return data.url as string;
+}

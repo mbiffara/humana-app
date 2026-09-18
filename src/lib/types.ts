@@ -2,7 +2,37 @@
 
 import type { PropertyProfileFields } from "@/lib/property-catalog";
 
-export interface Organization {
+/** The social networks the verification block collects. */
+export type SocialLinkKey =
+  | "instagram"
+  | "facebook"
+  | "linkedin"
+  | "tiktok"
+  | "youtube"
+  | "other";
+
+/** Profile URLs keyed by network — an empty object when none were filled in. */
+export type SocialLinks = Partial<Record<SocialLinkKey, string>>;
+
+/** Legal identity of the organization behind a property. Every field is
+ *  optional: an API that predates the verification block omits them all. */
+export interface OrgVerificationFields {
+  legal_name?: string | null;
+  business_name?: string | null;
+  tax_id?: string | null;
+  primary_contact?: string | null;
+  primary_contact_role?: string | null;
+  commercial_registration?: string | null;
+  phone?: string | null;
+  contact_email?: string | null;
+  website?: string | null;
+  ownership_document_url?: string | null;
+  social_links?: SocialLinks | null;
+  /** ISO timestamp of the authorization declaration, or null when not accepted. */
+  authorization_declared_at?: string | null;
+}
+
+export interface Organization extends OrgVerificationFields {
   id: number;
   name: string;
   kind: "hotel" | "agency" | "admin" | "office";
@@ -287,6 +317,8 @@ export interface AdminHotelPreview extends PropertyProfileFields {
   certified: boolean;
   wellness_standard: string | null;
   description: string | null;
+  /** "What makes your property special" — absent on an older API. */
+  highlight?: string | null;
   address: string | null;
   postal_code: string | null;
   phone: string | null;
