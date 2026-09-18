@@ -1749,6 +1749,9 @@ type Dictionary = {
       documentTypeError: string;
       documentSizeError: string;
       documentUploadError: string;
+      documentLinkError: string;
+      openingDocument: string;
+      profileNotLoaded: string;
       declarationLabel: string;
       declarationRequired: string;
       declarationAccepted: string;
@@ -4115,6 +4118,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         documentTypeError: "Unsupported file. Upload a PDF, JPG, PNG or WebP.",
         documentSizeError: "File too large. Maximum size is 10 MB.",
         documentUploadError: "The document could not be uploaded. Please try again.",
+        documentLinkError: "The document could not be opened. Please try again.",
+        openingDocument: "Opening\u2026",
+        profileNotLoaded: "We could not load your verification details. Reload the page and try again.",
         declarationLabel: "I declare that I am authorised to register this property on HUMANA",
         declarationRequired: "You must accept the authorisation declaration to continue.",
         declarationAccepted: "Declaration accepted",
@@ -6463,6 +6469,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         documentTypeError: "Archivo no admitido. Sub\u00ED un PDF, JPG, PNG o WebP.",
         documentSizeError: "El archivo es demasiado grande. El m\u00E1ximo es 10 MB.",
         documentUploadError: "No se pudo subir el documento. Intentalo de nuevo.",
+        documentLinkError: "No se pudo abrir el documento. Intentalo de nuevo.",
+        openingDocument: "Abriendo\u2026",
+        profileNotLoaded: "No pudimos cargar tus datos de verificaci\u00F3n. Recarg\u00E1 la p\u00E1gina e intent\u00E1 de nuevo.",
         declarationLabel: "Declaro que tengo autorizaci\u00F3n para registrar esta propiedad en HUMANA",
         declarationRequired: "Ten\u00E9s que aceptar la declaraci\u00F3n de autorizaci\u00F3n para continuar.",
         declarationAccepted: "Declaraci\u00F3n aceptada",
@@ -8812,6 +8821,9 @@ export const dictionary: Record<Locale, Dictionary> = {
         documentTypeError: "Arquivo n\u00E3o suportado. Envie um PDF, JPG, PNG ou WebP.",
         documentSizeError: "Arquivo muito grande. O m\u00E1ximo \u00E9 10 MB.",
         documentUploadError: "N\u00E3o foi poss\u00EDvel enviar o documento. Tente novamente.",
+        documentLinkError: "N\u00E3o foi poss\u00EDvel abrir o documento. Tente novamente.",
+        openingDocument: "Abrindo\u2026",
+        profileNotLoaded: "N\u00E3o conseguimos carregar seus dados de verifica\u00E7\u00E3o. Recarregue a p\u00E1gina e tente novamente.",
         declarationLabel: "Declaro que tenho autoriza\u00E7\u00E3o para registrar esta propriedade na HUMANA",
         declarationRequired: "Voc\u00EA precisa aceitar a declara\u00E7\u00E3o de autoriza\u00E7\u00E3o para continuar.",
         declarationAccepted: "Declara\u00E7\u00E3o aceita",

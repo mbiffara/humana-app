@@ -5,18 +5,20 @@
  * once the server holds it, so unlike the image uploads there is no local
  * preview fallback — a rejected file and a failed upload say different things
  * and the rest of the form is left untouched either way.
+ *
+ * What is stored is a private API URL that cannot be opened directly, so
+ * reading the file goes through a short-lived signed link.
  */
 
 import { useState } from "react";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { DocumentUploadError, uploadDocument } from "@/lib/upload";
+import { OpenDocumentButton } from "@/components/hotel/OpenDocumentButton";
 
 export type DocumentUploadProps = {
   /** Stored document URL, or "" when none was uploaded. */
   value: string;
   onChange: (url: string) => void;
-  /** Error owned by the parent (e.g. a 422 on the field). */
-  error?: string;
 };
 
 const ACCEPT = ".pdf,.jpg,.jpeg,.png,.webp";
@@ -31,32 +33,34 @@ export function documentFileName(url: string): string {
   }
 }
 
-export function DocumentUpload({ value, onChange, error }: DocumentUploadProps) {
+export function DocumentUpload({ value, onChange }: DocumentUploadProps) {
   const { t } = useLocale();
   const h = t.onboarding.hotel;
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadDetail, setUploadDetail] = useState<string | null>(null);
 
   async function handleFile(file: File) {
     setUploading(true);
     setUploadError(null);
+    setUploadDetail(null);
     try {
       const url = await uploadDocument(file);
       onChange(url);
     } catch (err) {
+      const kind = err instanceof DocumentUploadError ? err.kind : "upload";
       setUploadError(
-        err instanceof DocumentUploadError && err.kind === "type"
+        kind === "type"
           ? h.documentTypeError
-          : err instanceof DocumentUploadError && err.kind === "size"
+          : kind === "size"
             ? h.documentSizeError
             : h.documentUploadError,
       );
+      setUploadDetail(err instanceof DocumentUploadError ? (err.detail ?? null) : null);
     } finally {
       setUploading(false);
     }
   }
-
-  const shownError = uploadError ?? error;
 
   return (
     <div className="flex flex-col gap-2">
@@ -66,18 +70,15 @@ export function DocumentUpload({ value, onChange, error }: DocumentUploadProps) 
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
           </svg>
-          <a
-            href={value}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="min-w-0 flex-1 truncate text-[14px] text-humana-ink underline underline-offset-2 transition-colors hover:text-humana-gold"
-          >
+          <span className="min-w-0 flex-1 truncate text-[14px] text-humana-ink">
             {documentFileName(value)}
-          </a>
+          </span>
+          <OpenDocumentButton url={value} />
           <button
             type="button"
             onClick={() => {
               setUploadError(null);
+              setUploadDetail(null);
               onChange("");
             }}
             className="cursor-pointer shrink-0 text-[12px] font-semibold uppercase tracking-[0.18em] text-humana-muted transition-colors hover:text-humana-ink"
@@ -114,7 +115,12 @@ export function DocumentUpload({ value, onChange, error }: DocumentUploadProps) 
           />
         </label>
       )}
-      {shownError && <p className="text-[12px] text-red-600">{shownError}</p>}
+      {uploadError && (
+        <div className="text-[12px] text-red-600">
+          <p>{uploadError}</p>
+          {uploadDetail && <p className="mt-0.5 text-humana-subtle">{uploadDetail}</p>}
+        </div>
+      )}
     </div>
   );
 }

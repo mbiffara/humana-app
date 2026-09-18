@@ -69,10 +69,25 @@ const DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/web
 export type DocumentUploadErrorKind = "type" | "size" | "upload";
 
 export class DocumentUploadError extends Error {
-  constructor(public kind: DocumentUploadErrorKind, message: string) {
+  constructor(
+    public kind: DocumentUploadErrorKind,
+    message: string,
+    /** The server's own wording, when it sent one worth showing. */
+    public detail?: string,
+  ) {
     super(message);
     this.name = "DocumentUploadError";
   }
+}
+
+/** The API validates the file again server-side; map its answer back onto the
+ *  same three kinds the client-side checks use, so the form says "wrong file"
+ *  where it is a wrong file and "try again" only where it really is a failure. */
+function kindForServerError(message: string): DocumentUploadErrorKind {
+  const text = message.toLowerCase();
+  if (text.includes("file type")) return "type";
+  if (text.includes("too large")) return "size";
+  return "upload";
 }
 
 /**
@@ -107,7 +122,12 @@ export async function uploadDocument(file: File): Promise<string> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new DocumentUploadError("upload", body.error || `Upload failed (${res.status})`);
+    const serverMessage: string = body.error || `Upload failed (${res.status})`;
+    throw new DocumentUploadError(
+      kindForServerError(serverMessage),
+      serverMessage,
+      body.error ? serverMessage : undefined,
+    );
   }
 
   const data = await res.json();

@@ -28,18 +28,12 @@ const SOCIAL_FIELDS: { key: SocialLinkKey; label: string | null }[] = [
 export type VerificationFormProps = {
   value: OrgVerificationUpdate;
   onChange: (next: OrgVerificationUpdate) => void;
-  /** Message from a rejected save — shown above the declaration. */
-  error?: string | null;
-  /** Highlights the declaration when the save was blocked by it. */
-  showDeclarationError?: boolean;
   variant?: PropertyFormVariant;
 };
 
 export function VerificationForm({
   value,
   onChange,
-  error,
-  showDeclarationError,
   variant = "wizard",
 }: VerificationFormProps) {
   const { t } = useLocale();
@@ -150,8 +144,6 @@ export function VerificationForm({
         />
       </div>
 
-      {error && <p className="text-[13px] text-red-600">{error}</p>}
-
       {/* Authorisation declaration */}
       <label className="mt-2 flex cursor-pointer items-start gap-3">
         <input
@@ -160,13 +152,7 @@ export function VerificationForm({
           onChange={(e) => setField("authorization_declared", e.target.checked)}
           className="mt-0.5 h-[16px] w-[16px] shrink-0 cursor-pointer rounded border-humana-line accent-humana-ink"
         />
-        <span
-          className={`text-[13px] leading-[18px] ${
-            showDeclarationError && !value.authorization_declared
-              ? "text-red-600"
-              : "text-humana-muted"
-          }`}
-        >
+        <span className="text-[13px] leading-[18px] text-humana-muted">
           {h.declarationLabel}
         </span>
       </label>
