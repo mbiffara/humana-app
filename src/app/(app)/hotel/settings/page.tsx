@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, apiErrorMessage } from "@/lib/api";
-import { hotelApi, type HotelProfile, type OrgProfile } from "@/lib/api/hotel";
+import { hotelApi, type HotelProfile, type OrgProfile, type OrgVerificationUpdate } from "@/lib/api/hotel";
 import { uploadImage } from "@/lib/upload";
 import PlacesAutocomplete, { type PlaceResult } from "@/components/PlacesAutocomplete";
 import {
@@ -36,12 +36,18 @@ import {
   type ImageCategory,
   type PhotoEntry,
 } from "@/lib/property-catalog";
+import { CharCountTextarea } from "@/components/hotel/CharCountTextarea";
 import { LogoUpload } from "@/components/hotel/LogoUpload";
+import { VerificationForm } from "@/components/hotel/VerificationForm";
+import { emptyVerification, verificationFromOrg } from "@/contexts/HotelWizardContext";
 import { PhotoGrid } from "@/components/hotel/PhotoGrid";
 import { VideoField } from "@/components/hotel/VideoField";
 import type { SubscriptionPlan, Subscription } from "@/lib/types";
 
 type SettingsTab = "profile" | "property" | "account" | "subscription" | "payments";
+
+/** Cap agreed with Humana for the "what makes it special" copy. */
+const HIGHLIGHT_MAX = 500;
 
 const SIDEBAR_TABS: { key: SettingsTab; icon: React.ReactNode }[] = [
   {
@@ -282,6 +288,7 @@ export default function HotelSettingsPage() {
   const { t } = useLocale();
   const { user, logout, refreshAuth } = useAuth();
   const ts = t.hotelWs.settings;
+  const ht = t.onboarding.hotel;
   const searchParams = useSearchParams();
 
   const initialTab = (searchParams.get("tab") as SettingsTab) || "profile";
@@ -303,6 +310,7 @@ export default function HotelSettingsPage() {
 
   // Property form — the contract fields shared with the onboarding wizard
   const [description, setDescription] = useState("");
+  const [highlight, setHighlight] = useState("");
   const [propertyForm, setPropertyForm] = useState<PropertyFormValues>(EMPTY_PROPERTY_FORM);
   const [propertyError, setPropertyError] = useState<string | null>(null);
   const [amenityIds, setAmenityIds] = useState<string[]>([]);
@@ -335,6 +343,11 @@ export default function HotelSettingsPage() {
   const [bankStatus, setBankStatus] = useState("pending");
   const [bankSaving, setBankSaving] = useState(false);
 
+  // Verification (the organization's legal identity)
+  const [verification, setVerification] = useState<OrgVerificationUpdate>(emptyVerification);
+  const [verificationSaving, setVerificationSaving] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+
   const loadProfile = useCallback(async () => {
     setLoading(true);
     try {
@@ -351,6 +364,7 @@ export default function HotelSettingsPage() {
         setLogoUrl(h.logo_url ?? null);
         // Property tab
         setDescription(h.description ?? "");
+        setHighlight(h.highlight ?? "");
         setPropertyForm(propertyFormFromProfile(h));
         const ids: string[] = [];
         const custom: string[] = [];
@@ -381,6 +395,7 @@ export default function HotelSettingsPage() {
         setBankCurrency(org.bank_currency ?? "USD");
         setBankCountry(org.bank_country ?? "");
         setBankStatus(org.bank_status ?? "pending");
+        setVerification(verificationFromOrg(org));
       }
     } catch {
       // Without the profile every field would look empty and Save would wipe it.
@@ -500,6 +515,7 @@ export default function HotelSettingsPage() {
       // must not leave the photos already swapped.
       await hotelApi.updateProfile({
         description,
+        highlight: highlight.trim(),
         video_url: videoUrl.trim(),
         ...propertyFormPayload(propertyForm),
       });
@@ -620,6 +636,23 @@ export default function HotelSettingsPage() {
       // ignore
     } finally {
       setCancelling(false);
+    }
+  }
+
+  async function saveVerification() {
+    setVerificationSaving(true);
+    setVerificationError(null);
+    try {
+      const res = await hotelApi.updateVerification(verification);
+      // Mirror what the API stored, so the declaration timestamp and any value
+      // the server normalised win over what was typed.
+      setOrgProfile(res.organization);
+      setVerification(verificationFromOrg(res.organization));
+      showSaved();
+    } catch (err) {
+      setVerificationError(apiErrorMessage(err, ts.profile.save));
+    } finally {
+      setVerificationSaving(false);
     }
   }
 
@@ -840,6 +873,20 @@ export default function HotelSettingsPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
                   className="w-full resize-y border border-humana-line px-3.5 py-2.5 text-[14px] leading-relaxed text-humana-ink outline-none transition-colors placeholder:text-humana-subtle/50 focus:border-humana-gold"
+                />
+              </div>
+
+              {/* What makes the property special */}
+              <div className="mt-6">
+                <CharCountTextarea
+                  id="settings-highlight"
+                  label={ht.highlightLabel}
+                  value={highlight}
+                  onChange={setHighlight}
+                  max={HIGHLIGHT_MAX}
+                  hint={ht.highlightHint}
+                  placeholder={ht.highlightPlaceholder}
+                  variant="settings"
                 />
               </div>
 
@@ -1280,6 +1327,27 @@ export default function HotelSettingsPage() {
           )}
 
           {/* ─── Payments tab ─── */}
+          {/* ─── Verification (legal identity of the organization) ─── */}
+          {tab === "property" && (
+            <div className="border border-humana-line bg-white p-7 animate-fade-in-up">
+              <VerificationForm
+                value={verification}
+                onChange={setVerification}
+                error={verificationError}
+                variant="settings"
+              />
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={saveVerification}
+                  disabled={verificationSaving}
+                  className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+                >
+                  {verificationSaving ? ts.payments.saving : ts.payments.save}
+                </button>
+              </div>
+            </div>
+          )}
+
           {tab === "payments" && (
             <div className="border border-humana-line bg-white p-7 animate-fade-in-up">
               <div className="flex items-center justify-between">
