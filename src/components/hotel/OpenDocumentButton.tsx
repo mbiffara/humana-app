@@ -25,12 +25,21 @@ export function OpenDocumentButton({ url, className }: OpenDocumentButtonProps) 
   const [error, setError] = useState<string | null>(null);
 
   async function handleOpen() {
+    // Safari only lets a click open a tab synchronously, so the tab is claimed
+    // here and pointed at the signed link once it arrives. The destination is
+    // the API's own origin (it redirects to storage), so no noopener.
+    const tab = window.open("about:blank", "_blank");
+    if (!tab) {
+      setError(h.documentLinkError);
+      return;
+    }
     setOpening(true);
     setError(null);
     try {
       const res = await documentsApi.link(url);
-      window.open(res.url, "_blank", "noopener");
+      tab.location.href = res.url;
     } catch (err) {
+      tab.close();
       setError(apiErrorMessage(err, h.documentLinkError));
     } finally {
       setOpening(false);
