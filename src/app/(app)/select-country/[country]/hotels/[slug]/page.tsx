@@ -476,6 +476,14 @@ export default function HotelDetailPage({ params }: { params: Promise<{ country:
           {hotel.description && (
             <p className="max-w-[960px] text-[15px] leading-[24px] text-humana-muted">{hotel.description}</p>
           )}
+          {hotel.highlight && (
+            <div className="mt-2 flex max-w-[960px] flex-col gap-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-humana-gold">
+                {t.hotelDetail.highlightTitle}
+              </span>
+              <p className="text-[15px] leading-[24px] text-humana-muted">{hotel.highlight}</p>
+            </div>
+          )}
         </div>
 
         {/* Gallery by category — only the sections the hotel actually filled */}
