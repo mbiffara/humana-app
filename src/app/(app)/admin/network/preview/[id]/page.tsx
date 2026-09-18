@@ -8,6 +8,7 @@ import { useLocale } from "@/i18n/LocaleProvider";
 import { adminApi } from "@/lib/api/admin";
 import type { AdminHotelPreview, AdminRoomType, AdminRoomImage, AdminCommonSpace, Organization, User } from "@/lib/types";
 import { formatCheckTime } from "@/components/TimePicker";
+import { OpenDocumentButton } from "@/components/hotel/OpenDocumentButton";
 import { googleMapsUrl, groupImagesByCategory, instagramUrl, videoEmbed } from "@/lib/property-catalog";
 import {
   airportTransferSummary,
@@ -475,16 +476,7 @@ export default function HotelPreviewPage({ params }: { params: Promise<{ id: str
               {org?.ownership_document_url && (
                 <PreviewRow
                   label={oh.ownershipDocumentLabel}
-                  value={
-                    <a
-                      href={org.ownership_document_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-humana-gold hover:underline"
-                    >
-                      {oh.viewDocument}
-                    </a>
-                  }
+                  value={<OpenDocumentButton url={org.ownership_document_url} />}
                 />
               )}
               <PreviewRow

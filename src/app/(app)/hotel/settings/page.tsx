@@ -345,7 +345,6 @@ export default function HotelSettingsPage() {
 
   // Verification (the organization's legal identity)
   const [verification, setVerification] = useState<OrgVerificationUpdate>(emptyVerification);
-  const [verificationSaving, setVerificationSaving] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
 
   const loadProfile = useCallback(async () => {
@@ -500,6 +499,7 @@ export default function HotelSettingsPage() {
   async function saveProperty() {
     setPropertySaving(true);
     setPropertyError(null);
+    setVerificationError(null);
     try {
       const allAmenities = [
         ...amenityIds.map((id) => {
@@ -519,6 +519,20 @@ export default function HotelSettingsPage() {
         video_url: videoUrl.trim(),
         ...propertyFormPayload(propertyForm),
       });
+      // The legal identity is its own PATCH but part of the same save. Its
+      // rejection is reported on its own line — the property fields above it
+      // are already stored, and saying so under the property block would point
+      // at the wrong inputs.
+      try {
+        const verified = await hotelApi.updateVerification(verification);
+        setOrgProfile(verified.organization);
+        // Mirror what the API stored, so the declaration timestamp and any
+        // value the server normalised win over what was typed.
+        setVerification(verificationFromOrg(verified.organization));
+      } catch (err) {
+        setVerificationError(apiErrorMessage(err, ts.profile.save));
+        return;
+      }
       await Promise.all([
         hotelApi.batchAmenities(allAmenities),
         // Replace-all gallery: the first entry is the cover.
@@ -636,23 +650,6 @@ export default function HotelSettingsPage() {
       // ignore
     } finally {
       setCancelling(false);
-    }
-  }
-
-  async function saveVerification() {
-    setVerificationSaving(true);
-    setVerificationError(null);
-    try {
-      const res = await hotelApi.updateVerification(verification);
-      // Mirror what the API stored, so the declaration timestamp and any value
-      // the server normalised win over what was typed.
-      setOrgProfile(res.organization);
-      setVerification(verificationFromOrg(res.organization));
-      showSaved();
-    } catch (err) {
-      setVerificationError(apiErrorMessage(err, ts.profile.save));
-    } finally {
-      setVerificationSaving(false);
     }
   }
 
@@ -1077,10 +1074,22 @@ export default function HotelSettingsPage() {
                 </div>
               </div>
 
-              {/* Save */}
-              <div className="mt-8 flex items-center justify-end gap-4">
+              {/* Verification — the legal identity of the organization */}
+              <div className="mt-8 border-t border-humana-line pt-6">
+                <VerificationForm
+                  value={verification}
+                  onChange={setVerification}
+                  variant="settings"
+                />
+              </div>
+
+              {/* Save — one button for the whole tab, verification included */}
+              <div className="mt-8 flex flex-col items-end gap-2">
                 {propertyError && (
-                  <p className="flex-1 text-[13px] text-red-600">{propertyError}</p>
+                  <p className="w-full text-[13px] text-red-600">{propertyError}</p>
+                )}
+                {verificationError && (
+                  <p className="w-full text-[13px] text-red-600">{verificationError}</p>
                 )}
                 <button
                   onClick={saveProperty}
@@ -1327,27 +1336,6 @@ export default function HotelSettingsPage() {
           )}
 
           {/* ─── Payments tab ─── */}
-          {/* ─── Verification (legal identity of the organization) ─── */}
-          {tab === "property" && (
-            <div className="border border-humana-line bg-white p-7 animate-fade-in-up">
-              <VerificationForm
-                value={verification}
-                onChange={setVerification}
-                error={verificationError}
-                variant="settings"
-              />
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={saveVerification}
-                  disabled={verificationSaving}
-                  className="cursor-pointer bg-humana-ink px-6 py-2.5 text-[13px] font-semibold uppercase tracking-[0.22em] text-white transition-opacity hover:opacity-85 disabled:opacity-40"
-                >
-                  {verificationSaving ? ts.payments.saving : ts.payments.save}
-                </button>
-              </div>
-            </div>
-          )}
-
           {tab === "payments" && (
             <div className="border border-humana-line bg-white p-7 animate-fade-in-up">
               <div className="flex items-center justify-between">
