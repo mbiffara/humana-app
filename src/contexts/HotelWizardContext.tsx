@@ -191,10 +191,12 @@ type HotelWizardContextValue = {
    *  saved, which is what makes reconciling deletions safe. A failed fetch
    *  leaves it false and the save then only creates and updates. */
   commonSpacesLoaded: boolean;
-  /** True once the profile fetch resolved, so the verification block mirrors
-   *  what the organization holds. A failed fetch leaves it false and step 1
-   *  then saves the hotel without writing (and clearing) the legal identity. */
-  verificationLoaded: boolean;
+  /** Where the profile fetch stands, and with it the verification block.
+   *  "loaded" means the state mirrors what the organization holds and step 1
+   *  may write it back; "failed" means step 1 must not, since the blank form
+   *  would clear the stored legal identity; "loading" is neither yet, and the
+   *  step waits rather than reporting a failure that has not happened. */
+  verificationStatus: "loading" | "loaded" | "failed";
   videoTouched: boolean;
   markVideoTouched: () => void;
   hideBottomBar: boolean;
@@ -236,7 +238,8 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [commonSpacesLoaded, setCommonSpacesLoaded] = useState(false);
-  const [verificationLoaded, setVerificationLoaded] = useState(false);
+  const [verificationStatus, setVerificationStatus] =
+    useState<HotelWizardContextValue["verificationStatus"]>("loading");
   const [videoTouched, setVideoTouched] = useState(false);
   const apiLoaded = useRef(false);
   const { user } = useAuth();
@@ -328,7 +331,11 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         if (res.organization) {
           const verification = verificationFromOrg(res.organization);
           setState((prev) => ({ ...prev, verification }));
-          setVerificationLoaded(true);
+          setVerificationStatus("loaded");
+        } else {
+          // An answer without an organization is not a saved block we can
+          // safely overwrite either.
+          setVerificationStatus("failed");
         }
 
         // No hotel saved yet — keep whatever the session had
@@ -419,6 +426,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         setProfileLoaded(true);
       }).catch(() => {
         // API unavailable — continue with session state
+        setVerificationStatus("failed");
       });
     }
 
@@ -639,7 +647,7 @@ export function HotelWizardProvider({ children }: { children: ReactNode }) {
         setPhotoCover,
         profileLoaded,
         commonSpacesLoaded,
-        verificationLoaded,
+        verificationStatus,
         videoTouched,
         markVideoTouched,
         hideBottomBar,

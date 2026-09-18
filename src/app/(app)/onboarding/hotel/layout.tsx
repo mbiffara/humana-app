@@ -102,7 +102,7 @@ function BottomBar() {
     state,
     updateCommonSpace,
     commonSpacesLoaded,
-    verificationLoaded,
+    verificationStatus,
     hideBottomBar,
     isUploading,
     isUploadingLogo,
@@ -122,6 +122,9 @@ function BottomBar() {
   const activeIndex = currentStepIndex >= 0 ? currentStepIndex : 0;
   const isLastStep = activeIndex === STEP_PATHS.length - 1;
   const isFirstStep = activeIndex === 0;
+  // Step 1 writes the verification block, so it waits for the saved copy
+  // rather than letting an early click look like a failure.
+  const waitingForProfile = activeIndex === 0 && verificationStatus === "loading";
 
   // Hide bottom bar on under-review page or when step sub-views have own nav
   if (pathname.includes("under-review")) return null;
@@ -334,7 +337,7 @@ function BottomBar() {
     // Saving step 1 writes the whole verification block, empty fields
     // included. Without the saved copy to compare against, a blank form would
     // clear the stored legal identity — so the step stops instead of guessing.
-    if (activeIndex === 0 && !verificationLoaded) {
+    if (activeIndex === 0 && verificationStatus === "failed") {
       setSaveError(t.onboarding.hotel.profileNotLoaded);
       return;
     }
@@ -539,11 +542,13 @@ function BottomBar() {
         <button
           type="button"
           onClick={handleNext}
-          disabled={!canProceed() || submitting}
+          disabled={!canProceed() || submitting || waitingForProfile}
           className="cursor-pointer flex items-center gap-2 px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.22em] bg-humana-ink text-white hover:bg-black transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {submitting ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          ) : waitingForProfile ? (
+            t.common.loading
           ) : isLastStep ? (alreadySubmitted ? h.publishChangesCta : h.submitForReviewCta) : t.onboarding.next}
           <svg
             width="16"
@@ -559,7 +564,7 @@ function BottomBar() {
             <polyline points="12 5 19 12 12 19" />
           </svg>
         </button>
-        {!canProceed() && !submitting && (
+        {!canProceed() && !submitting && !waitingForProfile && (
           <div className="pointer-events-none absolute bottom-full right-0 mb-3 hidden w-max max-w-[280px] rounded-lg bg-humana-ink px-4 py-3 shadow-lg group-hover/next:block animate-fade-in-up">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-humana-gold mb-1.5">
               {h.completeFields}
